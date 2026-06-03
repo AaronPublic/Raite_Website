@@ -33,6 +33,7 @@ model Event {
   status      EventStatus   @default(UPCOMING)
   category    String?
   rules       String?
+  rulesPdfUrl String?
   imageUrl    String?
 
   registrations Registration[]

@@ -14,6 +14,7 @@ const competitionSchema = z.object({
   endDate: z.date(),
   capacity: z.number().int().positive().nullable(),
   rules: z.string().optional(),
+  rulesPdfUrl: z.string().optional().nullable(),
   imageUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
   status: z.nativeEnum(EventStatus).default("UPCOMING"),
 });
@@ -36,6 +37,7 @@ export async function createCompetition(data: z.infer<typeof competitionSchema>)
     const dbData = {
       ...validated,
       imageUrl: validated.imageUrl === "" ? null : validated.imageUrl,
+      rulesPdfUrl: validated.rulesPdfUrl === "" ? null : validated.rulesPdfUrl,
     };
 
     await db.event.create({
@@ -49,7 +51,7 @@ export async function createCompetition(data: z.infer<typeof competitionSchema>)
     console.error("Prisma Create Error:", error);
     // If it's a Zod error, return the specific message
     if (error instanceof z.ZodError) {
-      return { error: error.errors[0].message };
+      return { error: error.issues[0].message };
     }
     return { error: error.message || "Failed to create competition" };
   }
@@ -65,6 +67,7 @@ export async function updateCompetition(id: string, data: z.infer<typeof competi
     const dbData = {
       ...validated,
       imageUrl: validated.imageUrl === "" ? null : validated.imageUrl,
+      rulesPdfUrl: validated.rulesPdfUrl === "" ? null : validated.rulesPdfUrl,
     };
 
     await db.event.update({
@@ -79,7 +82,7 @@ export async function updateCompetition(id: string, data: z.infer<typeof competi
   } catch (error: any) {
     console.error("Prisma Update Error:", error);
     if (error instanceof z.ZodError) {
-      return { error: error.errors[0].message };
+      return { error: error.issues[0].message };
     }
     return { error: error.message || "Failed to update competition" };
   }

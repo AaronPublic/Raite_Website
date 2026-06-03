@@ -11,7 +11,7 @@ const registrationSchema = z.object({
   eventId: z.string().min(1),
   teamName: z.string().optional(),
   members: z.array(z.string().email()),
-  requirements: z.record(z.string()),
+  requirements: z.record(z.string(), z.string()),
 });
 
 export async function checkRegistrationExists(eventId: string) {
@@ -30,7 +30,7 @@ export async function checkRegistrationExists(eventId: string) {
     },
   });
 
-  return !!existing && existing.status !== "REJECTED" && existing.status !== "CANCELLED";
+  return !!existing && existing.status !== "REJECTED";
 }
 
 export async function isUserInOtherTeam(eventId: string, email: string) {
@@ -39,7 +39,7 @@ export async function isUserInOtherTeam(eventId: string, email: string) {
   const registrations = await db.registration.findMany({
     where: {
       eventId: eventId,
-      status: { notIn: ["REJECTED", "CANCELLED"] },
+      status: { notIn: ["REJECTED"] },
     },
   });
 
@@ -80,7 +80,7 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
         },
       });
 
-      if (existing && existing.status !== "REJECTED" && existing.status !== "CANCELLED") {
+      if (existing && existing.status !== "REJECTED") {
         throw new Error("Already registered for this event");
       }
 
@@ -91,7 +91,7 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
       const currentCount = await tx.registration.count({
         where: { 
           eventId, 
-          status: { notIn: ["REJECTED", "CANCELLED", "WAITLISTED"] } 
+          status: { notIn: ["REJECTED", "WAITLISTED"] } 
         },
       });
 

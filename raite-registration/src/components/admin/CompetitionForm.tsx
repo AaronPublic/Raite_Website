@@ -15,6 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -27,7 +28,8 @@ import { createCompetition, updateCompetition } from "@/app/actions/competitions
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar } from "lucide-react";
+import { Calendar, Upload, FileText, X, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 const competitionSchema = z.object({
   title: z.string().min(2, "Title is required"),
@@ -40,6 +42,7 @@ const competitionSchema = z.object({
     z.coerce.number().int().positive().nullable().optional()
   ),
   rules: z.string().optional(),
+  rulesPdfUrl: z.string().optional().nullable(),
   imageUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
   status: z.nativeEnum(EventStatus).default("UPCOMING"),
 });
@@ -54,6 +57,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm<CompetitionFormValues>({
     resolver: zodResolver(competitionSchema),
@@ -63,6 +67,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
       endDate: new Date(initialData.endDate).toISOString().split('T')[0],
       capacity: initialData.capacity ?? "",
       imageUrl: initialData.imageUrl || "",
+      rulesPdfUrl: initialData.rulesPdfUrl || "",
     } : {
       title: "",
       description: "",
@@ -71,12 +76,50 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
       endDate: "",
       capacity: "",
       rules: "",
+      rulesPdfUrl: "",
       imageUrl: "",
       status: "UPCOMING",
     },
   });
 
   const imageUrl = form.watch("imageUrl");
+  const rulesPdfUrl = form.watch("rulesPdfUrl");
+
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      setError("Please upload a PDF file.");
+      return;
+    }
+
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/upload/rules", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to upload PDF");
+      }
+      
+      form.setValue("rulesPdfUrl", result.url);
+    } catch (err: any) {
+      console.error("PDF upload error:", err);
+      setError(err.message || "Failed to upload PDF. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const onSubmit = async (values: CompetitionFormValues) => {
     setIsSubmitting(true);
@@ -271,25 +314,108 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
         </div>
 
         <Card>
-          <CardContent className="pt-6">
-            <FormField
-              control={form.control}
-              name="rules"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mechanics & Rules</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Enter competition rules and mechanics..." 
-                      className="min-h-[200px]"
-                      {...field} 
+          <CardContent className="pt-6 space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <FormLabel className="text-lg font-bold">Mechanics & Rules (PDF)</FormLabel>
+                  <p className="text-sm text-gray-500">Upload the official guidelines for this competition.</p>
+                </div>
+                {isUploading && (
+                  <Badge variant="outline" className="animate-pulse bg-blue-50 text-blue-600 border-blue-200">
+                    Uploading...
+                  </Badge>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-4">
+                {rulesPdfUrl ? (
+                  <div className="flex items-center justify-between p-6 bg-blue-50/50 border-2 border-blue-100 rounded-2xl shadow-sm transition-all hover:bg-blue-50 hover:border-blue-200">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-blue-600 p-3 rounded-xl text-white shadow-lg shadow-blue-600/20">
+                        <FileText className="w-6 h-6" />
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-sm font-bold text-blue-900 truncate max-w-[200px] md:max-w-md">
+                          {rulesPdfUrl.split('/').pop()}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="w-2 h-2 rounded-full bg-green-500" />
+                          <p className="text-xs font-medium text-blue-600/70">Document successfully linked</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm"
+                        asChild
+                        className="text-blue-600 hover:bg-blue-100"
+                      >
+                        <a href={rulesPdfUrl} target="_blank" rel="noopener noreferrer">View</a>
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-blue-400 hover:text-red-500 hover:bg-red-50"
+                        onClick={() => form.setValue("rulesPdfUrl", "")}
+                      >
+                        <X className="w-5 h-5" />
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative group">
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={handlePdfUpload}
+                      disabled={isUploading}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
                     />
-                  </FormControl>
-                  <FormDescription>Supports plain text and spacing.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-gray-200 rounded-[2rem] bg-gray-50/50 transition-all group-hover:border-blue-300 group-hover:bg-blue-50/30 group-hover:shadow-inner">
+                      {isUploading ? (
+                        <div className="flex flex-col items-center gap-4">
+                          <div className="relative">
+                            <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <Upload className="w-4 h-4 text-blue-400" />
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm font-black text-gray-900">Processing Document...</p>
+                            <p className="text-xs text-gray-500 mt-1">This will only take a moment</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-4 text-center">
+                          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-gray-400 group-hover:text-blue-500 group-hover:scale-110 transition-all">
+                            <Upload className="w-8 h-8" />
+                          </div>
+                          <div>
+                            <p className="text-base font-bold text-gray-700">Click or drag to upload rules PDF</p>
+                            <p className="text-xs text-gray-500 mt-2">PDF files only • Maximum size 10MB</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                <FormField
+                  control={form.control}
+                  name="rulesPdfUrl"
+                  render={({ field }) => (
+                    <FormItem className="hidden">
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
           </CardContent>
         </Card>
 

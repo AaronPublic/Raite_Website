@@ -135,7 +135,7 @@ export default function ProfileCompletePage() {
                 <Label htmlFor="yearLevel" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
                   Classification
                 </Label>
-                <Select onValueChange={(value) => setValue("yearLevel", value)}>
+                <Select onValueChange={(value) => setValue("yearLevel", value as string)}>
                   <SelectTrigger id="yearLevel" className="h-12 rounded-xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-blue-600/20 font-medium">
                     <SelectValue placeholder="Select year level" />
                   </SelectTrigger>

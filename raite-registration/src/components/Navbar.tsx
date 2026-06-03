@@ -44,7 +44,7 @@ export default async function Navbar() {
                 </SignUpButton>
               </div>
             ) : (
-              <UserButton afterSignOutUrl="/" />
+              <UserButton />
             )}
           </div>
         </div>

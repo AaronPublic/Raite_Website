@@ -78,7 +78,7 @@ export default async function AdminLayout({
         <div className="p-8 border-t dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
           <div className="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
             <div className="ring-2 ring-blue-500/20 rounded-full p-0.5">
-              <UserButton afterSignOutUrl="/" />
+              <UserButton />
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-black text-gray-900 dark:text-white truncate">{user.name || "Administrator"}</span>

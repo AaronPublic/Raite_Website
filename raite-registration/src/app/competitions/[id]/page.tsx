@@ -2,7 +2,7 @@ import { getEventById } from "@/lib/data/events";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, Info, BookOpen, ArrowLeft } from "lucide-react";
+import { Calendar, Users, Info, BookOpen, ArrowLeft, FileText, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 
@@ -87,22 +87,32 @@ export default async function CompetitionDetailPage({
           <div className="md:col-span-2 space-y-12">
             <div className="space-y-4">
               <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Info className="w-6 h-6 text-blue-600" />
-                Description
-              </h2>
-              <div className="text-gray-600 leading-relaxed whitespace-pre-wrap">
-                {event.description || "No description provided for this competition."}
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold flex items-center gap-2">
                 <BookOpen className="w-6 h-6 text-blue-600" />
                 Mechanics & Rules
               </h2>
-              <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 text-gray-700 leading-relaxed whitespace-pre-wrap">
-                {event.rules || "The rules for this competition will be announced soon."}
-              </div>
+              <a
+                href={event.rulesPdfUrl || "/assets/mechanics-and-rules.pdf"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block"
+              >
+                <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 text-gray-700 leading-relaxed transition-all hover:bg-blue-100/50 hover:border-blue-200 hover:shadow-md flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-blue-100 p-3 rounded-xl text-blue-600 group-hover:scale-110 transition-transform">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-blue-900 leading-tight">Download / View Mechanics & Rules (PDF)</h3>
+                      <p className="text-sm text-blue-600/70">
+                        {event.rulesPdfUrl 
+                          ? "Click to open the official guidelines for this competition" 
+                          : "Click to open the general guidelines in a new tab"}
+                      </p>
+                    </div>
+                  </div>
+                  <ExternalLink className="w-5 h-5 text-blue-400 group-hover:text-blue-600 transition-colors" />
+                </div>
+              </a>
             </div>
           </div>
 

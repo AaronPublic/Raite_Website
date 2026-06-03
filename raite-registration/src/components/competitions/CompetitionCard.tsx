@@ -17,6 +17,7 @@ interface CompetitionCardProps {
     capacity: number | null;
     status: string;
     imageUrl?: string | null;
+    rulesPdfUrl?: string | null;
   };
   index?: number;
 }

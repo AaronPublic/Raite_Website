@@ -1,0 +1,89 @@
+// prisma/schema.prisma
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  role          Role      @default(PARTICIPANT)
+  clerkId       String    @unique   // from Clerk
+  school        String?
+  course        String?
+  yearLevel     String?
+
+  registrations Registration[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Event {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  capacity    Int?
+  status      EventStatus   @default(UPCOMING)
+  category    String?
+  rules       String?
+  imageUrl    String?
+
+  registrations Registration[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Registration {
+  id                   String             @id @default(cuid())
+  userId               String
+  eventId              String
+  status               RegistrationStatus @default(PENDING)
+  teamName             String?
+  members              Json?              // store team members as JSON
+  requirements         Json?              // file URLs or requirement flags
+  adminComment         String?
+  requirementsVerified Boolean            @default(false)
+
+  user         User               @relation(fields: [userId], references: [id])
+  event        Event              @relation(fields: [eventId], references: [id])
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@unique([userId, eventId])
+}
+
+model Announcement {
+  id         String   @id @default(cuid())
+  title      String
+  content    String
+  pinned     Boolean  @default(false)
+  isArchived Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+enum Role {
+  PARTICIPANT
+  ADMIN
+}
+
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WAITLISTED
+}

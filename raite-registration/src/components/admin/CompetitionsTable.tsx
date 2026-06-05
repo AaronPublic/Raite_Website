@@ -63,7 +63,7 @@ export default function CompetitionsTable({ events }: CompetitionsTableProps) {
             <TableHead className="font-bold">Title</TableHead>
             <TableHead className="font-bold">Category</TableHead>
             <TableHead className="font-bold">Status</TableHead>
-            <TableHead className="font-bold text-center">Capacity</TableHead>
+            <TableHead className="font-bold text-center">Reg. Limit (Team Size)</TableHead>
             <TableHead className="font-bold">Start Date</TableHead>
             <TableHead className="text-right font-bold">Actions</TableHead>
           </TableRow>
@@ -89,7 +89,9 @@ export default function CompetitionsTable({ events }: CompetitionsTableProps) {
                     {event.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-center">{event.capacity || "∞"}</TableCell>
+                <TableCell className="text-center">
+                  {event.maxRegistrations || "∞"} ({event.maxParticipantsPerRegistration})
+                </TableCell>
                 <TableCell className="text-sm text-gray-600">
                   {new Date(event.startDate).toLocaleDateString()}
                 </TableCell>

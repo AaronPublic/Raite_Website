@@ -34,16 +34,19 @@ import { supabase } from "@/lib/supabase";
 const competitionSchema = z.object({
   title: z.string().min(2, "Title is required"),
   description: z.string().optional(),
-  category: z.string().min(2, "Category is required"),
+  category: z.enum(["Academic", "Non-Academic", "E-GAMES"], {
+    errorMap: () => ({ message: "Please select a valid category" }),
+  }),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
-  capacity: z.preprocess(
+  maxParticipantsPerRegistration: z.coerce.number().int().positive("Must be at least 1").default(1),
+  maxRegistrations: z.preprocess(
     (val) => (val === "" ? null : val),
     z.coerce.number().int().positive().nullable().optional()
   ),
   rules: z.string().optional(),
   rulesPdfUrl: z.string().optional().nullable(),
-  imageUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
+  imageUrl: z.string().optional().nullable(),
   status: z.nativeEnum(EventStatus).default("UPCOMING"),
 });
 
@@ -58,6 +61,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const form = useForm<CompetitionFormValues>({
     resolver: zodResolver(competitionSchema),
@@ -65,16 +69,18 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
       ...initialData,
       startDate: new Date(initialData.startDate).toISOString().split('T')[0],
       endDate: new Date(initialData.endDate).toISOString().split('T')[0],
-      capacity: initialData.capacity ?? "",
+      maxParticipantsPerRegistration: initialData.maxParticipantsPerRegistration ?? 1,
+      maxRegistrations: initialData.maxRegistrations ?? "",
       imageUrl: initialData.imageUrl || "",
       rulesPdfUrl: initialData.rulesPdfUrl || "",
     } : {
       title: "",
       description: "",
-      category: "",
+      category: "Academic",
       startDate: "",
       endDate: "",
-      capacity: "",
+      maxParticipantsPerRegistration: 1,
+      maxRegistrations: "",
       rules: "",
       rulesPdfUrl: "",
       imageUrl: "",
@@ -84,6 +90,50 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
 
   const imageUrl = form.watch("imageUrl");
   const rulesPdfUrl = form.watch("rulesPdfUrl");
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
+    if (!allowedTypes.includes(file.type)) {
+      setError("Please upload a PNG or JPEG image.");
+      return;
+    }
+
+    // Validate file size (2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setError("Image size must be less than 2MB.");
+      return;
+    }
+
+    setIsUploadingImage(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/upload/competition-card", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to upload image");
+      }
+      
+      form.setValue("imageUrl", result.url);
+    } catch (err: any) {
+      console.error("Image upload error:", err);
+      setError(err.message || "Failed to upload image. Please try again.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -129,7 +179,8 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
       ...values,
       startDate: new Date(values.startDate),
       endDate: new Date(values.endDate),
-      capacity: values.capacity === "" || values.capacity === undefined ? null : Number(values.capacity),
+      maxParticipantsPerRegistration: Number(values.maxParticipantsPerRegistration),
+      maxRegistrations: values.maxRegistrations === "" || values.maxRegistrations === undefined ? null : Number(values.maxRegistrations),
     };
 
     try {
@@ -183,9 +234,18 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Web Development" {...field} />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Academic">Academic</SelectItem>
+                        <SelectItem value="Non-Academic">Non-Academic</SelectItem>
+                        <SelectItem value="E-GAMES">E-GAMES</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -214,25 +274,41 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                 name="imageUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Image URL (Pinterest Style)</FormLabel>
+                    <FormLabel>Competition Card Image</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://example.com/image.jpg" {...field} />
-                    </FormControl>
-                    <FormDescription>Link to a high-quality image for the competition card.</FormDescription>
-                    <FormMessage />
-                    {imageUrl && (
-                      <div className="mt-4 relative aspect-[2/3] w-full max-w-[200px] overflow-hidden rounded-xl border">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img 
-                          src={imageUrl} 
-                          alt="Preview" 
-                          className="object-cover w-full h-full"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = "https://placehold.co/400x600?text=Invalid+URL";
-                          }}
-                        />
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                          <Input
+                            type="file"
+                            accept="image/png, image/jpeg"
+                            onChange={handleImageUpload}
+                            disabled={isUploadingImage}
+                          />
+                          {isUploadingImage && <Loader2 className="w-4 h-4 animate-spin" />}
+                        </div>
+                        {imageUrl && (
+                          <div className="relative aspect-video w-full max-w-[300px] overflow-hidden rounded-xl border">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img 
+                              src={imageUrl} 
+                              alt="Preview" 
+                              className="object-cover w-full h-full"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-2 right-2 h-8 w-8"
+                              onClick={() => form.setValue("imageUrl", "")}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </FormControl>
+                    <FormDescription>PNG or JPEG only. Max 2MB.</FormDescription>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -271,20 +347,37 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="capacity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Capacity (Optional)</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="Max participants" {...field} />
-                    </FormControl>
-                    <FormDescription>Leave empty for unlimited</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 gap-4">
+                <FormField
+                  control={form.control}
+                  name="maxParticipantsPerRegistration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Max Participants per Registration</FormLabel>
+                      <FormControl>
+                        <Input type="number" {...field} />
+                      </FormControl>
+                      <FormDescription>e.g., 5 for a 5-person team</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="maxRegistrations"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Max Registrations for Competition (Optional)</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="Total slots" {...field} />
+                      </FormControl>
+                      <FormDescription>Leave empty for unlimited</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}

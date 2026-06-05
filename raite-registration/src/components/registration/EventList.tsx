@@ -3,11 +3,12 @@
 import { useWizard } from "./WizardProvider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
-import { Check, Info, ArrowRight } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Check, Info, ArrowRight, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { useEffect } from "react";
 
 interface Event {
   id: string;
@@ -19,8 +20,32 @@ interface Event {
 }
 
 export default function EventList({ events }: { events: Event[] }) {
-  const { data, updateData } = useWizard();
+  const { data, isReady, updateData } = useWizard();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const eventIdParam = searchParams.get("eventId");
+
+  // Auto-select event from URL if present and wizard is ready
+  useEffect(() => {
+    if (isReady && eventIdParam && data.eventId !== eventIdParam) {
+      const selectedEvent = events.find(e => e.id === eventIdParam);
+      if (selectedEvent && !selectedEvent.isRegistered) {
+        updateData({ 
+          eventId: selectedEvent.id,
+          eventTitle: selectedEvent.title
+        });
+      }
+    }
+  }, [isReady, eventIdParam, events, data.eventId, updateData]);
+
+  if (!isReady) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+        <p className="text-gray-500 font-bold">Loading events...</p>
+      </div>
+    );
+  }
 
   const handleSelect = (event: Event) => {
     if (event.isRegistered) return;

@@ -47,8 +47,8 @@ export default function ExportButtons() {
       
       autoTable(doc, {
         startY: 30,
-        head: [['Name', 'Email', 'School', 'Course', 'Year', 'Joined']],
-        body: data.map(p => [p.name, p.email, p.school, p.course, p.yearLevel, p.date]),
+        head: [['Name', 'Email', 'School', 'Role', 'Joined']],
+        body: data.map(p => [p.name, p.email, p.school, p.role, p.date]),
         styles: { fontSize: 8 },
         headStyles: { fillStyle: 'f', fillColor: [59, 130, 246] }
       });

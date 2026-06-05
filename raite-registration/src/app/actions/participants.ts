@@ -21,8 +21,7 @@ export async function exportParticipantsCSV(filters: ParticipantFilters) {
     Name: p.name || "N/A",
     Email: p.email,
     School: p.school || "N/A",
-    Course: p.course || "N/A",
-    YearLevel: p.yearLevel || "N/A",
+    Role: p.role,
     JoinedDate: new Date(p.createdAt).toLocaleDateString(),
   }));
 
@@ -37,8 +36,7 @@ export async function getParticipantsForPDF(filters: ParticipantFilters) {
     name: p.name || "N/A",
     email: p.email,
     school: p.school || "N/A",
-    course: p.course || "N/A",
-    yearLevel: p.yearLevel || "N/A",
+    role: p.role,
     date: new Date(p.createdAt).toLocaleDateString(),
   }));
 }

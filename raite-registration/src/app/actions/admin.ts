@@ -9,7 +9,7 @@ import { RegistrationStatus } from "@prisma/client";
 import { 
   getDashboardStats, 
   getRegistrationsPerCompetition, 
-  getRegistrationsByCourse, 
+  getRegistrationsByClassification, 
   getRegistrationTrends 
 } from "@/lib/data/admin";
 
@@ -20,17 +20,17 @@ export async function getDashboardData() {
   const admin = await db.user.findUnique({ where: { clerkId: userId } });
   if (!admin || admin.role !== "ADMIN") throw new Error("Forbidden");
 
-  const [stats, competitionData, courseData, trends] = await Promise.all([
+  const [stats, competitionData, classificationData, trends] = await Promise.all([
     getDashboardStats(),
     getRegistrationsPerCompetition(),
-    getRegistrationsByCourse(),
+    getRegistrationsByClassification(),
     getRegistrationTrends(),
   ]);
 
   return {
     stats,
     competitionData,
-    courseData,
+    classificationData,
     trends,
   };
 }

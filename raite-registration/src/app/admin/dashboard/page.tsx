@@ -5,7 +5,7 @@ import { getDashboardData } from "@/app/actions/admin";
 import { cn } from "@/lib/utils";
 import StatsCards from "@/components/admin/StatsCards";
 import RegistrationsPerCompetition from "@/components/admin/RegistrationsPerCompetition";
-import RegistrationsByCourse from "@/components/admin/RegistrationsByCourse";
+import RegistrationsByClassification from "@/components/admin/RegistrationsByClassification";
 import RegistrationTrends from "@/components/admin/RegistrationTrends";
 import { Loader2, RefreshCcw, LayoutDashboard, Calendar, ShieldCheck, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -113,7 +113,7 @@ export default function AdminDashboardPage() {
           <RegistrationsPerCompetition data={data.competitionData} />
         </div>
         <div className="lg:col-span-4">
-          <RegistrationsByCourse data={data.courseData} />
+          <RegistrationsByClassification data={data.classificationData} />
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Users, Info, BookOpen, ArrowLeft, FileText, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
+import { db } from "@/lib/db";
 
 export default async function CompetitionDetailPage({
   params,
@@ -19,7 +20,15 @@ export default async function CompetitionDetailPage({
     notFound();
   }
 
+  // Fetch user role from DB
+  let userRole = "PARTICIPANT";
+  if (user) {
+    const dbUser = await db.user.findUnique({ where: { clerkId: user.id } });
+    if (dbUser) userRole = dbUser.role;
+  }
+
   const isOpen = event.status === "UPCOMING";
+  const canRegister = userRole === "FACULTY_COACH" || userRole === "ADMIN";
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
@@ -58,7 +67,7 @@ export default async function CompetitionDetailPage({
             </Badge>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border">
               <Calendar className="w-5 h-5 text-blue-600" />
               <div>
@@ -69,8 +78,15 @@ export default async function CompetitionDetailPage({
             <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border">
               <Users className="w-5 h-5 text-green-600" />
               <div>
-                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Capacity</p>
-                <p className="text-sm font-semibold">{event.capacity || "Unlimited"}</p>
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Reg. Limit</p>
+                <p className="text-sm font-semibold">{event.maxRegistrations || "∞"}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border">
+              <Users className="w-5 h-5 text-orange-600" />
+              <div>
+                <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">Team Size</p>
+                <p className="text-sm font-semibold">{event.maxParticipantsPerRegistration}</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border">
@@ -125,18 +141,24 @@ export default async function CompetitionDetailPage({
               
               {isOpen ? (
                 user ? (
-                  <Button asChild className="w-full h-12 text-lg font-bold">
-                    <Link href={`/register/step-1?event=${event.id}`}>
-                      Register Now
-                    </Link>
-                  </Button>
+                  canRegister ? (
+                    <Button asChild className="w-full h-12 text-lg font-bold">
+                      <Link href={`/register/step-1?eventId=${event.id}`}>
+                        Register Team
+                      </Link>
+                    </Button>
+                  ) : (
+                    <div className="p-4 bg-amber-50 text-amber-800 rounded-xl text-sm font-semibold">
+                      Registration is only allowed for Faculty Coaches. Please contact your coach.
+                    </div>
+                  )
                 ) : (
                   <div className="space-y-4">
                     <Button asChild className="w-full h-12 text-lg font-bold">
                       <Link href="/sign-in">Sign in to register</Link>
                     </Button>
                     <p className="text-center text-xs text-gray-400 italic">
-                      Registration requires a verified student account.
+                      Registration requires a verified faculty account.
                     </p>
                   </div>
                 )

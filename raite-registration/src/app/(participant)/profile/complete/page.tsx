@@ -11,26 +11,63 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { GraduationCap, BookOpen, School, AlertCircle, Sparkles, ArrowRight } from "lucide-react";
 
 const profileSchema = z.object({
   school: z.string().min(2, "School name is required"),
-  course: z.string().min(2, "Course is required"),
-  yearLevel: z.string().min(1, "Year level is required"),
+  classification: z.enum(["Participant", "Faculty Coach"], {
+    errorMap: () => ({ message: "Please select a classification" }),
+  }),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
+
+const schools = [
+  "AMA TARLAC",
+  "ANGELES UNIVERSITY FOUNDATION",
+  "BATAAN PENINSULA STATE UNIVERSITY",
+  "BULACAN POLYTECHNIC COLLEGE",
+  "BULACAN STATE UNIVERSITY – MAIN CAMPUS",
+  "BULACAN STATE UNIVERSITY – SARMIENTO CAMPUS",
+  "CENTRAL LUZON STATE UNIVERSITY",
+  "CENTRO ESCOLAR UNIVERSITY MALOLOS",
+  "DR. YANGA’S COLLEGE INC.",
+  "EASTWOODS PROFESSIONAL COLLEGE OF SCIENCE AND TECHNOLOGY",
+  "EXACT COLLEGES OF ASIA",
+  "GUAGUA NATIONAL COLLEGES, INC.",
+  "GORDON COLLEGE",
+  "HOLY ANGEL UNIVERSITY",
+  "HOLY CROSS COLLEGE",
+  "LA CONSOLACION UNIVERSITY PHILIPPINES",
+  "LA VERDAD CHRISTIAN COLLEGE",
+  "MANUEL GALLEGO FOUNDATION COLLEGES, INC.",
+  "NATIONAL UNIVERSITY BALIWAG",
+  "NUEVA ECIJA UNIVERSITY OF SCIENCE AND TECHNOLOGY",
+  "OUR LADY OF FATIMA UNIVERSITY - PAMPANGA",
+  "PAMPANGA STATE AGRICULTURAL UNIVERSITY",
+  "PAMPANGA STATE UNIVERSITY",
+  "POLYTECHNIC COLLEGE OF BOTOLAN",
+  "RICHWELL COLLEGES, INC.",
+  "SANTA RITA COLLEGE OF PAMPANGA",
+  "SYSTEMS PLUS COLLEGE FOUNDATION",
+  "TARLAC STATE UNIVERSITY",
+  "UNIVERSITY OF THE ASSUMPTION",
+  "WESLEYAN UNIVERSITY-PHILIPPINES",
+  "Others"
+];
 
 export default function ProfileCompletePage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isOtherSchool, setIsOtherSchool] = useState(false);
 
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -51,6 +88,16 @@ export default function ProfileCompletePage() {
       setError("An unexpected error occurred");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSchoolChange = (value: string) => {
+    if (value === "Others") {
+      setIsOtherSchool(true);
+      setValue("school", ""); // Clear to let user type
+    } else {
+      setIsOtherSchool(false);
+      setValue("school", value);
     }
   };
 
@@ -96,59 +143,66 @@ export default function ProfileCompletePage() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="school" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
+                <Label htmlFor="school-select" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
                   Educational Institution
                 </Label>
-                <div className="relative">
-                  <Input
-                    id="school"
-                    placeholder="Enter school name"
-                    {...register("school")}
-                    className="h-12 rounded-xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 pl-10 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
-                  />
-                  <School className="absolute left-3.5 top-3.5 w-4 h-4 text-gray-400" />
-                </div>
+                <Select onValueChange={handleSchoolChange}>
+                  <SelectTrigger id="school-select" className="w-full h-12 rounded-xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-blue-600/20 font-medium px-4">
+                    <div className="flex items-center gap-3 flex-1 overflow-hidden">
+                      <School className="w-4 h-4 text-gray-400 shrink-0" />
+                      <SelectValue placeholder="Select institution" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-gray-100 dark:border-gray-800 max-h-[300px]">
+                    {schools.map((school) => (
+                      <SelectItem key={school} value={school}>
+                        {school}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <AnimatePresence>
+                  {isOtherSchool && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="pt-2 overflow-hidden"
+                    >
+                      <div className="relative">
+                        <Input
+                          id="school"
+                          placeholder="Type your institution name"
+                          {...register("school")}
+                          className="h-12 rounded-xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 pl-10 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
+                        />
+                        <School className="absolute left-3.5 top-3.5 w-4 h-4 text-gray-400" />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                
                 {errors.school && (
                   <p className="text-[10px] font-bold text-red-500 ml-1">{errors.school.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="course" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
-                  Academic Program
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="course"
-                    placeholder="e.g. BS in Information Technology"
-                    {...register("course")}
-                    className="h-12 rounded-xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 pl-10 focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
-                  />
-                  <BookOpen className="absolute left-3.5 top-3.5 w-4 h-4 text-gray-400" />
-                </div>
-                {errors.course && (
-                  <p className="text-[10px] font-bold text-red-500 ml-1">{errors.course.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="yearLevel" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
+                <Label htmlFor="classification" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
                   Classification
                 </Label>
-                <Select onValueChange={(value) => setValue("yearLevel", value as string)}>
-                  <SelectTrigger id="yearLevel" className="h-12 rounded-xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-blue-600/20 font-medium">
-                    <SelectValue placeholder="Select year level" />
+                <Select onValueChange={(value) => setValue("classification", value as any)}>
+                  <SelectTrigger id="classification" className="w-full h-12 rounded-xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 focus:ring-2 focus:ring-blue-600/20 font-medium px-4">
+                    <SelectValue placeholder="Select classification" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-gray-100 dark:border-gray-800">
-                    <SelectItem value="1st Year">1st Year Student</SelectItem>
-                    <SelectItem value="2nd Year">2nd Year Student</SelectItem>
-                    <SelectItem value="3rd Year">3rd Year Student</SelectItem>
-                    <SelectItem value="4th Year">4th Year Student</SelectItem>
-                    <SelectItem value="Other">Other / Professional</SelectItem>
+                    <SelectItem value="Participant">Participant</SelectItem>
+                    <SelectItem value="Faculty Coach">Faculty Coach</SelectItem>
                   </SelectContent>
                 </Select>
-                {errors.yearLevel && (
-                  <p className="text-[10px] font-bold text-red-500 ml-1">{errors.yearLevel.message}</p>
+                {errors.classification && (
+                  <p className="text-[10px] font-bold text-red-500 ml-1">{errors.classification.message}</p>
                 )}
               </div>
             </CardContent>

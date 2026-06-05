@@ -12,10 +12,11 @@ const competitionSchema = z.object({
   category: z.string().min(2, "Category is required"),
   startDate: z.date(),
   endDate: z.date(),
-  capacity: z.number().int().positive().nullable(),
+  maxParticipantsPerRegistration: z.number().int().positive().default(1),
+  maxRegistrations: z.number().int().positive().nullable(),
   rules: z.string().optional(),
   rulesPdfUrl: z.string().optional().nullable(),
-  imageUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
+  imageUrl: z.string().optional().nullable(),
   status: z.nativeEnum(EventStatus).default("UPCOMING"),
 });
 

@@ -31,20 +31,16 @@ export async function getRegistrationsPerCompetition() {
   }));
 }
 
-export async function getRegistrationsByCourse() {
+export async function getRegistrationsByClassification() {
   const users = await db.user.groupBy({
-    by: ["course"],
+    by: ["role"],
     _count: {
       id: true,
-    },
-    where: {
-      course: { not: null },
-      role: "PARTICIPANT",
     },
   });
 
   return users.map((u) => ({
-    name: u.course as string,
+    name: u.role as string,
     count: u._count.id,
   }));
 }

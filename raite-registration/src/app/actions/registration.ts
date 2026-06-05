@@ -88,6 +88,11 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
       const event = await tx.event.findUnique({ where: { id: eventId } });
       if (!event) throw new Error("Event not found");
 
+      // Check team size
+      if (members.length > event.maxParticipantsPerRegistration) {
+        throw new Error(`Maximum participants per registration for this event is ${event.maxParticipantsPerRegistration}`);
+      }
+
       const currentCount = await tx.registration.count({
         where: { 
           eventId, 
@@ -95,7 +100,7 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
         },
       });
 
-      const isFull = event.capacity ? currentCount >= event.capacity : false;
+      const isFull = event.maxRegistrations ? currentCount >= event.maxRegistrations : false;
       const status = isFull ? "WAITLISTED" : "PENDING";
 
       const registration = await tx.registration.upsert({

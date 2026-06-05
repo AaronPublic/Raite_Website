@@ -42,15 +42,14 @@ export default function ParticipantsTable({
               <TableHead className="font-bold">Name</TableHead>
               <TableHead className="font-bold">Email</TableHead>
               <TableHead className="font-bold">School</TableHead>
-              <TableHead className="font-bold">Course</TableHead>
-              <TableHead className="font-bold">Year</TableHead>
+              <TableHead className="font-bold">Role</TableHead>
               <TableHead className="font-bold">Joined</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {participants.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-gray-500">
+                <TableCell colSpan={5} className="h-24 text-center text-gray-500">
                   No participants found.
                 </TableCell>
               </TableRow>
@@ -60,8 +59,7 @@ export default function ParticipantsTable({
                   <TableCell className="font-medium">{user.name || "N/A"}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.school || "N/A"}</TableCell>
-                  <TableCell>{user.course || "N/A"}</TableCell>
-                  <TableCell>{user.yearLevel || "N/A"}</TableCell>
+                  <TableCell>{user.role}</TableCell>
                   <TableCell className="text-gray-500">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </TableCell>

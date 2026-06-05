@@ -16,7 +16,7 @@ export default async function RegisterLayout({
 
   const user = await getUserByClerkId(userId);
 
-  if (!user || !user.school || !user.course || !user.yearLevel) {
+  if (!user || !user.school || !user.role) {
     redirect("/profile/complete");
   }
 

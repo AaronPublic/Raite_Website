@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, ArrowRight, Trophy, Sparkles } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Calendar, Users, ArrowRight, Trophy, Sparkles, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useUser } from "@clerk/nextjs";
 
 interface CompetitionCardProps {
   event: {
@@ -14,7 +17,8 @@ interface CompetitionCardProps {
     title: string;
     category: string | null;
     startDate: Date;
-    capacity: number | null;
+    maxRegistrations: number | null;
+    maxParticipantsPerRegistration: number;
     status: string;
     imageUrl?: string | null;
     rulesPdfUrl?: string | null;
@@ -23,7 +27,14 @@ interface CompetitionCardProps {
 }
 
 export default function CompetitionCard({ event, index = 0 }: CompetitionCardProps) {
+  const { user } = useUser();
   const isOpen = event.status === "UPCOMING";
+  
+  // Note: For full role-based check here, we'd need to pass role as prop.
+  // Assuming a simple role check from Clerk custom claims if configured, 
+  // or restricted to Faculty Coach only as per requirements.
+  const role = user?.publicMetadata?.role as string;
+  const canRegister = role === "FACULTY_COACH";
 
   return (
     <motion.div
@@ -90,7 +101,7 @@ export default function CompetitionCard({ event, index = 0 }: CompetitionCardPro
               <div className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
                 <Users className="w-3 h-3" />
                 <span className="text-[9px] font-bold uppercase">
-                  {event.capacity || "∞"} Slots
+                  {event.maxRegistrations || "∞"} Slots
                 </span>
               </div>
             </div>
@@ -100,12 +111,15 @@ export default function CompetitionCard({ event, index = 0 }: CompetitionCardPro
             <Button asChild variant="ghost" className="flex-1 h-8 rounded-lg font-bold hover:bg-gray-100 dark:hover:bg-gray-800 transition-all text-[10px] p-0">
               <Link href={`/competitions/${event.id}`}>Rules</Link>
             </Button>
-            <Button asChild className="flex-2 h-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-black shadow-lg shadow-blue-600/20 transition-all hover:scale-105 active:scale-95 group/btn text-[10px] p-0 px-2">
-              <Link href={isOpen ? `/register/step-1?eventId=${event.id}` : `/competitions/${event.id}`} className="flex items-center justify-center gap-1">
-                {isOpen ? "JOIN" : "INFO"}
-                <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform" />
-              </Link>
-            </Button>
+
+            {canRegister && isOpen && (
+              <Button asChild className="flex-2 h-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-black shadow-lg shadow-blue-600/20 transition-all hover:scale-105 active:scale-95 group/btn text-[10px] p-0 px-2">
+                <Link href={`/register/step-1?eventId=${event.id}`} className="flex items-center justify-center gap-1">
+                  JOIN
+                  <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
 

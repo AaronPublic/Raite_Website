@@ -37,16 +37,11 @@ export async function getCompetitionRegistrations(eventId: string) {
 export async function getDemographicsReport() {
   await checkAdmin();
 
-  const [schoolData, courseData, yearData] = await Promise.all([
+  const [schoolData, yearData] = await Promise.all([
     db.user.groupBy({
       by: ["school"],
       _count: { id: true },
       where: { role: "PARTICIPANT", school: { not: null } },
-    }),
-    db.user.groupBy({
-      by: ["course"],
-      _count: { id: true },
-      where: { role: "PARTICIPANT", course: { not: null } },
     }),
     db.user.groupBy({
       by: ["yearLevel"],
@@ -57,7 +52,6 @@ export async function getDemographicsReport() {
 
   return {
     schools: schoolData.map((d) => ({ name: d.school as string, count: d._count.id })),
-    courses: courseData.map((d) => ({ name: d.course as string, count: d._count.id })),
     years: yearData.map((d) => ({ name: d.yearLevel as string, count: d._count.id })),
   };
 }

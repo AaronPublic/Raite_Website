@@ -23,7 +23,7 @@ const teamSchema = z.object({
 type TeamFormValues = z.infer<typeof teamSchema>;
 
 export default function TeamForm() {
-  const { data, updateData } = useWizard();
+  const { data, isReady, updateData } = useWizard();
   const router = useRouter();
   const [validating, setValidating] = useState<Record<number, boolean>>({});
   const [memberErrors, setMemberErrors] = useState<Record<number, string>>({});
@@ -33,6 +33,7 @@ export default function TeamForm() {
     control,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
   } = useForm<TeamFormValues>({
     resolver: zodResolver(teamSchema),
@@ -42,6 +43,16 @@ export default function TeamForm() {
     },
   });
 
+  // Sync form with wizard data when isReady
+  useEffect(() => {
+    if (isReady) {
+      reset({
+        teamName: data.teamName || "",
+        members: data.members && data.members.length > 0 ? data.members : [""],
+      });
+    }
+  }, [isReady, data.teamName, data.members, reset]);
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: "members",
@@ -50,10 +61,19 @@ export default function TeamForm() {
   const watchedMembers = watch("members");
 
   useEffect(() => {
-    if (!data.eventId) {
+    if (isReady && !data.eventId) {
       router.push("/register/step-1");
     }
-  }, [data.eventId, router]);
+  }, [isReady, data.eventId, router]);
+
+  if (!isReady) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+        <p className="text-gray-500 font-bold">Loading your registration...</p>
+      </div>
+    );
+  }
 
   const validateMember = async (index: number, email: string) => {
     if (!email || !z.string().email().safeParse(email).success || !data.eventId) {

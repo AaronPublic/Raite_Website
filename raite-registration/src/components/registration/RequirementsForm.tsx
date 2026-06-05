@@ -10,20 +10,38 @@ import { ArrowLeft, Upload, Loader2, CheckCircle2, AlertCircle } from "lucide-re
 import { supabase } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
 
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+
 export default function RequirementsForm() {
-  const { data, updateData } = useWizard();
+  const { data, isReady, updateData } = useWizard();
   const router = useRouter();
   const [uploading, setUploading] = useState<string | null>(null);
   const [requirements, setRequirements] = useState<Record<string, string>>(data.requirements || {});
   const [showError, setShowError] = useState(false);
 
   useEffect(() => {
-    if (!data.eventId) {
+    if (isReady && !data.eventId) {
       router.push("/register/step-1");
-    } else if (!data.members || data.members.length === 0) {
+    } else if (isReady && (!data.members || data.members.length === 0)) {
       router.push("/register/step-2");
     }
-  }, [data.eventId, data.members, router]);
+  }, [isReady, data.eventId, data.members, router]);
+
+  useEffect(() => {
+    if (isReady && data.requirements) {
+      setRequirements(data.requirements);
+    }
+  }, [isReady, data.requirements]);
+
+  if (!isReady) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+        <p className="text-gray-500 font-bold">Loading your registration...</p>
+      </div>
+    );
+  }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
     const file = e.target.files?.[0];

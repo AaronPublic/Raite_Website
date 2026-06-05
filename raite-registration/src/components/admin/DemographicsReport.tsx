@@ -68,7 +68,7 @@ export default function DemographicsReport() {
 
       <Card>
         <CardHeader>
-          <CardTitle>By Year Level</CardTitle>
+          <CardTitle>By Classification</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -86,26 +86,9 @@ export default function DemographicsReport() {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip formatter={(value: number) => [value, 'Users']} />
               <Legend />
             </PieChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      <Card className="md:col-span-2">
-        <CardHeader>
-          <CardTitle>By Course</CardTitle>
-        </CardHeader>
-        <CardContent className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.courses}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" fontSize={10} angle={-45} textAnchor="end" height={80} />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]} />
-            </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>

@@ -13,6 +13,7 @@ interface WizardData {
 
 interface WizardContextType {
   data: WizardData;
+  isReady: boolean;
   updateData: (newData: Partial<WizardData>) => void;
   clearData: () => void;
 }
@@ -20,21 +21,25 @@ interface WizardContextType {
 const WizardContext = createContext<WizardContextType | undefined>(undefined);
 
 export function WizardProvider({ children }: { children: React.ReactNode }) {
-  const { user, isLoaded } = useUser();
+  const { user, isLoaded: userLoaded } = useUser();
   const [data, setData] = useState<WizardData>({});
+  const [isReady, setIsReady] = useState(false);
   
   const storageKey = user ? `registration_draft_${user.id}` : null;
 
   useEffect(() => {
-    if (isLoaded && storageKey) {
+    if (userLoaded && storageKey) {
       const saved = sessionStorage.getItem(storageKey);
       if (saved) {
         setData(JSON.parse(saved));
-      } else {
-        setData({}); // Reset if no draft for this specific user
       }
+      setIsReady(true);
+    } else if (userLoaded && !user) {
+      // User is not logged in, but RegisterLayout handles this.
+      // Still, set isReady to true to avoid infinite loading if any.
+      setIsReady(true);
     }
-  }, [isLoaded, storageKey]);
+  }, [userLoaded, storageKey, user]);
 
   const updateData = (newData: Partial<WizardData>) => {
     setData((prev) => {
@@ -54,7 +59,7 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <WizardContext.Provider value={{ data, updateData, clearData }}>
+    <WizardContext.Provider value={{ data, isReady, updateData, clearData }}>
       {children}
     </WizardContext.Provider>
   );

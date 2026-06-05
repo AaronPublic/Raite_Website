@@ -7,6 +7,39 @@ import { Search, X } from "lucide-react";
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 
+const schools = [
+  "AMA TARLAC",
+  "ANGELES UNIVERSITY FOUNDATION",
+  "BATAAN PENINSULA STATE UNIVERSITY",
+  "BULACAN POLYTECHNIC COLLEGE",
+  "BULACAN STATE UNIVERSITY – MAIN CAMPUS",
+  "BULACAN STATE UNIVERSITY – SARMIENTO CAMPUS",
+  "CENTRAL LUZON STATE UNIVERSITY",
+  "CENTRO ESCOLAR UNIVERSITY MALOLOS",
+  "DR. YANGA’S COLLEGE INC.",
+  "EASTWOODS PROFESSIONAL COLLEGE OF SCIENCE AND TECHNOLOGY",
+  "EXACT COLLEGES OF ASIA",
+  "GUAGUA NATIONAL COLLEGES, INC.",
+  "GORDON COLLEGE",
+  "HOLY ANGEL UNIVERSITY",
+  "HOLY CROSS COLLEGE",
+  "LA CONSOLACION UNIVERSITY PHILIPPINES",
+  "LA VERDAD CHRISTIAN COLLEGE",
+  "MANUEL GALLEGO FOUNDATION COLLEGES, INC.",
+  "NATIONAL UNIVERSITY BALIWAG",
+  "NUEVA ECIJA UNIVERSITY OF SCIENCE AND TECHNOLOGY",
+  "OUR LADY OF FATIMA UNIVERSITY - PAMPANGA",
+  "PAMPANGA STATE AGRICULTURAL UNIVERSITY",
+  "PAMPANGA STATE UNIVERSITY",
+  "POLYTECHNIC COLLEGE OF BOTOLAN",
+  "RICHWELL COLLEGES, INC.",
+  "SANTA RITA COLLEGE OF PAMPANGA",
+  "SYSTEMS PLUS COLLEGE FOUNDATION",
+  "TARLAC STATE UNIVERSITY",
+  "UNIVERSITY OF THE ASSUMPTION",
+  "WESLEYAN UNIVERSITY-PHILIPPINES"
+];
+
 export default function ParticipantFilters() {
   const router = useRouter();
   const pathname = usePathname();
@@ -58,24 +91,25 @@ export default function ParticipantFilters() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Schools</SelectItem>
-              <SelectItem value="University of the Assumption">UA</SelectItem>
-              <SelectItem value="Holy Angel University">HAU</SelectItem>
-              {/* Add more schools or fetch dynamically */}
+              {schools.map((school) => (
+                <SelectItem key={school} value={school}>
+                  {school}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select
-            defaultValue={searchParams.get("yearLevel")?.toString() || "all"}
-            onValueChange={(v) => updateFilters({ yearLevel: v === "all" ? null : v })}
+            defaultValue={searchParams.get("role")?.toString() || "all"}
+            onValueChange={(v) => updateFilters({ role: v === "all" ? null : v })}
           >
             <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Year Level" />
+              <SelectValue placeholder="Role" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Years</SelectItem>
-              <SelectItem value="1st Year">1st Year</SelectItem>
-              <SelectItem value="2nd Year">2nd Year</SelectItem>
-              <SelectItem value="3rd Year">3rd Year</SelectItem>
-              <SelectItem value="4th Year">4th Year</SelectItem>
+              <SelectItem value="all">All Roles</SelectItem>
+              <SelectItem value="PARTICIPANT">Participant</SelectItem>
+              <SelectItem value="FACULTY_COACH">Faculty Coach</SelectItem>
+              <SelectItem value="ADMIN">Admin</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="ghost" size="icon" onClick={clearFilters} title="Clear Filters">

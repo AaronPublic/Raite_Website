@@ -15,8 +15,6 @@ model User {
   role          Role      @default(PARTICIPANT)
   clerkId       String    @unique   // from Clerk
   school        String?
-  course        String?
-  yearLevel     String?
 
   registrations Registration[]
   createdAt     DateTime  @default(now())
@@ -29,7 +27,8 @@ model Event {
   description String?
   startDate   DateTime
   endDate     DateTime
-  capacity    Int?
+  maxParticipantsPerRegistration Int @default(1)
+  maxRegistrations               Int?
   status      EventStatus   @default(UPCOMING)
   category    String?
   rules       String?
@@ -73,6 +72,7 @@ model Announcement {
 enum Role {
   PARTICIPANT
   ADMIN
+  FACULTY_COACH
 }
 
 enum EventStatus {

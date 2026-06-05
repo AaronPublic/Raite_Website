@@ -12,16 +12,25 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 export default function ReviewStep() {
-  const { data, clearData } = useWizard();
+  const { data, isReady, clearData } = useWizard();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!data.eventId) {
+    if (isReady && !data.eventId) {
       router.push("/register/step-1");
     }
-  }, [data.eventId, router]);
+  }, [isReady, data.eventId, router]);
+
+  if (!isReady) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+        <p className="text-gray-500 font-bold">Loading your registration...</p>
+      </div>
+    );
+  }
 
   const handleSubmit = async () => {
     setIsSubmitting(true);

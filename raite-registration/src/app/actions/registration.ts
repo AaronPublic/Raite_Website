@@ -93,6 +93,20 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
       const event = await tx.event.findUnique({ where: { id: eventId } });
       if (!event) throw new Error("Event not found");
 
+      // Check if all members are pre-registered
+      const preRegisteredMembers = await tx.user.findMany({
+        where: {
+          email: { in: members },
+          role: "PARTICIPANT",
+        },
+      });
+
+      if (preRegisteredMembers.length !== members.length) {
+        const foundEmails = preRegisteredMembers.map(m => m.email);
+        const missingEmails = members.filter(email => !foundEmails.includes(email));
+        throw new Error(`The following members are not pre-registered in the system: ${missingEmails.join(", ")}. Please ask your Faculty Coach or Admin to register them first.`);
+      }
+
       // Check team size
       if (members.length !== event.maxParticipantsPerRegistration) {
         throw new Error(`Team size must be exactly ${event.maxParticipantsPerRegistration} members.`);

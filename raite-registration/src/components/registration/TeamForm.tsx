@@ -8,12 +8,26 @@ import { useWizard } from "./WizardProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, ArrowLeft, ArrowRight, UserPlus, AlertCircle, Loader2 } from "lucide-react";
+import { Plus, Trash2, ArrowLeft, ArrowRight, UserPlus, AlertCircle, Loader2, Check, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { isUserInOtherTeam } from "@/app/actions/registration";
+import { getEligibleParticipants } from "@/app/actions/participants";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const teamSchema = z.object({
   teamName: z.string().optional(),
@@ -23,18 +37,30 @@ const teamSchema = z.object({
 
 type TeamFormValues = z.infer<typeof teamSchema>;
 
+interface EligibleParticipant {
+  id: string;
+  name: string | null;
+  email: string;
+  school: string | null;
+  course: string | null;
+}
+
 export default function TeamForm() {
   const { data, isReady, updateData } = useWizard();
   const router = useRouter();
   const [validating, setValidating] = useState<Record<number, boolean>>({});
   const [memberErrors, setMemberErrors] = useState<Record<number, string>>({});
+  const [eligibleParticipants, setEligibleParticipants] = useState<EligibleParticipant[]>([]);
+  const [loadingEligible, setLoadingEligible] = useState(true);
+  const [popoversOpen, setPopoversOpen] = useState<Record<number, boolean>>({});
 
   const {
-    register,
     control,
     handleSubmit,
     watch,
     reset,
+    setValue,
+    register,
     formState: { errors },
   } = useForm<TeamFormValues>({
     resolver: zodResolver(teamSchema),
@@ -44,6 +70,23 @@ export default function TeamForm() {
       requirements: typeof data.requirements === 'string' ? data.requirements : (data.requirements?.studentId || ""),
     },
   });
+
+  const memberValues = watch("members");
+
+  // Load eligible participants
+  useEffect(() => {
+    async function load() {
+      try {
+        const participants = await getEligibleParticipants();
+        setEligibleParticipants(participants);
+      } catch (err) {
+        console.error("Failed to load eligible participants:", err);
+      } finally {
+        setLoadingEligible(false);
+      }
+    }
+    load();
+  }, []);
 
   // Sync form with wizard data when isReady
   useEffect(() => {
@@ -67,11 +110,11 @@ export default function TeamForm() {
     }
   }, [isReady, data.eventId, router]);
 
-  if (!isReady) {
+  if (!isReady || loadingEligible) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-        <p className="text-gray-500 font-bold">Loading your registration...</p>
+        <p className="text-gray-500 font-bold">Preparing registration form...</p>
       </div>
     );
   }
@@ -82,10 +125,24 @@ export default function TeamForm() {
       return;
     }
 
+    // Check for duplicates within the current form
+    const isDuplicateInForm = memberValues.some((val, i) => val === email && i !== index);
+    if (isDuplicateInForm) {
+      setMemberErrors(prev => ({ ...prev, [index]: "This participant is already added to your team." }));
+      return;
+    }
+
+    // Check if the email is in the eligible list
+    const isEligible = eligibleParticipants.some(p => p.email === email);
+    if (!isEligible) {
+      setMemberErrors(prev => ({ ...prev, [index]: "This participant is not pre-registered in the system. Please register them first." }));
+      return;
+    }
+
     setValidating(prev => ({ ...prev, [index]: true }));
     try {
-      const isDuplicate = await isUserInOtherTeam(data.eventId, email);
-      if (isDuplicate) {
+      const isDuplicateInDB = await isUserInOtherTeam(data.eventId, email);
+      if (isDuplicateInDB) {
         setMemberErrors(prev => ({ ...prev, [index]: "This participant is already registered for another team in this competition." }));
       } else {
         setMemberErrors(prev => ({ ...prev, [index]: "" }));
@@ -125,8 +182,8 @@ export default function TeamForm() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <Label className="text-sm font-bold uppercase tracking-wider text-gray-500">Team Members (Emails)</Label>
-              <p className="text-xs text-gray-500 font-medium">Add all team members who will participate.</p>
+              <Label className="text-sm font-bold uppercase tracking-wider text-gray-500">Team Members</Label>
+              <p className="text-xs text-gray-500 font-medium">Select participants from your school list.</p>
             </div>
             <Button
               type="button"
@@ -153,35 +210,107 @@ export default function TeamForm() {
                 >
                   <div className="flex gap-3 items-start">
                     <div className="flex-1 space-y-2">
-                      <div className="relative">
-                        <Input
-                          placeholder={`Member ${index + 1} email address`}
-                          {...register(`members.${index}` as const)}
-                          onBlur={(e) => validateMember(index, e.target.value)}
-                          className={cn(
-                            "h-12 rounded-xl bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 focus:ring-2 focus:ring-blue-600/20 transition-all pl-10",
-                            memberErrors[index] ? "border-red-500 ring-2 ring-red-500/10" : ""
-                          )}
-                        />
-                        <UserPlus className="absolute left-3.5 top-3.5 w-5 h-5 text-gray-400" />
+                      <Popover 
+                        open={popoversOpen[index]} 
+                        onOpenChange={(open) => setPopoversOpen(prev => ({ ...prev, [index]: open }))}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={popoversOpen[index]}
+                            className={cn(
+                              "w-full h-14 rounded-2xl bg-gray-50 dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800 justify-between px-4 transition-all text-left overflow-hidden hover:border-blue-400/50",
+                              memberErrors[index] ? "border-red-500 ring-2 ring-red-500/10" : "",
+                              !memberValues[index] && "text-gray-400"
+                            )}
+                          >
+                            <div className="flex items-center gap-3 truncate">
+                              <div className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                                <UserPlus className="w-5 h-5 shrink-0 text-blue-600 dark:text-blue-400" />
+                              </div>
+                              <span className={cn("truncate font-bold text-lg", memberValues[index] ? "text-gray-900 dark:text-white" : "text-gray-400")}>
+                                {memberValues[index] 
+                                  ? eligibleParticipants.find(p => p.email === memberValues[index])?.name || memberValues[index]
+                                  : `Select member ${index + 1}`}
+                              </span>
+                            </div>
+                            <ChevronDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[450px] p-0 rounded-2xl shadow-2xl border-gray-100 dark:border-gray-800 overflow-hidden" align="start">
+                          <Command className="rounded-2xl">
+                            <CommandInput placeholder="Search by student name or email..." className="h-14 text-lg" />
+                            <CommandList className="max-h-[400px]">
+                              <CommandEmpty className="p-6 text-gray-500 font-medium">No participants found in your school records.</CommandEmpty>
+                              <CommandGroup heading="Pre-registered Participants" className="px-2">
+                                {eligibleParticipants
+                                  .filter(p => !memberValues.includes(p.email) || memberValues[index] === p.email)
+                                  .map((participant) => (
+                                    <CommandItem
+                                      key={participant.id}
+                                      value={`${participant.name} ${participant.email}`}
+                                      onSelect={() => {
+                                        setValue(`members.${index}`, participant.email);
+                                        validateMember(index, participant.email);
+                                        setPopoversOpen(prev => ({ ...prev, [index]: false }));
+                                      }}
+                                      className="p-4 rounded-xl mb-1 aria-selected:bg-blue-50 dark:aria-selected:bg-blue-900/20 cursor-pointer transition-colors"
+                                    >
+                                    <div className="flex items-center gap-4 w-full">
+                                      <div className={cn(
+                                        "w-10 h-10 rounded-full flex items-center justify-center shrink-0 font-black text-sm",
+                                        memberValues[index] === participant.email 
+                                          ? "bg-blue-600 text-white" 
+                                          : "bg-gray-100 dark:bg-gray-800 text-gray-500"
+                                      )}>
+                                        {participant.name?.charAt(0) || "?"}
+                                      </div>
+                                      <div className="flex flex-col flex-1 min-w-0">
+                                        <span className="font-black text-lg text-gray-900 dark:text-white leading-tight truncate">
+                                          {participant.name}
+                                        </span>
+                                        <span className="text-sm text-gray-500 dark:text-gray-400 font-medium truncate">
+                                          {participant.email}
+                                        </span>
+                                        <span className="text-[10px] uppercase tracking-wider font-bold text-blue-600 dark:text-blue-400 mt-0.5">
+                                          {participant.course}
+                                        </span>
+                                      </div>
+                                      {memberValues[index] === participant.email && (
+                                        <Check className="h-5 w-5 text-blue-600 shrink-0" />
+                                      )}
+                                    </div>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      
+                      <div className="flex items-center gap-2">
                         {validating[index] && (
-                          <Loader2 className="absolute right-3.5 top-3.5 w-5 h-5 animate-spin text-blue-500" />
+                          <div className="flex items-center gap-2 text-xs text-blue-500 font-bold">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            Validating eligibility...
+                          </div>
+                        )}
+                        
+                        {errors.members?.[index] && (
+                          <p className="text-xs text-red-500 font-medium flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {errors.members[index]?.message}
+                          </p>
+                        )}
+                        
+                        {memberErrors[index] && (
+                          <p className="text-xs text-red-500 font-bold flex items-center gap-1.5 p-2 bg-red-50 dark:bg-red-900/10 rounded-lg w-full">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            {memberErrors[index]}
+                          </p>
                         )}
                       </div>
-                      
-                      {errors.members?.[index] && (
-                        <p className="text-xs text-red-500 font-medium flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3" />
-                          {errors.members[index]?.message}
-                        </p>
-                      )}
-                      
-                      {memberErrors[index] && (
-                        <p className="text-xs text-red-500 font-bold flex items-center gap-1.5 p-2 bg-red-50 dark:bg-red-900/10 rounded-lg">
-                          <AlertCircle className="w-3.5 h-3.5" />
-                          {memberErrors[index]}
-                        </p>
-                      )}
                     </div>
                     
                     {fields.length > 1 && (

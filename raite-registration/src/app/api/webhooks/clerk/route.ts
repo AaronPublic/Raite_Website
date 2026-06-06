@@ -54,19 +54,34 @@ export async function POST(req: Request) {
     const email = email_addresses[0].email_address;
     const name = `${first_name || ""} ${last_name || ""}`.trim();
 
-    await db.user.upsert({
-      where: { clerkId: id as string },
-      update: {
-        email,
-        name: name || null,
-      },
-      create: {
-        clerkId: id as string,
-        email,
-        name: name || null,
-        role: "PARTICIPANT",
-      },
+    // Check if user already exists with this email (e.g. pre-registered)
+    const existingUser = await db.user.findUnique({
+      where: { email },
     });
+
+    if (existingUser) {
+      await db.user.update({
+        where: { email },
+        data: {
+          clerkId: id as string,
+          name: name || existingUser.name,
+        },
+      });
+    } else {
+      await db.user.upsert({
+        where: { clerkId: id as string },
+        update: {
+          email,
+          name: name || null,
+        },
+        create: {
+          clerkId: id as string,
+          email,
+          name: name || null,
+          role: "PARTICIPANT",
+        },
+      });
+    }
   }
 
   if (type === "user.deleted") {

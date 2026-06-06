@@ -42,6 +42,7 @@ export default function ParticipantsTable({
               <TableHead className="font-bold text-gray-900 dark:text-gray-100">Name</TableHead>
               <TableHead className="font-bold text-gray-900 dark:text-gray-100">Email</TableHead>
               <TableHead className="font-bold text-gray-900 dark:text-gray-100">School</TableHead>
+              <TableHead className="font-bold text-gray-900 dark:text-gray-100">Course</TableHead>
               <TableHead className="font-bold text-gray-900 dark:text-gray-100">Role</TableHead>
               <TableHead className="font-bold text-gray-900 dark:text-gray-100">Joined</TableHead>
             </TableRow>
@@ -49,7 +50,7 @@ export default function ParticipantsTable({
           <TableBody>
             {participants.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-gray-500 dark:text-gray-400">
+                <TableCell colSpan={6} className="h-24 text-center text-gray-500 dark:text-gray-400">
                   No participants found.
                 </TableCell>
               </TableRow>
@@ -59,6 +60,7 @@ export default function ParticipantsTable({
                   <TableCell className="font-medium text-gray-900 dark:text-gray-100">{user.name || "N/A"}</TableCell>
                   <TableCell className="text-gray-700 dark:text-gray-300">{user.email}</TableCell>
                   <TableCell className="text-gray-700 dark:text-gray-300">{user.school || "N/A"}</TableCell>
+                  <TableCell className="text-gray-700 dark:text-gray-300">{user.course || "N/A"}</TableCell>
                   <TableCell className="text-gray-700 dark:text-gray-300">{user.role}</TableCell>
                   <TableCell className="text-gray-500 dark:text-gray-400">
                     {new Date(user.createdAt).toLocaleDateString()}

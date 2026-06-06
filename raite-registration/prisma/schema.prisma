@@ -13,9 +13,10 @@ model User {
   email         String    @unique
   name          String?
   role          Role      @default(PARTICIPANT)
-  clerkId       String    @unique   // from Clerk
+  clerkId       String?   @unique   // from Clerk, optional for pre-registration
   school        String?
   yearLevel     String?
+  course        String?   // Added course field, optional
 
   registrations Registration[]
   coachRegistrations Registration[] @relation("CoachRegistrations")

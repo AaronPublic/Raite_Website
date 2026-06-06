@@ -7,7 +7,7 @@ import { getUpcomingEvents } from "@/lib/data/events";
 import { getLatestAnnouncements } from "@/lib/data/announcements";
 import CountdownTimer from "@/components/home/CountdownTimer";
 import AnnouncementList from "@/components/home/AnnouncementList";
-import { Calendar, MapPin, School, Mail, ArrowRight, Sparkles, Trophy, Megaphone } from "lucide-react";
+import { Calendar, MapPin, School, Mail, ArrowRight, Sparkles, Trophy, Megaphone, GraduationCap, FileUp } from "lucide-react";
 
 export default async function HomePage() {
   const { userId } = await auth();
@@ -34,14 +34,11 @@ export default async function HomePage() {
     hasActiveRegistration 
   });
 
-  // Determine if user can see the registration button
-  // 1. Not logged in: Show button
-  // 2. Logged in:
-  //    - If role is PARTICIPANT: Do NOT show button
-  //    - Otherwise (Admin, Coach, Onboarding): Show button
-  const canRegister = !userId || user?.role !== "PARTICIPANT";
-
-
+  // Determine if user can see the registration buttons
+  const isGuest = !userId;
+  const isNewUser = userId && !user?.role;
+  const isAdminOrCoach = user?.role === "ADMIN" || user?.role === "FACULTY_COACH";
+  const isParticipant = user?.role === "PARTICIPANT";
 
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
@@ -72,13 +69,37 @@ export default async function HomePage() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            {canRegister && (
+            {isGuest && (
               <Button asChild size="lg" className="h-16 px-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-2xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95">
-                <Link href={userId ? "/register/step-1" : "/sign-in"}>
-                  REGISTER NOW <ArrowRight className="ml-2 w-6 h-6" />
+                <Link href="/sign-in">
+                  GET STARTED <ArrowRight className="ml-2 w-6 h-6" />
                 </Link>
               </Button>
             )}
+
+            {isNewUser && (
+              <Button asChild size="lg" className="h-16 px-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-2xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95">
+                <Link href="/profile/complete">
+                  FINAL BOARDING CALL
+                </Link>
+              </Button>
+            )}
+
+            {isAdminOrCoach && (
+              <>
+                <Button asChild size="lg" className="h-16 px-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-2xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95">
+                  <Link href="/participants/register">
+                    REGISTER PARTICIPANTS
+                  </Link>
+                </Button>
+                <Button asChild size="lg" className="h-16 px-10 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-black shadow-2xl shadow-indigo-600/30 transition-all hover:scale-105 active:scale-95">
+                  <Link href="/register/step-1">
+                    REGISTER FOR EVENT
+                  </Link>
+                </Button>
+              </>
+            )}
+            
             <Button asChild variant="outline" size="lg" className="h-16 px-10 rounded-full border-2 border-gray-200 dark:border-gray-800 text-lg font-bold hover:bg-gray-50 dark:hover:bg-gray-900 transition-all">
               <Link href="/competitions">Explore Events</Link>
             </Button>

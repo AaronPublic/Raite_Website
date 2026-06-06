@@ -10,7 +10,8 @@ import {
   Megaphone, 
   BarChart3,
   ChevronRight,
-  ShieldAlert
+  ShieldAlert,
+  Settings
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
@@ -39,11 +40,13 @@ export default async function AdminLayout({
     { href: "/admin/registrations", label: "Registrations", icon: ClipboardList },
     { href: "/admin/announcements", label: "Announcements", icon: Megaphone },
     { href: "/admin/reports", label: "Reports", icon: BarChart3 },
+    { href: "/admin/ranking", label: "Ranking", icon: Trophy },
+    { href: "/admin/settings", label: "Settings", icon: Settings },
   ];
 
   return (
-    <div className="flex min-h-screen bg-gray-50/50 dark:bg-gray-950 transition-colors duration-300">
-      <aside className="w-80 border-r dark:border-gray-800 bg-white dark:bg-gray-900 flex flex-col sticky top-0 h-screen shadow-2xl shadow-blue-600/5 overflow-hidden z-40">
+    <div className="flex h-[calc(100vh-64px)] bg-gray-50/50 dark:bg-gray-950 transition-colors duration-300 overflow-hidden">
+      <aside className="w-80 border-r dark:border-gray-800 bg-white dark:bg-gray-900 flex flex-col h-full shadow-2xl shadow-blue-600/5 overflow-hidden z-40">
         <div className="p-10 border-b dark:border-gray-800 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-150 transition-transform duration-700">
             <ShieldAlert className="w-24 h-24 text-blue-600" />
@@ -88,8 +91,10 @@ export default async function AdminLayout({
         </div>
       </aside>
 
-      <main className="flex-1 p-8 lg:p-16 overflow-y-auto max-w-7xl mx-auto w-full">
-        {children}
+      <main className="flex-1 overflow-y-auto bg-gray-50/50 dark:bg-gray-950">
+        <div className="p-8 lg:p-16 max-w-7xl mx-auto w-full">
+          {children}
+        </div>
       </main>
     </div>
   );

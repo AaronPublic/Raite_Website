@@ -1,4 +1,3 @@
-// prisma/schema.prisma
 generator client {
   provider   = "prisma-client-js"
   engineType = "library"
@@ -9,46 +8,38 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  role          Role      @default(PARTICIPANT)
-  clerkId       String?   @unique   // from Clerk, optional for pre-registration
-  school        String?
-  yearLevel     String?
-  course        String?   // Added course field, optional
-  uniqueId      String?   @unique // Format: SCHOOL-ID (e.g. UA-cluxyz)
-
-  registrations Registration[]
+  id                 String         @id @default(cuid())
+  email              String         @unique
+  name               String?
+  role               Role           @default(PARTICIPANT)
+  clerkId            String?        @unique
+  school             String?
+  yearLevel          String?
+  course             String?
+  uniqueId           String?        @unique
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
   coachRegistrations Registration[] @relation("CoachRegistrations")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-}
-
-enum EventSubcategory {
-  ONLINE
-  ONSITE
-  EGAMES
+  registrations      Registration[]
 }
 
 model Event {
-  id          String        @id @default(cuid())
-  title       String
-  description String?
-  startDate   DateTime
-  endDate     DateTime
-  maxParticipantsPerRegistration Int @default(1)
+  id                             String            @id @default(cuid())
+  title                          String
+  description                    String?
+  startDate                      DateTime
+  endDate                        DateTime
+  maxParticipantsPerRegistration Int               @default(1)
   maxRegistrations               Int?
-  status      EventStatus   @default(UPCOMING)
-  category    String?
-  subcategory EventSubcategory?
-  rules       String?
-  rulesPdfUrl String?
-  imageUrl    String?
-
-  registrations Registration[]
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  status                         EventStatus       @default(UPCOMING)
+  category                       String?
+  subcategory                    EventSubcategory?
+  rules                          String?
+  rulesPdfUrl                    String?
+  imageUrl                       String?
+  createdAt                      DateTime          @default(now())
+  updatedAt                      DateTime          @updatedAt
+  registrations                  Registration[]
 }
 
 model Registration {
@@ -57,18 +48,17 @@ model Registration {
   eventId              String
   status               RegistrationStatus @default(PENDING)
   teamName             String?
-  members              Json?              // store team members as JSON
-  requirements         Json?              // file URLs or requirement flags
+  members              Json?
+  requirements         Json?
   adminComment         String?
   requirementsVerified Boolean            @default(false)
-  registeredBy         String?            // New field to track who registered the team
-  coachId              String?            // Foreign key to User
-
-  user         User               @relation(fields: [userId], references: [id])
-  coach        User?              @relation("CoachRegistrations", fields: [coachId], references: [id])
-  event        Event              @relation(fields: [eventId], references: [id])
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+  registeredBy         String?
+  coachId              String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  coach                User?              @relation("CoachRegistrations", fields: [coachId], references: [id])
+  event                Event              @relation(fields: [eventId], references: [id])
+  user                 User               @relation(fields: [userId], references: [id])
 
   @@unique([userId, eventId])
 }
@@ -81,6 +71,29 @@ model Announcement {
   isArchived Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LeaderboardEntry {
+  id          String   @id @default(cuid())
+  place       Int      @unique // 1, 2, or 3
+  name        String
+  university  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum EventSubcategory {
+  ONLINE
+  ONSITE
+  EGAMES
 }
 
 enum Role {

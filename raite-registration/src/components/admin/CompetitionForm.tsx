@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { EventStatus } from "@prisma/client";
+import { EventStatus, EventSubcategory } from "@prisma/client";
 import { createCompetition, updateCompetition } from "@/app/actions/competitions";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -35,7 +35,10 @@ const competitionSchema = z.object({
   title: z.string().min(2, "Title is required"),
   description: z.string().optional(),
   category: z.enum(["Academic", "Non-Academic", "E-GAMES"]),
-  subcategory: z.enum(["ONLINE", "ONSITE", "EGAMES"]).optional().nullable(),
+  subcategory: z.nativeEnum(EventSubcategory, {
+    required_error: "Subcategory is required",
+    invalid_type_error: "Invalid subcategory selected",
+  }),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
   maxParticipantsPerRegistration: z.coerce.number().int().positive("Must be at least 1").default(1),
@@ -53,6 +56,7 @@ type CompetitionFormValues = {
   title: string;
   description?: string;
   category: "Academic" | "Non-Academic" | "E-GAMES";
+  subcategory: EventSubcategory;
   startDate: string;
   endDate: string;
   maxParticipantsPerRegistration: number;
@@ -84,6 +88,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
       endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : "",
       maxParticipantsPerRegistration: Number(initialData.maxParticipantsPerRegistration) || 1,
       maxRegistrations: initialData.maxRegistrations !== null ? Number(initialData.maxRegistrations) : null,
+      subcategory: initialData.subcategory,
       rules: initialData.rules || "",
       rulesPdfUrl: initialData.rulesPdfUrl || "",
       imageUrl: initialData.imageUrl || "",
@@ -92,6 +97,7 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
       title: "",
       description: "",
       category: "Academic",
+      subcategory: undefined as any,
       startDate: "",
       endDate: "",
       maxParticipantsPerRegistration: 1,
@@ -192,7 +198,6 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
 
     const formattedData = {
       ...values,
-      subcategory: values.subcategory || null,
       startDate: new Date(values.startDate),
       endDate: new Date(values.endDate),
       maxParticipantsPerRegistration: Number(values.maxParticipantsPerRegistration),

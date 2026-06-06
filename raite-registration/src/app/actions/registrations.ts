@@ -80,17 +80,16 @@ export async function submitRevisionRequest(data: z.infer<typeof revisionSchema>
   }
 }
 
-export async function verifyRequirements(id: string, verified: boolean) {
+export async function deleteRegistration(id: string) {
   await checkAdmin();
 
   try {
-    await db.registration.update({
+    await db.registration.delete({
       where: { id },
-      data: { requirementsVerified: verified },
     });
     revalidatePath("/admin/registrations");
     return { success: true };
   } catch (error) {
-    return { error: "Failed to verify requirements" };
+    return { error: "Failed to delete registration" };
   }
 }

@@ -27,22 +27,25 @@ import {
   DropdownMenuContent, 
   DropdownMenuItem, 
   DropdownMenuLabel, 
-  DropdownMenuTrigger 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuGroup
 } from "@/components/ui/dropdown-menu";
 import { 
   MoreHorizontal, 
   CheckCircle, 
   XCircle, 
-  Clock, 
-  FileSearch, 
-  MessageSquare,
-  ExternalLink,
-  Loader2
+  Loader2,
+  Trash2, 
+  Eye, 
+  Pencil 
 } from "lucide-react";
-import { updateRegistrationStatus, batchUpdateRegistrationStatus, verifyRequirements } from "@/app/actions/registrations";
+import { updateRegistrationStatus, batchUpdateRegistrationStatus, deleteRegistration } from "@/app/actions/registrations";
 import { RegistrationStatus } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Registration {
   id: string;
@@ -62,8 +65,6 @@ interface Registration {
   };
 }
 
-import { motion, AnimatePresence } from "framer-motion";
-
 export default function RegistrationsTable({ initialData }: { initialData: Registration[] }) {
   const router = useRouter();
   const [rowSelection, setRowSelection] = React.useState({});
@@ -81,14 +82,16 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
     setIsUpdating(null);
   };
 
-  const handleVerify = async (id: string, current: boolean) => {
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to permanently delete this registration?")) return;
+    
     setIsUpdating(id);
-    const result = await verifyRequirements(id, !current);
+    const result = await deleteRegistration(id);
     if (result.success) {
-      toast.success(current ? "Verification removed" : "Requirements verified");
+      toast.success("Registration deleted");
       router.refresh();
     } else {
-      toast.error(result.error || "Update failed");
+      toast.error(result.error || "Failed to delete");
     }
     setIsUpdating(null);
   };
@@ -177,79 +180,42 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
       ),
     },
     {
-      accessorKey: "requirements",
-      header: "Proof",
-      cell: ({ row }) => {
-        const reqs = row.original.requirements;
-        // Handle string format or object format {link: '...'} or old {studentId: '...'}
-        const studentId = typeof reqs === 'string' ? reqs : (reqs?.link || reqs?.studentId);
-        
-        return studentId ? (
-          <a 
-            href={studentId} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-sm hover:underline"
-          >
-            <ExternalLink className="h-4 w-4" /> View
-          </a>
-        ) : (
-          <span className="text-gray-400 dark:text-gray-600 italic text-sm">No link</span>
-        );
-      },
-    },
-    {
-      accessorKey: "requirementsVerified",
-      header: () => <div className="text-center">Verified</div>,
-      cell: ({ row }) => (
-        <div className="flex justify-center">
-          {row.original.requirementsVerified ? (
-            <div className="p-1 rounded-full bg-green-100 dark:bg-green-900/30">
-              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-            </div>
-          ) : (
-            <div className="p-1 rounded-full bg-gray-100 dark:bg-gray-800">
-              <Clock className="h-4 w-4 text-gray-400 dark:text-gray-600" />
-            </div>
-          )}
-        </div>
-      ),
-    },
-    {
       id: "actions",
       cell: ({ row }) => {
         const reg = row.original;
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button variant="ghost" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+            <DropdownMenuTrigger asChild>
+              <button className="h-8 w-8 p-0 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all flex items-center justify-center">
                 {isUpdating === reg.id ? <Loader2 className="h-4 w-4 animate-spin text-blue-600" /> : <MoreHorizontal className="h-4 w-4" />}
-              </Button>
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 shadow-2xl border-gray-100 dark:border-gray-800">
-              <DropdownMenuLabel className="text-[10px] font-black uppercase text-gray-400 px-2 py-1.5">Management Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => handleStatusUpdate(reg.id, "APPROVED")} className="rounded-xl focus:bg-green-50 dark:focus:bg-green-900/20 focus:text-green-600">
-                <CheckCircle className="mr-2 h-4 w-4" /> Approve Enrollment
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleStatusUpdate(reg.id, "REJECTED")} className="rounded-xl focus:bg-red-50 dark:focus:bg-red-900/20 focus:text-red-600 text-red-600">
-                <XCircle className="mr-2 h-4 w-4" /> Reject Request
-              </DropdownMenuItem>
-              <div className="h-px bg-gray-100 dark:bg-gray-800 my-1" />
-              <DropdownMenuItem onClick={() => handleVerify(reg.id, reg.requirementsVerified)} className="rounded-xl">
-                <FileSearch className="mr-2 h-4 w-4" /> 
-                {reg.requirementsVerified ? "Remove Verification" : "Verify Documents"}
-              </DropdownMenuItem>
-              {(() => {
-                const reqs = reg.requirements;
-                const studentId = typeof reqs === 'string' ? reqs : reqs?.studentId;
-                return studentId ? (
-                  <DropdownMenuItem className="rounded-xl">
-                    <a href={studentId} target="_blank" rel="noopener noreferrer" className="flex items-center">
-                      <ExternalLink className="mr-2 h-4 w-4" /> Inspect Student ID
-                    </a>
-                  </DropdownMenuItem>
-                ) : null;
-              })()}
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="text-[10px] font-black uppercase text-gray-400 px-2 py-1.5">Management Actions</DropdownMenuLabel>
+                <DropdownMenuItem asChild>
+                  <Link href={`/admin/registrations/view/${reg.id}`}>
+                      <Eye className="mr-2 h-4 w-4" /> View Details
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`/admin/registrations/edit/${reg.id}`}>
+                      <Pencil className="mr-2 h-4 w-4" /> Edit Registration
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleStatusUpdate(reg.id, "APPROVED")} className="focus:bg-green-50 focus:text-green-600">
+                  <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleStatusUpdate(reg.id, "REJECTED")} className="focus:bg-red-50 focus:text-red-600 text-red-600">
+                  <XCircle className="mr-2 h-4 w-4" /> Reject
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleDelete(reg.id)} className="text-red-600 focus:bg-red-50 focus:text-red-600">
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete Permanently
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
         );

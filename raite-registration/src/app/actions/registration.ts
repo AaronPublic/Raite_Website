@@ -85,13 +85,31 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
         },
       });
 
-      if (existing && existing.status !== "REJECTED") {
-        throw new Error("Already registered for this event");
-      }
-
-      // Capacity Check
+      // Capacity and Deadline Check
       const event = await tx.event.findUnique({ where: { id: eventId } });
       if (!event) throw new Error("Event not found");
+
+      if (existing) {
+        if (existing.status === "APPROVED") {
+          throw new Error("Cannot edit an approved registration.");
+        }
+      }
+
+      if (new Date() > event.endDate) {
+        throw new Error("Registration is closed as the competition deadline has passed.");
+      }
+
+      // Check registration limits
+      const currentCount = await tx.registration.count({
+        where: { 
+          eventId, 
+          status: { notIn: ["REJECTED", "WAITLISTED"] } 
+        },
+      });
+
+      if (event.maxRegistrations && currentCount >= event.maxRegistrations && (!existing || existing.status === "REJECTED")) {
+        throw new Error("Registration limit for this competition has been reached.");
+      }
 
       // Check if all members are pre-registered
       const preRegisteredMembers = await tx.user.findMany({
@@ -160,16 +178,7 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
         }
       }
 
-      const currentCount = await tx.registration.count({
-        where: { 
-          eventId, 
-          status: { notIn: ["REJECTED", "WAITLISTED"] } 
-        },
-      });
-
-      if (event.maxRegistrations && currentCount >= event.maxRegistrations) {
-        throw new Error("Registration limit for this competition has been reached.");
-      }
+      // (Registration status, deadline, and initial capacity checks already performed above)
 
       const status = "PENDING";
 

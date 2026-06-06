@@ -26,6 +26,12 @@ export default async function Navbar() {
           <div className="flex items-center gap-4">
             <ThemeToggle />
             
+            {user?.role === "FACULTY_COACH" && (
+              <Link href="/registrations/my" className="text-xs font-bold uppercase tracking-widest text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400">
+                My Registrations
+              </Link>
+            )}
+
             {user?.role === "ADMIN" && (
               <Link href="/admin/dashboard" className="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">
                 Admin

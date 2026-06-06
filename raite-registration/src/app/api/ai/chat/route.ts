@@ -6,17 +6,20 @@ import { headers } from "next/headers";
 export async function POST(req: Request) {
   // Rate limiting
   const ip = (await headers()).get("x-forwarded-for") || "anonymous";
-  const { success, limit, reset, remaining } = await ratelimit.limit(ip);
+  
+  if (ratelimit) {
+    const { success, limit, reset, remaining } = await ratelimit.limit(ip);
 
-  if (!success) {
-    return new Response("Too many requests", {
-      status: 429,
-      headers: {
-        "X-RateLimit-Limit": limit.toString(),
-        "X-RateLimit-Remaining": remaining.toString(),
-        "X-RateLimit-Reset": reset.toString(),
-      },
-    });
+    if (!success) {
+      return new Response("Too many requests", {
+        status: 429,
+        headers: {
+          "X-RateLimit-Limit": limit.toString(),
+          "X-RateLimit-Remaining": remaining.toString(),
+          "X-RateLimit-Reset": reset.toString(),
+        },
+      });
+    }
   }
 
   const { messages } = await req.json();

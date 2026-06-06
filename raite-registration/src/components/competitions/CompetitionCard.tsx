@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Calendar, Users, ArrowRight, Trophy, Sparkles, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
@@ -108,17 +108,13 @@ export default function CompetitionCard({ event, index = 0 }: CompetitionCardPro
           </div>
 
           <div className="flex gap-2 mt-2">
-            <Button asChild variant="ghost" className="flex-1 h-8 rounded-lg font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all text-[10px] p-0 text-gray-900 dark:text-gray-100">
-              <Link href={`/competitions/${event.id}`}>Rules</Link>
-            </Button>
+            <Link href={`/competitions/${event.id}`} className={cn(buttonVariants({ variant: "ghost" }), "flex-1 h-8 rounded-lg font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all text-[10px] p-0 text-gray-900 dark:text-gray-100")}>Rules</Link>
 
             {canRegister && isOpen && (
-              <Button asChild className="flex-2 h-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-black shadow-lg shadow-blue-600/20 transition-all hover:scale-105 active:scale-95 group/btn text-[10px] p-0 px-2">
-                <Link href={`/register/step-1?eventId=${event.id}`} className="flex items-center justify-center gap-1">
-                  JOIN
-                  <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform" />
-                </Link>
-              </Button>
+              <Link href={`/register/step-1?eventId=${event.id}`} className={cn(buttonVariants(), "flex-2 h-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-black shadow-lg shadow-blue-600/20 transition-all hover:scale-105 active:scale-95 group/btn text-[10px] p-0 px-2 flex items-center justify-center gap-1")}>
+                JOIN
+                <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform" />
+              </Link>
             )}
           </div>
         </div>

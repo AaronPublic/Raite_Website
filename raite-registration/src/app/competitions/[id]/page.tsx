@@ -151,7 +151,7 @@ export default async function CompetitionDetailPage({
               {isOpen ? (
                 user ? (
                   canRegister ? (
-                    <Button asChild className="w-full h-12 text-lg font-bold">
+                    <Button className="w-full h-12 text-lg font-bold">
                       <Link href={`/register/step-1?eventId=${event.id}`}>
                         Register Team
                       </Link>
@@ -163,7 +163,7 @@ export default async function CompetitionDetailPage({
                   )
                 ) : (
                   <div className="space-y-4">
-                    <Button asChild className="w-full h-12 text-lg font-bold">
+                    <Button className="w-full h-12 text-lg font-bold">
                       <Link href="/sign-in">Sign in to register</Link>
                     </Button>
                     <p className="text-center text-xs text-gray-400 dark:text-gray-500 italic">

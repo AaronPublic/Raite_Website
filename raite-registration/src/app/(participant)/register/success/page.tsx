@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function SuccessPage() {
   return (
@@ -16,12 +17,12 @@ export default function SuccessPage() {
         </p>
       </div>
       <div className="flex gap-4">
-        <Button asChild variant="outline">
-          <Link href="/">Return Home</Link>
-        </Button>
-        <Button asChild>
-          <Link href="/dashboard">View My Registrations</Link>
-        </Button>
+        <Link href="/" className={cn(buttonVariants({ variant: "outline" }))}>
+          Return Home
+        </Link>
+        <Link href="/dashboard" className={cn(buttonVariants({ variant: "default" }))}>
+          View My Registrations
+        </Link>
       </div>
     </div>
   );

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { 
   Code, 
   Users, 
@@ -137,14 +138,10 @@ export default function AboutPage() {
             transition={{ delay: 0.8 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-6"
           >
-            <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-10 h-16 text-lg font-bold shadow-2xl shadow-blue-600/40 hover:scale-105 transition-all">
-              <Link href="/competitions">Explore Competitions</Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="text-white border-white/20 hover:bg-white/10 rounded-full px-10 h-16 text-lg font-bold backdrop-blur-md">
-              <Link href="/contact" className="flex items-center">
-                Join the Community <ArrowRight className="ml-2 w-5 h-5" />
-              </Link>
-            </Button>
+            <Link href="/competitions" className={cn(buttonVariants({ variant: "default", size: "lg" }), "bg-blue-600 hover:bg-blue-700 text-white rounded-full px-10 h-16 text-lg font-bold shadow-2xl shadow-blue-600/40 hover:scale-105 transition-all")}>Explore Competitions</Link>
+            <Link href="/contact" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "text-white border-white/20 hover:bg-white/10 rounded-full px-10 h-16 text-lg font-bold backdrop-blur-md flex items-center")}>
+              Join the Community <ArrowRight className="ml-2 w-5 h-5" />
+            </Link>
           </motion.div>
         </div>
       </section>
@@ -437,12 +434,8 @@ export default function AboutPage() {
               Join PSITE Region 3 today and be part of the community.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button asChild size="lg" className="bg-white text-blue-600 hover:bg-gray-50 rounded-full px-10 h-12 text-sm font-black transition-all hover:scale-105">
-                <Link href="/contact">Become a Member</Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="text-white border-white/30 hover:bg-white/10 rounded-full px-10 h-12 text-sm font-black backdrop-blur-md transition-all">
-                <Link href="/competitions">View Events</Link>
-              </Button>
+              <Link href="/contact" className={cn(buttonVariants({ variant: "default", size: "lg" }), "bg-white text-blue-600 hover:bg-gray-50 rounded-full px-10 h-12 text-sm font-black transition-all hover:scale-105")}>Become a Member</Link>
+              <Link href="/competitions" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "text-white border-white/30 hover:bg-white/10 rounded-full px-10 h-12 text-sm font-black backdrop-blur-md transition-all")}>View Events</Link>
             </div>
           </motion.div>
         </div>

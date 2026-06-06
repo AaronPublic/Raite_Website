@@ -8,8 +8,9 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const steps = [
   { id: "step-1", title: "Select Event", path: "/register/step-1" },
-  { id: "step-2", title: "Team & Docs", path: "/register/step-2" },
-  { id: "step-3", title: "Final Review", path: "/register/step-3" },
+  { id: "step-2", title: "Team Info", path: "/register/step-2" },
+  { id: "step-3", title: "Documents", path: "/register/step-3" },
+  { id: "step-4", title: "Final Review", path: "/register/step-4" },
 ];
 
 function WizardContent({ children }: { children: React.ReactNode }) {
@@ -73,7 +74,7 @@ function WizardContent({ children }: { children: React.ReactNode }) {
         </AnimatePresence>
       </div>
 
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-24">
         <motion.div 
           key={pathname}
           initial={{ opacity: 0, x: 20 }}

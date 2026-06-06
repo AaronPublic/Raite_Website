@@ -1,8 +1,9 @@
 import { getAllAnnouncements } from "@/lib/data/announcements";
 import AnnouncementsTable from "@/components/admin/AnnouncementsTable";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Plus, Megaphone, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -23,13 +24,11 @@ export default async function AdminAnnouncementsPage() {
           </p>
         </div>
         
-        <Button asChild size="lg" className="h-14 px-8 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black shadow-xl shadow-blue-600/20 transition-all hover:scale-105 active:scale-95 group">
-          <Link href="/admin/announcements/new">
+        <Link href="/admin/announcements/new" className={cn(buttonVariants({ variant: "default", size: "lg" }), "h-14 px-8 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black shadow-xl shadow-blue-600/20 transition-all hover:scale-105 active:scale-95 group")}>
             <Plus className="mr-2 h-5 w-5" /> 
             NEW BROADCAST
             <ArrowRight className="ml-2 h-4 w-4 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
-          </Link>
-        </Button>
+        </Link>
       </div>
 
       <div className="bg-white dark:bg-gray-900/40 rounded-[1rem] p-1 border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">

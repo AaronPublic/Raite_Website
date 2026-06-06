@@ -70,7 +70,7 @@ export default async function HomePage() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             {isGuest && (
-              <Button asChild size="lg" className="h-16 px-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-2xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95">
+              <Button size="lg" className="h-16 px-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-2xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95">
                 <Link href="/sign-in">
                   GET STARTED <ArrowRight className="ml-2 w-6 h-6" />
                 </Link>
@@ -78,7 +78,7 @@ export default async function HomePage() {
             )}
 
             {isNewUser && (
-              <Button asChild size="lg" className="h-16 px-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-2xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95">
+              <Button size="lg" className="h-16 px-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-2xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95">
                 <Link href="/profile/complete">
                   FINAL BOARDING CALL
                 </Link>
@@ -87,12 +87,12 @@ export default async function HomePage() {
 
             {isAdminOrCoach && (
               <>
-                <Button asChild size="lg" className="h-16 px-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-2xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95">
+                <Button size="lg" className="h-16 px-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-black shadow-2xl shadow-blue-600/30 transition-all hover:scale-105 active:scale-95">
                   <Link href="/participants/register">
                     REGISTER PARTICIPANTS
                   </Link>
                 </Button>
-                <Button asChild size="lg" className="h-16 px-10 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-black shadow-2xl shadow-indigo-600/30 transition-all hover:scale-105 active:scale-95">
+                <Button size="lg" className="h-16 px-10 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-black shadow-2xl shadow-indigo-600/30 transition-all hover:scale-105 active:scale-95">
                   <Link href="/register/step-1">
                     REGISTER FOR EVENT
                   </Link>
@@ -100,7 +100,7 @@ export default async function HomePage() {
               </>
             )}
             
-            <Button asChild variant="outline" size="lg" className="h-16 px-10 rounded-full border-2 border-gray-200 dark:border-gray-800 text-lg font-bold hover:bg-gray-50 dark:hover:bg-gray-900 transition-all">
+            <Button variant="outline" size="lg" className="h-16 px-10 rounded-full border-2 border-gray-200 dark:border-gray-800 text-lg font-bold hover:bg-gray-50 dark:hover:bg-gray-900 transition-all">
               <Link href="/competitions">Explore Events</Link>
             </Button>
           </div>

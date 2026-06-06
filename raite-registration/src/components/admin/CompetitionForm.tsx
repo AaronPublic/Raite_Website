@@ -458,14 +458,13 @@ export default function CompetitionForm({ initialData }: CompetitionFormProps) {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
+                      <Button
+                        type="button"
+                        variant="ghost"
                         size="sm"
-                        asChild
                         className="text-blue-600 hover:bg-blue-100"
                       >
-                        <a href={rulesPdfUrl} target="_blank" rel="noopener noreferrer">View</a>
+                        <a href={rulesPdfUrl} target="_blank" rel="noopener noreferrer">View Current</a>
                       </Button>
                       <Button 
                         type="button" 

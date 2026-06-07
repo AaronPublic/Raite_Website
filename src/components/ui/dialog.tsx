@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
+import { Slot } from "@radix-ui/react-slot"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -11,16 +12,34 @@ function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
-function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
-  return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
+function DialogTrigger({
+  asChild,
+  ...props
+}: DialogPrimitive.Trigger.Props & { asChild?: boolean }) {
+  return (
+    <DialogPrimitive.Trigger
+      data-slot="dialog-trigger"
+      render={asChild ? <Slot /> : undefined}
+      {...props}
+    />
+  )
 }
 
 function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
   return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
 }
 
-function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
-  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
+function DialogClose({
+  asChild,
+  ...props
+}: DialogPrimitive.Close.Props & { asChild?: boolean }) {
+  return (
+    <DialogPrimitive.Close
+      data-slot="dialog-close"
+      render={asChild ? <Slot /> : undefined}
+      {...props}
+    />
+  )
 }
 
 function DialogOverlay({

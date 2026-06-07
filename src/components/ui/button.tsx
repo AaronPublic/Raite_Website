@@ -32,21 +32,18 @@ const buttonVariants = cva(
   }
 )
 
-interface ButtonProps extends ButtonPrimitive.Props, VariantProps<typeof buttonVariants> {
-  asChild?: boolean
-}
-
 function Button({
   className,
   variant = "default",
   size = "default",
-  asChild = false,
+  asChild,
   ...props
-}: ButtonProps) {
-  const Comp = asChild ? Slot : ButtonPrimitive
+}: ButtonPrimitive.Props &
+  VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
   return (
-    <Comp
+    <ButtonPrimitive
       data-slot="button"
+      render={asChild ? <Slot /> : undefined}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     />

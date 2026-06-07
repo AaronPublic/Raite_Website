@@ -103,7 +103,7 @@ export default function CompetitionsTable({ events }: CompetitionsTableProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem asChild>
                         <Link href={`/admin/competitions/${event.id}/edit`} className="flex items-center text-gray-900 dark:text-gray-100">
                           <Edit className="mr-2 h-4 w-4" /> Edit
                         </Link>

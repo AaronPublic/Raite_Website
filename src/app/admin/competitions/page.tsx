@@ -16,9 +16,10 @@ export default async function AdminCompetitionsPage() {
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Manage Competitions</h1>
           <p className="text-gray-500 text-sm">Create, edit, and monitor all RAITE 2025 events.</p>
         </div>
-        <Button>
-          <Link href="/admin/competitions/new">
-            <Plus className="mr-2 h-4 w-4" /> Add Competition
+        <Button size="lg" asChild>
+          <Link href="/admin/competitions/new" className="flex items-center justify-center gap-2">
+            <Plus className="h-5 w-5" /> 
+            <span>Add Competition</span>
           </Link>
         </Button>
       </div>

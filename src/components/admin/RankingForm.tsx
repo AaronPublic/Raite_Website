@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { updateLeaderboard } from "@/app/actions/ranking";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Trophy, Plus, Trash2, School } from "lucide-react";
-import { SCHOOLS } from "@/lib/constants";
+import { Trophy, Plus, Trash2 } from "lucide-react";
 
 export default function RankingForm({ initialEntries }: { initialEntries?: any[] }) {
   const [entries, setEntries] = useState<{ place: number; university: string }[]>(
@@ -59,36 +58,38 @@ export default function RankingForm({ initialEntries }: { initialEntries?: any[]
   };
 
   return (
-      <Card className="w-full max-w-2xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-primary" />
-            Update Overall Podium
+      <Card className="w-full shadow-2xl shadow-blue-900/5 border-border/50">
+        <CardHeader className="pb-0">
+          <CardTitle className="text-lg font-black uppercase tracking-widest text-primary flex items-center gap-2">
+            <Trophy className="w-5 h-5" /> Podium Setup
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-8">
+        <CardContent className="pt-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {[1, 2, 3].map(place => (
-              <div key={place} className="space-y-4 p-6 bg-secondary/30 rounded-2xl border border-border">
+              <div key={place} className="space-y-4 p-5 bg-muted/30 dark:bg-secondary/20 rounded-[2rem] border border-border/40 transition-all hover:border-primary/20">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs ${
-                      place === 1 ? "bg-highlight text-primary" : 
-                      place === 2 ? "bg-muted text-foreground" : 
-                      "bg-accent/20 text-accent"
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm shadow-sm ${
+                      place === 1 ? "bg-accent text-accent-foreground" : 
+                      place === 2 ? "bg-muted text-foreground border border-border" : 
+                      "bg-destructive/10 text-destructive border border-destructive/20"
                     }`}>
-                      {place}
+                      {place === 1 ? "1st" : place === 2 ? "2nd" : "3rd"}
                     </div>
-                    <h3 className="font-bold text-foreground uppercase tracking-wider text-sm">
-                      {place === 1 ? "Champion" : place === 2 ? "1st Runner Up" : "2nd Runner Up"}
-                    </h3>
+                    <div>
+                      <h3 className="font-black text-foreground uppercase tracking-wider text-xs">
+                        {place === 1 ? "Champion" : place === 2 ? "1st Runner Up" : "2nd Runner Up"}
+                      </h3>
+                      <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">University Placement</p>
+                    </div>
                   </div>
                   <Button 
                     type="button" 
-                    variant="outline" 
+                    variant="ghost" 
                     size="sm" 
                     onClick={() => addTie(place)}
-                    className="h-8 gap-1.5 px-3 rounded-full text-[10px] font-black uppercase tracking-widest"
+                    className="h-8 gap-1.5 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/10 hover:text-primary transition-all"
                   >
                     <Plus className="w-3 h-3" /> Add Tie
                   </Button>
@@ -96,46 +97,34 @@ export default function RankingForm({ initialEntries }: { initialEntries?: any[]
 
                 <div className="space-y-3">
                   {getEntriesForPlace(place).map((entry) => (
-                    <div key={entry.originalIndex} className="flex gap-2">
-                      <Select 
-                        value={entry.university} 
-                        onValueChange={(value) => handleUpdate(entry.originalIndex, value)}
-                      >
-                        <SelectTrigger className="bg-background">
-                          <div className="flex items-center gap-2">
-                            <School className="w-4 h-4 text-muted-foreground" />
-                            <SelectValue placeholder="Select University" />
-                          </div>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {SCHOOLS.map((school) => (
-                            <SelectItem key={school} value={school}>
-                              {school}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div key={entry.originalIndex} className="flex gap-2 group">
+                      <Input 
+                        placeholder="Type University Name..." 
+                        value={entry.university}
+                        onChange={(e) => handleUpdate(entry.originalIndex, e.target.value)}
+                        className="bg-card h-10 rounded-xl border-border/60 focus:border-primary focus:ring-primary/20"
+                      />
                       <Button 
                         type="button"
                         variant="ghost" 
                         size="icon" 
                         onClick={() => removeEntry(entry.originalIndex)} 
-                        className="text-destructive shrink-0 hover:bg-destructive/10"
+                        className="text-muted-foreground shrink-0 hover:bg-destructive/10 hover:text-destructive rounded-xl opacity-0 group-hover:opacity-100 transition-all"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   ))}
                   {getEntriesForPlace(place).length === 0 && (
-                    <p className="text-xs text-muted-foreground italic pl-11">No entries for this position.</p>
+                    <p className="text-xs text-muted-foreground italic pl-2 py-2">No entries assigned.</p>
                   )}
                 </div>
               </div>
             ))}
 
             <div className="flex justify-end pt-4">
-              <Button type="submit" disabled={isSubmitting} size="lg" className="w-full md:w-auto px-12">
-                {isSubmitting ? "Saving..." : "Save Overall Rankings"}
+              <Button type="submit" disabled={isSubmitting} size="lg" className="w-full rounded-2xl font-black uppercase tracking-widest h-14 shadow-lg shadow-primary/20">
+                {isSubmitting ? "Updating Rankings..." : "Save Overall Rankings"}
               </Button>
             </div>
           </form>

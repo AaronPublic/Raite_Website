@@ -15,12 +15,17 @@ function DropdownMenuPortal({ ...props }: MenuPrimitive.Portal.Props) {
   return <MenuPrimitive.Portal data-slot="dropdown-menu-portal" {...props} />
 }
 
-function DropdownMenuTrigger({ 
-  asChild = false,
-  ...props 
+function DropdownMenuTrigger({
+  asChild,
+  ...props
 }: MenuPrimitive.Trigger.Props & { asChild?: boolean }) {
-  const Comp = asChild ? Slot : MenuPrimitive.Trigger
-  return <Comp data-slot="dropdown-menu-trigger" {...props} />
+  return (
+    <MenuPrimitive.Trigger
+      data-slot="dropdown-menu-trigger"
+      render={asChild ? <Slot /> : undefined}
+      {...props}
+    />
+  )
 }
 
 function DropdownMenuContent({
@@ -82,19 +87,19 @@ function DropdownMenuItem({
   className,
   inset,
   variant = "default",
-  asChild = false,
+  asChild,
   ...props
 }: MenuPrimitive.Item.Props & {
   inset?: boolean
   variant?: "default" | "destructive"
   asChild?: boolean
 }) {
-  const Comp = asChild ? Slot : MenuPrimitive.Item
   return (
-    <Comp
+    <MenuPrimitive.Item
       data-slot="dropdown-menu-item"
       data-inset={inset}
       data-variant={variant}
+      render={asChild ? <Slot /> : undefined}
       className={cn(
         "group/dropdown-menu-item relative flex cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-7 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-[variant=destructive]:*:[svg]:text-destructive",
         className
@@ -112,17 +117,17 @@ function DropdownMenuSubTrigger({
   className,
   inset,
   children,
-  asChild = false,
+  asChild,
   ...props
 }: MenuPrimitive.SubmenuTrigger.Props & {
   inset?: boolean
   asChild?: boolean
 }) {
-  const Comp = asChild ? Slot : MenuPrimitive.SubmenuTrigger
   return (
-    <Comp
+    <MenuPrimitive.SubmenuTrigger
       data-slot="dropdown-menu-sub-trigger"
       data-inset={inset}
+      render={asChild ? <Slot /> : undefined}
       className={cn(
         "flex cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-inset:pl-7 data-popup-open:bg-accent data-popup-open:text-accent-foreground data-open:bg-accent data-open:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
@@ -130,8 +135,8 @@ function DropdownMenuSubTrigger({
       {...props}
     >
       {children}
-      <ChevronRightIcon className="ml-auto" />
-    </Comp>
+      {!asChild && <ChevronRightIcon className="ml-auto" />}
+    </MenuPrimitive.SubmenuTrigger>
   )
 }
 
@@ -161,15 +166,12 @@ function DropdownMenuCheckboxItem({
   children,
   checked,
   inset,
-  asChild = false,
   ...props
 }: MenuPrimitive.CheckboxItem.Props & {
   inset?: boolean
-  asChild?: boolean
 }) {
-  const Comp = asChild ? Slot : MenuPrimitive.CheckboxItem
   return (
-    <Comp
+    <MenuPrimitive.CheckboxItem
       data-slot="dropdown-menu-checkbox-item"
       data-inset={inset}
       className={cn(
@@ -189,7 +191,7 @@ function DropdownMenuCheckboxItem({
         </MenuPrimitive.CheckboxItemIndicator>
       </span>
       {children}
-    </Comp>
+    </MenuPrimitive.CheckboxItem>
   )
 }
 
@@ -206,15 +208,12 @@ function DropdownMenuRadioItem({
   className,
   children,
   inset,
-  asChild = false,
   ...props
 }: MenuPrimitive.RadioItem.Props & {
   inset?: boolean
-  asChild?: boolean
 }) {
-  const Comp = asChild ? Slot : MenuPrimitive.RadioItem
   return (
-    <Comp
+    <MenuPrimitive.RadioItem
       data-slot="dropdown-menu-radio-item"
       data-inset={inset}
       className={cn(
@@ -233,7 +232,7 @@ function DropdownMenuRadioItem({
         </MenuPrimitive.RadioItemIndicator>
       </span>
       {children}
-    </Comp>
+    </MenuPrimitive.RadioItem>
   )
 }
 

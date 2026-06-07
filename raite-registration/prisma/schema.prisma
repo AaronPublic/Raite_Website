@@ -1,0 +1,126 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 String         @id @default(cuid())
+  email              String         @unique
+  name               String?
+  role               Role           @default(PARTICIPANT)
+  clerkId            String?        @unique
+  school             String?
+  yearLevel          String?
+  course             String?
+  uniqueId           String?        @unique
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  coachRegistrations Registration[] @relation("CoachRegistrations")
+  registrations      Registration[]
+}
+
+model Event {
+  id                             String            @id @default(cuid())
+  title                          String
+  description                    String?
+  startDate                      DateTime
+  endDate                        DateTime
+  maxParticipantsPerRegistration Int               @default(1)
+  maxRegistrations               Int?
+  status                         EventStatus       @default(UPCOMING)
+  category                       String?
+  subcategory                    EventSubcategory?
+  rules                          String?
+  rulesPdfUrl                    String?
+  imageUrl                       String?
+  createdAt                      DateTime          @default(now())
+  updatedAt                      DateTime          @updatedAt
+  registrations                  Registration[]
+}
+
+model Registration {
+  id                   String             @id @default(cuid())
+  userId               String
+  eventId              String
+  status               RegistrationStatus @default(PENDING)
+  teamName             String?
+  members              Json?
+  requirements         Json?
+  adminComment         String?
+  requirementsVerified Boolean            @default(false)
+  registeredBy         String?
+  coachId              String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  coach                User?              @relation("CoachRegistrations", fields: [coachId], references: [id])
+  event                Event              @relation(fields: [eventId], references: [id])
+  user                 User               @relation(fields: [userId], references: [id])
+
+  @@unique([userId, eventId])
+}
+
+model Announcement {
+  id         String   @id @default(cuid())
+  title      String
+  content    String
+  pinned     Boolean  @default(false)
+  isArchived Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LeaderboardEntry {
+  id          String   @id @default(cuid())
+  place       Int      // 1, 2, or 3
+  university  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CompetitionWinner {
+  id              String   @id @default(cuid())
+  competitionName String
+  champion        String
+  firstRunnerUp   String
+  secondRunnerUp  String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+enum EventSubcategory {
+  ONLINE
+  ONSITE
+  EGAMES
+}
+
+enum Role {
+  PARTICIPANT
+  ADMIN
+  FACULTY_COACH
+}
+
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WAITLISTED
+}

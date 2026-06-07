@@ -104,10 +104,11 @@ export default function ProfileCompletePage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950 p-6 transition-colors duration-300 relative overflow-hidden">
+    <div className="filipino-page flex items-center justify-center min-h-screen bg-background p-6 transition-colors duration-300 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[100px]" />
+        <div className="absolute left-0 top-0 h-full w-3 bg-primary" />
+        <div className="absolute left-3 top-0 h-full w-2 bg-accent" />
+        <div className="absolute right-0 top-0 h-full w-4 bg-destructive" />
       </div>
 
       <motion.div

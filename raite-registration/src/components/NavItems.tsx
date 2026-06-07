@@ -14,17 +14,17 @@ export default function NavItems() {
   ];
 
   return (
-    <div className="hidden md:flex items-center gap-8">
+    <div className="hidden md:flex items-center gap-1 rounded-full border border-border bg-secondary/80 p-1 shadow-inner">
       {navLinks.map((link) => {
         const isActive = pathname === link.href;
         return (
           <Link 
             key={link.name} 
             href={link.href} 
-            className={`text-xs font-bold uppercase tracking-widest transition-colors ${
+            className={`rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
               isActive 
-                ? "text-blue-600 dark:text-blue-400" 
-                : "text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                ? "bg-primary text-primary-foreground shadow-sm" 
+                : "text-muted-foreground hover:bg-white dark:hover:bg-white/10 hover:text-primary"
             }`}
           >
             {link.name}

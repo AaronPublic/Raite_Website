@@ -83,11 +83,20 @@ model SystemSetting {
 
 model LeaderboardEntry {
   id          String   @id @default(cuid())
-  place       Int      @unique // 1, 2, or 3
-  name        String
+  place       Int      // 1, 2, or 3
   university  String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model CompetitionWinner {
+  id              String   @id @default(cuid())
+  competitionName String
+  champion        String
+  firstRunnerUp   String
+  secondRunnerUp  String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 enum EventSubcategory {

@@ -1,13 +1,18 @@
-import { db } from "./src/lib/db";
+import { PrismaClient } from "@prisma/client";
 
-async function inspectDb() {
-  console.log("Inspecting db object models...");
-  console.log("Keys in db:", Object.keys(db));
+async function main() {
+  const prisma = new PrismaClient();
+  console.log("Checking models in PrismaClient:");
+  console.log("Available models:", Object.keys(prisma).filter(k => !k.startsWith('_') && !k.startsWith('$')));
   
-  const hasEntry = 'leaderboardEntry' in db || 'leaderboard_entry' in db;
-  console.log("Has LeaderboardEntry?", hasEntry);
-  
-  process.exit(0);
+  try {
+    const winners = await (prisma as any).competitionWinner.findMany();
+    console.log("CompetitionWinner is accessible!");
+  } catch (e: any) {
+    console.log("CompetitionWinner is NOT accessible:", e.message);
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
-inspectDb();
+main();

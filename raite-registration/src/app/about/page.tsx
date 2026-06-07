@@ -87,12 +87,11 @@ export default function AboutPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
-      
+    <div className="flex flex-col min-h-screen bg-background text-foreground relative overflow-hidden">
       {/* 1. HERO SECTION */}
-      <section className="relative pt-32 pb-48 overflow-hidden bg-gray-900">
+      <section className="relative pt-32 pb-48 overflow-hidden bg-[#07142F] z-10">
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-blue-900/90 via-indigo-900/80 to-gray-950 mix-blend-multiply" />
+          <div className="absolute inset-0 bg-[#0038A8]/80 mix-blend-multiply" />
           <motion.div 
             initial={{ scale: 1.1, opacity: 0 }}
             animate={{ scale: 1.05, opacity: 0.4 }}
@@ -101,9 +100,10 @@ export default function AboutPage() {
             style={{ backgroundImage: "url('https://scontent.fcrk1-4.fna.fbcdn.net/v/t39.30808-6/573891354_1324598456346202_4630831899425841937_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=127cfc&_nc_ohc=7avFUV00kPcQ7kNvwHKtwdy&_nc_oc=AdqbmfkJAsIDd1X6bQoYSa6rJWiDf9KY6bGQSHpuvmJd-Qeh8aj9PDl_uA_2IgUub3U&_nc_zt=23&_nc_ht=scontent.fcrk1-4.fna&_nc_gid=lMYxHHcTzEaewAeoBjaJLw&_nc_ss=7b2a8&oh=00_Af8FSYzv7FaWioiw1lKuSR6XFEis43H1BOLkBw0DQ1akqg&oe=6A285C06')" }}
           />
           
-          {/* Decorative UI elements */}
-          <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-blue-500/10 blur-[120px] rounded-full" />
-          <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-indigo-500/10 blur-[100px] rounded-full" />
+          {/* Professional Decorative Accents */}
+          <div className="absolute top-0 right-0 h-full w-2 bg-primary" />
+          <div className="absolute top-0 right-2 h-full w-1 bg-accent" />
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-accent" />
         </div>
 
         <div className="relative z-10 container mx-auto px-4 text-center max-w-5xl">
@@ -111,7 +111,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-blue-300 text-xs font-bold uppercase tracking-[0.2em] mb-8 backdrop-blur-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-[#FCD116] text-xs font-bold uppercase tracking-[0.2em] mb-8 backdrop-blur-sm"
           >
             Established for Excellence
           </motion.div>
@@ -122,13 +122,13 @@ export default function AboutPage() {
             className="text-5xl md:text-7xl font-black text-white leading-[1.1] mb-8 tracking-tighter"
           >
             Driving Innovation. <br />
-            <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Shaping the IT Future.</span>
+            <span className="text-[#FCD116]">Shaping the IT Future.</span>
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="text-xl md:text-2xl text-blue-100/70 font-medium mb-12 leading-relaxed max-w-3xl mx-auto"
+            className="text-xl md:text-2xl text-white/80 font-medium mb-12 leading-relaxed max-w-3xl mx-auto"
           >
             PSITE Region 3 is the premier network of IT educators and students dedicated to bridging the gap between the classroom and the global tech industry.
           </motion.p>
@@ -138,8 +138,8 @@ export default function AboutPage() {
             transition={{ delay: 0.8 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-6"
           >
-            <Link href="/competitions" className={cn(buttonVariants({ variant: "default", size: "lg" }), "bg-blue-600 hover:bg-blue-700 text-white rounded-full px-10 h-16 text-lg font-bold shadow-2xl shadow-blue-600/40 hover:scale-105 transition-all")}>Explore Competitions</Link>
-            <Link href="/contact" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "text-white border-white/20 hover:bg-white/10 rounded-full px-10 h-16 text-lg font-bold backdrop-blur-md flex items-center")}>
+            <Link href="/competitions" className={cn(buttonVariants({ variant: "default", size: "lg" }), "bg-[#FCD116] hover:bg-[#E6BD12] text-[#07142F] rounded-full px-10 h-16 text-lg font-bold shadow-2xl shadow-black/20 hover:scale-105 transition-all")}>Explore Competitions</Link>
+            <Link href="/contact" className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "bg-transparent text-white border-white/20 hover:bg-white/10 rounded-full px-10 h-16 text-lg font-bold backdrop-blur-md flex items-center")}>
               Join the Community <ArrowRight className="ml-2 w-5 h-5" />
             </Link>
           </motion.div>
@@ -147,8 +147,8 @@ export default function AboutPage() {
       </section>
 
       {/* 2. ABOUT PSITE REGION 3 */}
-      <section className="py-32 px-4 bg-white dark:bg-gray-950 relative overflow-hidden">
-        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-blue-50 dark:bg-blue-900/10 blur-[100px] rounded-full -translate-x-1/2" />
+      <section className="py-32 px-4 bg-background relative overflow-hidden">
+        <div className="absolute top-0 left-0 h-full w-2 bg-primary" />
         
         <div className="container mx-auto max-w-6xl relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
@@ -159,7 +159,7 @@ export default function AboutPage() {
               transition={{ duration: 0.8 }}
               className="relative group"
             >
-              <div className="absolute -inset-6 bg-gradient-to-tr from-blue-100 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/10 rounded-[3rem] -rotate-3 group-hover:rotate-0 transition-transform duration-700" />
+              <div className="absolute -inset-6 bg-accent/25 rounded-[3rem] -rotate-3 group-hover:rotate-0 transition-transform duration-700" />
               <div className="relative h-[500px] rounded-[2.5rem] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] dark:shadow-none border border-gray-100 dark:border-gray-800">
                 <img 
                   src="https://scontent.fcrk1-1.fna.fbcdn.net/v/t39.30808-6/571216183_1324598803012834_1811327419381667676_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=127cfc&_nc_ohc=NAW_FzOM49YQ7kNvwFdyjDV&_nc_oc=Adroqx4dCCgxixtC62Cf6dQMon1hQNpXH9Sfu8h03ZXmSnM3cg94-l3tHqUU8OANTvs&_nc_zt=23&_nc_ht=scontent.fcrk1-1.fna&_nc_gid=kSlRlJv3ewAHOD1_wswrkw&_nc_ss=7b2a8&oh=00_Af-zYtT55Ov8Uhmhmy9XmJLYh1YmSUwBvc9oxnZVXvzEOA&oe=6A285015" 
@@ -175,7 +175,7 @@ export default function AboutPage() {
                 className="absolute -bottom-10 -right-10 bg-white dark:bg-gray-900 p-8 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-800 hidden md:block"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white">
+                  <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white">
                     <Award className="w-6 h-6" />
                   </div>
                   <div>
@@ -192,12 +192,12 @@ export default function AboutPage() {
               transition={{ duration: 0.8 }}
               className="space-y-8"
             >
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-black uppercase tracking-widest">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary text-primary text-sm font-black uppercase tracking-widest border border-border">
                 Our Identity
               </div>
               <h2 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white leading-[1.2] tracking-tight">
                 Bridging the Gap Between <br className="hidden md:block" />
-                <span className="text-blue-600">Academe & Industry</span>
+                <span className="text-primary underline decoration-accent decoration-4 underline-offset-4">Academe & Industry</span>
               </h2>
               <div className="space-y-6 text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
                 <p>
@@ -221,21 +221,22 @@ export default function AboutPage() {
       </section>
 
       {/* 3. RAITE LEGACY */}
-      <section className="py-32 px-4 bg-gray-50 dark:bg-gray-900/30">
+      <section className="py-32 px-4 bg-secondary/60">
         <div className="container mx-auto max-w-5xl">
           <motion.div 
             {...fadeInUp}
             className="bg-white dark:bg-gray-900 p-12 md:p-16 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-xl relative overflow-hidden"
           >
             {/* Background Accent */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute top-0 right-0 h-full w-3 bg-primary" />
+            <div className="absolute top-0 right-3 h-full w-2 bg-accent" />
             
             <div className="relative z-10 space-y-10">
               <div className="space-y-4">
-                <span className="text-blue-600 dark:text-blue-400 font-black uppercase tracking-[0.2em] text-xs">The Flagship Event</span>
+                <span className="text-primary font-black uppercase tracking-[0.2em] text-xs">The Flagship Event</span>
                 <h2 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tighter">
                   Regional Assembly on <br />
-                  <span className="text-blue-600">Information Technology Education</span>
+                  <span className="text-primary">Information Technology Education</span>
                 </h2>
               </div>
               
@@ -250,7 +251,7 @@ export default function AboutPage() {
                   { title: "The Core Purpose", desc: "The ultimate proving ground for computing students through high-stakes skills competitions." }
                 ].map((item, i) => (
                   <div key={i} className="space-y-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-primary border border-border">
                       <Rocket className="w-5 h-5" />
                     </div>
                     <h4 className="font-black text-gray-900 dark:text-white">{item.title}</h4>
@@ -264,7 +265,7 @@ export default function AboutPage() {
       </section>
 
       {/* 4. MISSION & VISION */}
-      <section className="py-32 px-4 bg-white dark:bg-gray-950">
+      <section className="py-32 px-4 bg-background">
         <div className="container mx-auto max-w-6xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             <motion.div 
@@ -272,14 +273,14 @@ export default function AboutPage() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="p-12 md:p-16 rounded-[3rem] bg-gradient-to-br from-blue-700 to-indigo-900 text-white shadow-3xl relative overflow-hidden group"
+              className="p-12 md:p-16 rounded-[3rem] bg-primary text-white shadow-3xl relative overflow-hidden group flag-panel"
             >
               <div className="absolute top-0 right-0 p-12 opacity-10 group-hover:scale-125 transition-transform duration-700">
                 <Globe className="w-64 h-64" />
               </div>
               <div className="relative z-10">
                 <h2 className="text-4xl font-black mb-8 uppercase tracking-tighter">Our Vision</h2>
-                <p className="text-2xl leading-relaxed text-blue-50/90 font-medium">
+                <p className="text-2xl leading-relaxed text-white/90 font-medium">
                   To be the driving force in transforming Central Luzon into a premier global hub for world-class IT professionals and visionary educators.
                 </p>
               </div>
@@ -290,7 +291,7 @@ export default function AboutPage() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="p-12 md:p-16 rounded-[3rem] bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col justify-between"
+              className="p-12 md:p-16 rounded-[3rem] bg-secondary dark:bg-gray-900 border border-border shadow-sm flex flex-col justify-between"
             >
               <div>
                 <h2 className="text-4xl font-black mb-10 uppercase tracking-tighter text-gray-900 dark:text-white">Our Mission</h2>
@@ -308,7 +309,7 @@ export default function AboutPage() {
                       transition={{ delay: i * 0.1 }}
                       className="flex gap-5 group"
                     >
-                      <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0 mt-1 text-blue-600 group-hover:scale-125 transition-transform">
+                      <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center shrink-0 mt-1 text-accent-foreground group-hover:scale-125 transition-transform">
                         <ChevronRight className="w-4 h-4" />
                       </div>
                       <div>
@@ -325,9 +326,9 @@ export default function AboutPage() {
       </section>
 
       {/* 5. BOARD OF OFFICERS */}
-      <section className="py-32 px-4 bg-white dark:bg-gray-950 border-t dark:border-gray-800">
+      <section className="py-32 px-4 bg-background border-t border-border">
         <div className="container mx-auto max-w-6xl text-center">
-          <motion.div {...fadeInUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-sm font-black uppercase tracking-widest mb-6">
+          <motion.div {...fadeInUp} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary text-primary text-sm font-black uppercase tracking-widest mb-6 border border-border">
             Meet the Leadership
           </motion.div>
           <motion.h2 {...fadeInUp} className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-20 tracking-tight">
@@ -342,7 +343,7 @@ export default function AboutPage() {
             className="group relative max-w-4xl mx-auto"
           >
             {/* Decorative background glow */}
-            <div className="absolute -inset-4 bg-gradient-to-tr from-blue-600/20 to-indigo-600/10 blur-3xl rounded-[4rem] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+            <div className="absolute -inset-4 bg-accent/20 rounded-[4rem] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
             
             <div className="relative bg-white dark:bg-gray-900 rounded-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-800 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] dark:shadow-none hover:shadow-xl transition-all duration-500">
               
@@ -362,11 +363,11 @@ export default function AboutPage() {
                 )}
                 
                 {/* Overlays */}
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-950/90 via-gray-900/10 to-transparent opacity-80" />
+                <div className="absolute inset-0 bg-gray-950/70 opacity-80" />
                 
                 {/* Text Content on Photo */}
                 <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 text-left">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest mb-3">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent text-accent-foreground text-[10px] font-black uppercase tracking-widest mb-3">
                     2024-2025
                   </div>
                   <h3 className="text-2xl md:text-4xl font-black text-white tracking-tighter leading-none">
@@ -388,10 +389,10 @@ export default function AboutPage() {
                       className="group/item"
                     >
                       <div className="space-y-1">
-                        <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest block leading-tight">
+                        <span className="text-[10px] font-black text-primary uppercase tracking-widest block leading-tight">
                           {officer.position}
                         </span>
-                        <h4 className="text-base font-black text-gray-900 dark:text-white tracking-tight group-hover/item:text-blue-600 transition-colors leading-tight">
+                        <h4 className="text-base font-black text-gray-900 dark:text-white tracking-tight group-hover/item:text-primary transition-colors leading-tight">
                           {officer.name}
                         </h4>
                       </div>
@@ -414,7 +415,9 @@ export default function AboutPage() {
 
       {/* 7. FINAL CTA - Refined & Compact */}
       <section className="py-20 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-blue-600" />
+        <div className="absolute inset-0 bg-primary" />
+        <div className="absolute left-0 top-0 h-full w-4 bg-accent" />
+        <div className="absolute right-0 top-0 h-full w-6 bg-destructive" />
         <div 
           className="absolute inset-0 opacity-15" 
           style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/cubes.png')" }}
@@ -430,12 +433,12 @@ export default function AboutPage() {
             <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter">
               Ready to Shape the Future?
             </h2>
-            <p className="text-lg text-blue-50 font-medium opacity-90">
+            <p className="text-lg text-white font-medium opacity-90">
               Join PSITE Region 3 today and be part of the community.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/contact" className={cn(buttonVariants({ variant: "default", size: "lg" }), "bg-white text-blue-600 hover:bg-gray-50 rounded-full px-10 h-12 text-sm font-black transition-all hover:scale-105")}>Become a Member</Link>
-              <Link href="/competitions" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "text-white border-white/30 hover:bg-white/10 rounded-full px-10 h-12 text-sm font-black backdrop-blur-md transition-all")}>View Events</Link>
+              <Link href="/contact" className={cn(buttonVariants({ variant: "default", size: "lg" }), "bg-white text-primary hover:bg-gray-50 rounded-full px-10 h-12 text-sm font-black transition-all hover:scale-105")}>Become a Member</Link>
+              <Link href="/competitions" className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "bg-transparent text-white border-white/30 hover:bg-white/10 rounded-full px-10 h-12 text-sm font-black backdrop-blur-md transition-all")}>View Events</Link>
             </div>
           </motion.div>
         </div>

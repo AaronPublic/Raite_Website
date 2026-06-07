@@ -17,13 +17,6 @@ import {
 import Link from "next/link";
 
 export default function ContactPage() {
-  const fadeInUp = {
-    initial: { opacity: 0, y: 20 },
-    whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true },
-    transition: { duration: 0.6 }
-  };
-
   const contactMethods = [
     {
       icon: Mail,
@@ -31,7 +24,7 @@ export default function ContactPage() {
       description: "Our team is here to help with your inquiries.",
       value: "secretariat@psite-r3.org",
       href: "mailto:secretariat@psite-r3.org",
-      color: "blue"
+      iconClass: "bg-secondary text-primary border border-border"
     },
     {
       icon: MessageSquare,
@@ -39,7 +32,7 @@ export default function ContactPage() {
       description: "Reach out to us via our official channels.",
       value: "PSITE Region 3 Official",
       href: "https://facebook.com",
-      color: "indigo"
+      iconClass: "bg-red-50 dark:bg-red-950/30 text-destructive border border-red-100 dark:border-red-900/40"
     },
     {
       icon: MapPin,
@@ -47,19 +40,12 @@ export default function ContactPage() {
       description: "Based in Central Luzon, Philippines.",
       value: "Region 3, Philippines",
       href: "#",
-      color: "purple"
+      iconClass: "bg-yellow-50 dark:bg-yellow-950/30 text-yellow-600 dark:text-yellow-300 border border-yellow-100 dark:border-yellow-900/40"
     }
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-white dark:bg-gray-950 transition-colors duration-500">
-      
-      {/* Background Decorative Elements */}
-      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] w-[40%] aspect-square bg-blue-50/50 dark:bg-blue-900/5 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] aspect-square bg-indigo-50/50 dark:bg-indigo-900/5 blur-[120px] rounded-full" />
-      </div>
-
+    <div className="flex flex-col min-h-screen bg-background text-foreground relative overflow-hidden">
       <main className="relative z-10 flex-grow pt-32 pb-20">
         <div className="container mx-auto px-4 max-w-6xl">
           
@@ -68,7 +54,7 @@ export default function ContactPage() {
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-6"
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-6 border border-border"
             >
               Get in Touch
             </motion.div>
@@ -79,7 +65,7 @@ export default function ContactPage() {
               className="text-5xl md:text-7xl font-black text-gray-900 dark:text-white tracking-tighter mb-8 leading-[0.9]"
             >
               Let&apos;s build the <br />
-              <span className="text-blue-600">Future together.</span>
+              <span className="text-primary underline decoration-accent decoration-4 underline-offset-4">Future together.</span>
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
@@ -110,7 +96,7 @@ export default function ContactPage() {
                       <Input 
                         id="first-name" 
                         placeholder="Juan" 
-                        className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 focus:ring-blue-600 focus:border-blue-600"
+                        className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 focus:ring-primary focus:border-primary"
                       />
                     </div>
                     <div className="space-y-3">
@@ -118,7 +104,7 @@ export default function ContactPage() {
                       <Input 
                         id="last-name" 
                         placeholder="Dela Cruz" 
-                        className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 focus:ring-blue-600 focus:border-blue-600"
+                        className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 focus:ring-primary focus:border-primary"
                       />
                     </div>
                   </div>
@@ -129,7 +115,7 @@ export default function ContactPage() {
                       id="email" 
                       type="email" 
                       placeholder="juan@university.edu.ph" 
-                      className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 focus:ring-blue-600 focus:border-blue-600"
+                      className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 focus:ring-primary focus:border-primary"
                     />
                   </div>
 
@@ -138,7 +124,7 @@ export default function ContactPage() {
                     <Input 
                       id="subject" 
                       placeholder="Membership Inquiry" 
-                      className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 focus:ring-blue-600 focus:border-blue-600"
+                      className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 focus:ring-primary focus:border-primary"
                     />
                   </div>
 
@@ -147,11 +133,11 @@ export default function ContactPage() {
                     <Textarea 
                       id="message" 
                       placeholder="Tell us how we can help you..." 
-                      className="min-h-[160px] rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 focus:ring-blue-600 focus:border-blue-600 py-4 resize-none"
+                      className="min-h-[160px] rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 focus:ring-primary focus:border-primary py-4 resize-none"
                     />
                   </div>
 
-                  <Button size="lg" className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-lg font-black shadow-xl shadow-blue-600/20 transition-all group">
+                  <Button size="lg" className="w-full h-16 bg-primary hover:bg-[#002673] text-white rounded-2xl text-lg font-black shadow-xl shadow-blue-600/20 transition-all group">
                     Send Message
                     <Send className="ml-2 w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                   </Button>
@@ -171,11 +157,11 @@ export default function ContactPage() {
                     transition={{ delay: 0.4 + (i * 0.1) }}
                     className="group flex gap-6 p-2 items-start"
                   >
-                    <div className={`w-14 h-14 rounded-2xl bg-${method.color}-50 dark:bg-${method.color}-900/20 flex items-center justify-center shrink-0 text-${method.color}-600 dark:text-${method.color}-400 group-hover:scale-110 transition-transform duration-500`}>
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-500 ${method.iconClass}`}>
                       <method.icon className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 transition-colors">
+                      <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1 group-hover:text-primary transition-colors">
                         {method.title}
                       </h3>
                       <p className="text-sm text-gray-400 dark:text-gray-500 font-medium mb-2 leading-relaxed">
@@ -197,7 +183,7 @@ export default function ContactPage() {
                       key={i}
                       href="#"
                       whileHover={{ scale: 1.1, y: -2 }}
-                      className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-blue-600 transition-colors"
+                      className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary transition-colors"
                     >
                       <Icon className="w-5 h-5" />
                     </motion.a>
@@ -207,7 +193,7 @@ export default function ContactPage() {
 
               {/* Back to Home / Link */}
               <div className="pt-4">
-                <Link href="/" className="inline-flex items-center text-sm font-bold text-gray-400 hover:text-blue-600 transition-colors">
+                <Link href="/" className="inline-flex items-center text-sm font-bold text-gray-400 hover:text-primary transition-colors">
                   <ArrowLeft className="mr-2 w-4 h-4" /> Back to Homepage
                 </Link>
               </div>

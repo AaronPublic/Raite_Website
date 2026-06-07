@@ -33,7 +33,7 @@ export default async function CompetitionDetailPage({
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl text-gray-900 dark:text-gray-100">
-      <Link href="/competitions" className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors mb-8 group">
+      <Link href="/competitions" className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors mb-8 group">
         <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
         Back to Competitions
       </Link>
@@ -47,7 +47,9 @@ export default async function CompetitionDetailPage({
               alt={event.title} 
               className="object-cover w-full h-full"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-black/25" />
+            <div className="absolute bottom-0 left-0 right-0 h-2 bg-primary" />
+            <div className="absolute bottom-2 left-0 right-0 h-1 bg-accent" />
           </div>
         )}
 
@@ -55,7 +57,7 @@ export default async function CompetitionDetailPage({
           <div className="flex flex-col md:flex-row justify-between items-start gap-4">
             <div className="space-y-2">
               {event.category && (
-                <Badge variant="outline" className="text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/20">
+                <Badge variant="outline" className="text-primary border-border bg-secondary">
                   {event.category}
                 </Badge>
               )}
@@ -78,7 +80,7 @@ export default async function CompetitionDetailPage({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-              <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <Calendar className="w-5 h-5 text-primary" />
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">Date</p>
                 <p className="text-sm font-semibold">{new Date(event.startDate).toLocaleDateString()}</p>
@@ -92,14 +94,14 @@ export default async function CompetitionDetailPage({
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-              <Users className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+              <Users className="w-5 h-5 text-accent-foreground" />
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">Team Size</p>
                 <p className="text-sm font-semibold">{event.maxParticipantsPerRegistration}</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-              <Info className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <Info className="w-5 h-5 text-destructive" />
               <div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">Status</p>
                 <p className="text-sm font-semibold">{event.status}</p>
@@ -112,7 +114,7 @@ export default async function CompetitionDetailPage({
           <div className="md:col-span-2 space-y-12">
             <div className="space-y-4">
               <h2 className="text-2xl font-bold flex items-center gap-2">
-                <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                <BookOpen className="w-6 h-6 text-primary" />
                 Mechanics & Rules
               </h2>
               <a
@@ -121,28 +123,28 @@ export default async function CompetitionDetailPage({
                 rel="noopener noreferrer"
                 className="group block"
               >
-                <div className="bg-blue-50/50 dark:bg-gray-800 p-6 rounded-2xl border border-blue-100 dark:border-gray-700 text-gray-700 dark:text-gray-300 leading-relaxed transition-all hover:bg-blue-100/50 dark:hover:bg-gray-750 hover:border-blue-200 hover:shadow-md flex items-center justify-between">
+                <div className="bg-secondary dark:bg-gray-800 p-6 rounded-2xl border border-border text-gray-700 dark:text-gray-300 leading-relaxed transition-all hover:bg-accent/15 dark:hover:bg-gray-750 hover:border-primary/30 hover:shadow-md flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-xl text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
+                    <div className="bg-white dark:bg-gray-900 p-3 rounded-xl text-primary group-hover:scale-110 transition-transform border border-border">
                       <FileText className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-blue-900 dark:text-blue-100 leading-tight">Download / View Mechanics & Rules (PDF)</h3>
-                      <p className="text-sm text-blue-600/70 dark:text-blue-300/70">
+                      <h3 className="font-semibold text-primary leading-tight">Download / View Mechanics & Rules (PDF)</h3>
+                      <p className="text-sm text-muted-foreground">
                         {event.rulesPdfUrl 
                           ? "Click to open the official guidelines for this competition" 
                           : "Click to open the general guidelines in a new tab"}
                       </p>
                     </div>
                   </div>
-                  <ExternalLink className="w-5 h-5 text-blue-400 dark:text-blue-500 group-hover:text-blue-600 transition-colors" />
+                  <ExternalLink className="w-5 h-5 text-primary/70 group-hover:text-primary transition-colors" />
                 </div>
               </a>
             </div>
           </div>
 
           <aside>
-            <div className="sticky top-24 p-6 bg-white dark:bg-gray-900 border-2 border-blue-50 dark:border-gray-800 rounded-2xl shadow-xl space-y-6">
+            <div className="sticky top-24 p-6 bg-white dark:bg-gray-900 border-2 border-border rounded-2xl shadow-xl space-y-6">
               <h3 className="text-xl font-bold">Ready to compete?</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
                 Ensure you have all the necessary requirements ready before proceeding with the registration.

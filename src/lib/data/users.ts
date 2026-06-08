@@ -11,3 +11,10 @@ export async function getUserByClerkId(clerkId: string) {
     where: { clerkId },
   });
 }
+
+export async function getAllUserEmails() {
+  const users = await db.user.findMany({
+    select: { email: true },
+  });
+  return users.map((user) => user.email);
+}

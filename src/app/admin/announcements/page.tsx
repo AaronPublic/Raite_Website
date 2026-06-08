@@ -1,6 +1,7 @@
 import { getAllAnnouncements } from "@/lib/data/announcements";
 import AnnouncementsTable from "@/components/admin/AnnouncementsTable";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Plus, Megaphone, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";

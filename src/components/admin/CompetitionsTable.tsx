@@ -18,6 +18,8 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { buttonVariants } from "@/components/ui/button-variants";
+import { cn } from "@/lib/utils";
 import { MoreHorizontal, Edit, Trash2, Power, PowerOff } from "lucide-react";
 import { deleteCompetition, toggleRegistrationStatus } from "@/app/actions/competitions";
 import { useRouter } from "next/navigation";
@@ -98,9 +100,9 @@ export default function CompetitionsTable({ events }: CompetitionsTableProps) {
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 p-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
+                      <button className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "h-8 w-8 p-0 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100")}>
                         <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                      </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
                       <DropdownMenuItem asChild>

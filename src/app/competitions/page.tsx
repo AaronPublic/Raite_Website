@@ -1,6 +1,7 @@
 import { getAllEvents, getDistinctCategories } from "@/lib/data/events";
 import CompetitionCard from "@/components/competitions/CompetitionCard";
 import SearchFilter from "@/components/competitions/SearchFilter";
+import DecorativeLayout from "@/components/layout/DecorativeLayout";
 
 export default async function CompetitionsPage({
   searchParams,
@@ -23,7 +24,7 @@ export default async function CompetitionsPage({
   });
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
+    <DecorativeLayout className="min-h-screen">
       <div className="container mx-auto px-4 py-12 max-w-6xl relative z-10">
         <div className="space-y-4 mb-12">
           <h1 className="text-4xl font-bold tracking-tight">Competitions</h1>
@@ -48,6 +49,6 @@ export default async function CompetitionsPage({
           </div>
         )}
       </div>
-    </div>
+    </DecorativeLayout>
   );
 }

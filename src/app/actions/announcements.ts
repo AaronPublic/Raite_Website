@@ -4,6 +4,11 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { resend } from "@/lib/email";
+import { AnnouncementNotification } from "@/emails/AnnouncementNotification";
+import { getAllUserEmails } from "@/lib/data/users";
+import { render } from "@react-email/render";
+
 
 const announcementSchema = z.object({
   title: z.string().min(2, "Title is required"),
@@ -26,9 +31,25 @@ export async function createAnnouncement(data: z.infer<typeof announcementSchema
     await checkAdmin();
     const validated = announcementSchema.parse(data);
 
-    await db.announcement.create({
+    const announcement = await db.announcement.create({
       data: validated,
     });
+
+    // Broadcast email
+    const emails = await getAllUserEmails();
+    if (emails.length > 0) {
+      await resend.emails.send({
+        from: "RAITE 2026 <no-reply@raite.ph>", // Assuming the domain/sender
+        to: emails,
+        subject: `New Announcement: ${announcement.title}`,
+        react: AnnouncementNotification({
+          title: announcement.title,
+          content: announcement.content,
+          url: announcement.facebookUrl || undefined,
+        }),
+      });
+    }
+
     revalidatePath("/admin/announcements");
     revalidatePath("/");
     return { success: true };
@@ -37,6 +58,7 @@ export async function createAnnouncement(data: z.infer<typeof announcementSchema
     return { error: error.message || "Failed to create announcement" };
   }
 }
+
 
 export async function updateAnnouncement(id: string, data: z.infer<typeof announcementSchema>) {
   try {

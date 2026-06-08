@@ -11,6 +11,7 @@ import { getSystemSetting } from "@/lib/data/settings";
 import { getLeaderboard, getCompetitionWinners } from "@/app/actions/ranking";
 import CountdownTimer from "@/components/home/CountdownTimer";
 import AnnouncementCarousel from "@/components/home/AnnouncementCarousel";
+import DecorativeLayout from "@/components/layout/DecorativeLayout";
 import { Calendar, MapPin, School, Mail, ArrowRight, Sparkles, Trophy, Megaphone, ChevronRight } from "lucide-react";
 import * as motion from "framer-motion/client";
 import { Suspense } from "react";
@@ -237,7 +238,7 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen bg-background text-foreground relative overflow-hidden">
       <HeroSection />
 
-      <section className="relative py-24 px-4 border-t border-border z-10 bg-white/50 backdrop-blur-[2px]">
+      <DecorativeLayout className="py-24 px-4 border-t border-border z-10 bg-slate-50/50 dark:bg-blue-950/50 backdrop-blur-[2px]">
         <div className="container mx-auto max-w-7xl">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
             <Card className="md:col-span-12 p-10 flex flex-col justify-center border border-border bg-card/80 overflow-hidden shadow-sm group transition-all duration-500 relative min-h-[280px]">
@@ -274,7 +275,7 @@ export default function HomePage() {
             </Suspense>
           </div>
         </div>
-      </section>
+      </DecorativeLayout>
 
       <footer className="py-16 border-t border-border bg-background text-center relative z-10">
         <div className="container mx-auto px-4">

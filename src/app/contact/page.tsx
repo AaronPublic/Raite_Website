@@ -15,6 +15,7 @@ import {
   ArrowLeft
 } from "lucide-react";
 import Link from "next/link";
+import DecorativeLayout from "@/components/layout/DecorativeLayout";
 
 export default function ContactPage() {
   const contactMethods = [
@@ -46,10 +47,9 @@ export default function ContactPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground relative overflow-hidden">
-      <main className="relative z-10 flex-grow pt-32 pb-20">
+      <DecorativeLayout className="pt-32 pb-20 z-10">
         <div className="container mx-auto px-4 max-w-6xl">
           
-          {/* Header */}
           <div className="max-w-3xl mb-20">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -78,11 +78,7 @@ export default function ContactPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
-            
-            {/* Contact Information & Form Side */}
             <div className="lg:col-span-7 space-y-12">
-              
-              {/* Form Card */}
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -93,59 +89,32 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
                       <Label htmlFor="first-name" className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">First Name</Label>
-                      <Input 
-                        id="first-name" 
-                        placeholder="Juan" 
-                        className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 focus:ring-primary focus:border-primary"
-                      />
+                      <Input id="first-name" placeholder="Juan" className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700" />
                     </div>
                     <div className="space-y-3">
                       <Label htmlFor="last-name" className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Last Name</Label>
-                      <Input 
-                        id="last-name" 
-                        placeholder="Dela Cruz" 
-                        className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 focus:ring-primary focus:border-primary"
-                      />
+                      <Input id="last-name" placeholder="Dela Cruz" className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700" />
                     </div>
                   </div>
-
                   <div className="space-y-3">
                     <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Email Address</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      placeholder="juan@university.edu.ph" 
-                      className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 focus:ring-primary focus:border-primary"
-                    />
+                    <Input id="email" type="email" placeholder="juan@university.edu.ph" className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700" />
                   </div>
-
                   <div className="space-y-3">
                     <Label htmlFor="subject" className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Subject</Label>
-                    <Input 
-                      id="subject" 
-                      placeholder="Membership Inquiry" 
-                      className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 focus:ring-primary focus:border-primary"
-                    />
+                    <Input id="subject" placeholder="Membership Inquiry" className="h-14 rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700" />
                   </div>
-
                   <div className="space-y-3">
                     <Label htmlFor="message" className="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Message</Label>
-                    <Textarea 
-                      id="message" 
-                      placeholder="Tell us how we can help you..." 
-                      className="min-h-[160px] rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 focus:ring-primary focus:border-primary py-4 resize-none"
-                    />
+                    <Textarea id="message" placeholder="Tell us how we can help you..." className="min-h-[160px] rounded-2xl bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-700 py-4" />
                   </div>
-
-                  <Button size="lg" className="w-full h-16 bg-primary hover:bg-[#002673] text-white rounded-2xl text-lg font-black shadow-xl shadow-blue-600/20 transition-all group">
-                    Send Message
-                    <Send className="ml-2 w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                  <Button size="lg" className="w-full h-16 bg-primary hover:bg-[#002673] text-white rounded-2xl text-lg font-black transition-all">
+                    Send Message <Send className="ml-2 w-5 h-5" />
                   </Button>
                 </form>
               </motion.div>
             </div>
 
-            {/* Info Channels Side */}
             <div className="lg:col-span-5 space-y-10 lg:pl-10">
               <div className="space-y-10">
                 {contactMethods.map((method, i) => (
@@ -161,15 +130,9 @@ export default function ContactPage() {
                       <method.icon className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1 group-hover:text-primary transition-colors">
-                        {method.title}
-                      </h3>
-                      <p className="text-sm text-gray-400 dark:text-gray-500 font-medium mb-2 leading-relaxed">
-                        {method.description}
-                      </p>
-                      <p className="text-gray-900 dark:text-white font-bold tracking-tight">
-                        {method.value}
-                      </p>
+                      <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1">{method.title}</h3>
+                      <p className="text-sm text-gray-400 dark:text-gray-500 font-medium mb-2">{method.description}</p>
+                      <p className="text-gray-900 dark:text-white font-bold">{method.value}</p>
                     </div>
                   </motion.a>
                 ))}
@@ -179,31 +142,21 @@ export default function ContactPage() {
                 <h3 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-8">Follow Our Progress</h3>
                 <div className="flex gap-4">
                   {[Globe, Mail, MessageSquare].map((Icon, i) => (
-                    <motion.a
-                      key={i}
-                      href="#"
-                      whileHover={{ scale: 1.1, y: -2 }}
-                      className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary transition-colors"
-                    >
+                    <motion.a key={i} href="#" whileHover={{ scale: 1.1 }} className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 flex items-center justify-center text-gray-500 hover:text-primary transition-colors">
                       <Icon className="w-5 h-5" />
                     </motion.a>
                   ))}
                 </div>
               </div>
-
-              {/* Back to Home / Link */}
               <div className="pt-4">
                 <Link href="/" className="inline-flex items-center text-sm font-bold text-gray-400 hover:text-primary transition-colors">
                   <ArrowLeft className="mr-2 w-4 h-4" /> Back to Homepage
                 </Link>
               </div>
             </div>
-
           </div>
         </div>
-      </main>
-
-      {/* Footer Branding */}
+      </DecorativeLayout>
       <footer className="relative z-10 py-10 border-t border-gray-100 dark:border-gray-800">
         <div className="container mx-auto px-4 text-center">
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-300 dark:text-gray-700">
@@ -211,7 +164,6 @@ export default function ContactPage() {
           </p>
         </div>
       </footer>
-
     </div>
   );
 }

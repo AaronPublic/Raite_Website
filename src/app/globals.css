@@ -31,12 +31,12 @@
 }
 
 :root {
-  --background: #FFFFFF;
-  --foreground: #020817;
+  --background: #FAFAFA;
+  --foreground: #0F172A;
   --card: #FFFFFF;
-  --card-foreground: #020817;
+  --card-foreground: #0F172A;
   --popover: #FFFFFF;
-  --popover-foreground: #020817;
+  --popover-foreground: #0F172A;
   --primary: #0038A8;
   --primary-foreground: #FFFFFF;
   --secondary: #F1F5F9;
@@ -44,7 +44,7 @@
   --muted: #F1F5F9;
   --muted-foreground: #64748B;
   --accent: #FCD116;
-  --accent-foreground: #020817;
+  --accent-foreground: #0F172A;
   --destructive: #CE1126;
   --destructive-foreground: #FFFFFF;
   --border: #E2E8F0;
@@ -54,25 +54,25 @@
 }
 
 .dark {
-  --background: #020817;
-  --foreground: #F8FAFC;
-  --card: #020817;
+  --background: #020617; /* Slate 950 */
+  --foreground: #F1F5F9;
+  --card: #0F172A; /* Slate 900 */
   --card-foreground: #F8FAFC;
-  --popover: #020817;
+  --popover: #0F172A;
   --popover-foreground: #F8FAFC;
-  --primary: #3F7BFF;
+  --primary: #3B82F6; /* Blue 500 */
   --primary-foreground: #FFFFFF;
-  --secondary: #1E293B;
+  --secondary: #1E293B; /* Slate 800 */
   --secondary-foreground: #F8FAFC;
   --muted: #1E293B;
   --muted-foreground: #94A3B8;
   --accent: #FCD116;
-  --accent-foreground: #020817;
-  --destructive: #FF4A5F;
+  --accent-foreground: #0F172A;
+  --destructive: #EF4444; /* Red 500 */
   --destructive-foreground: #FFFFFF;
-  --border: #1E293B;
-  --input: #1E293B;
-  --ring: #3F7BFF;
+  --border: #334155; /* Slate 700 */
+  --input: #334155;
+  --ring: #3B82F6;
 }
 
 @layer base {
@@ -80,6 +80,43 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground min-h-screen;
+  }
+
+  /* Updated Main Content BG */
+  .dark .main-content-bg {
+    background-color: #020617; /* Slate 950 */
+  }
+
+  .main-content-bg {
+    @apply relative overflow-hidden;
+  }
+
+  /* Enhanced Creative Shapes for Main Content */
+  .main-content-bg [class^="shape-"] {
+    position: absolute;
+    z-index: 0;
+    opacity: 0.35;
+    animation: float 20s infinite ease-in-out;
+  }
+
+  .main-content-bg .shape-1 { border-radius: 50%; }
+  .main-content-bg .shape-2 { border-radius: 20%; }
+  .main-content-bg .shape-3 { border-radius: 12%; }
+  .main-content-bg .shape-4 { border-radius: 12%; }
+
+  .dark .main-content-bg .shape-1 { background: #1D4ED8; width: 500px; height: 500px; top: -100px; left: -200px; }
+  .dark .main-content-bg .shape-2 { background: #CA8A04; width: 400px; height: 400px; bottom: -100px; right: -150px; }
+  .dark .main-content-bg .shape-3 { background: #3B82F6; width: 350px; height: 350px; top: 20%; right: -100px; animation-delay: -5s; }
+  .dark .main-content-bg .shape-4 { background: #FACC15; width: 300px; height: 300px; bottom: 10%; left: -100px; animation-delay: -10s; }
+  
+  :root .main-content-bg .shape-1 { background: #BFDBFE; width: 500px; height: 500px; top: -100px; left: -200px; }
+  :root .main-content-bg .shape-2 { background: #FEF08A; width: 400px; height: 400px; bottom: -100px; right: -150px; }
+  :root .main-content-bg .shape-3 { background: #DBEAFE; width: 350px; height: 350px; top: 20%; right: -100px; animation-delay: -5s; }
+  :root .main-content-bg .shape-4 { background: #FEF9C3; width: 300px; height: 300px; bottom: 10%; left: -100px; animation-delay: -10s; }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(20px, 20px); }
   }
 }

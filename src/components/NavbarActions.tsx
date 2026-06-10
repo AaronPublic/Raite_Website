@@ -23,14 +23,14 @@ export default function NavbarActions({ userId, userRole }: NavbarActionsProps) 
 
   if (!mounted) {
     return (
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3" suppressHydrationWarning>
         <div className="h-8 w-8 animate-pulse rounded-full bg-secondary" />
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3" suppressHydrationWarning>
       {userRole === "FACULTY_COACH" && (
         <Link 
           href="/registrations/my" 

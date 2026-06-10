@@ -31,6 +31,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "RAITE Registration",
   description: "Event registration platform for PSITE Region III",
+  icons: {
+    icon: "/RAITE.png",
+    apple: "/RAITE.png",
+  },
 };
 
 export default function RootLayout({

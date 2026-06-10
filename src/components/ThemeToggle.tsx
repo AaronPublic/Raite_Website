@@ -21,6 +21,7 @@ export function ThemeToggle() {
         size="icon"
         className="rounded-full w-10 h-10 transition-all"
         aria-label="Toggle theme placeholder"
+        suppressHydrationWarning
       >
         <div className="h-5 w-5 rounded-full bg-secondary animate-pulse" />
       </Button>
@@ -34,6 +35,7 @@ export function ThemeToggle() {
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       className="rounded-full w-10 h-10 transition-all hover:bg-gray-100 dark:hover:bg-gray-800"
       aria-label="Toggle theme"
+      suppressHydrationWarning
     >
       <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
       <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />

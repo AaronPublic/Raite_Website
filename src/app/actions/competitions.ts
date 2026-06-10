@@ -50,6 +50,7 @@ export async function createCompetition(data: z.infer<typeof competitionSchema>)
       data: dbData,
     });
     
+    revalidatePath("/", "layout");
     revalidatePath("/admin/competitions");
     revalidatePath("/competitions");
     return { success: true };
@@ -82,6 +83,7 @@ export async function updateCompetition(id: string, data: z.infer<typeof competi
       data: dbData,
     });
     
+    revalidatePath("/", "layout");
     revalidatePath("/admin/competitions");
     revalidatePath(`/competitions/${id}`);
     revalidatePath("/competitions");
@@ -107,6 +109,7 @@ export async function deleteCompetition(id: string) {
       db.event.delete({ where: { id } }),
     ]);
     
+    revalidatePath("/", "layout");
     revalidatePath("/admin/competitions");
     revalidatePath("/competitions");
     return { success: true };
@@ -125,6 +128,7 @@ export async function toggleRegistrationStatus(id: string, isOpen: boolean) {
         status: isOpen ? "UPCOMING" : "COMPLETED",
       },
     });
+    revalidatePath("/", "layout");
     revalidatePath("/admin/competitions");
     revalidatePath(`/competitions/${id}`);
     return { success: true };

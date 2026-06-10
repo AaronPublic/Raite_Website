@@ -8,7 +8,6 @@ export default function NavItems() {
 
   const navLinks = [
     { name: "Home", href: "/" },
-    { name: "About Us", href: "/about" },
     { name: "Competitions", href: "/competitions" },
     { name: "Contact", href: "/contact" },
   ];

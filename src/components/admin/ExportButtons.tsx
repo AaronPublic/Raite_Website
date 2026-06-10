@@ -5,8 +5,7 @@ import { Download, FileText, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { exportParticipantsCSV, getParticipantsForPDF } from "@/app/actions/participants";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
+import { generateRAITEReport } from "@/lib/pdf-reports";
 
 export default function ExportButtons() {
   const [isExportingCSV, setIsExportingCSV] = useState(false);
@@ -18,12 +17,13 @@ export default function ExportButtons() {
     try {
       const filters = Object.fromEntries(searchParams.entries());
       const csv = await exportParticipantsCSV(filters);
+      const date = new Date().toISOString().split('T')[0];
       
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", `participants_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute("download", `RAITE_2026_Participants_List_${date}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -39,21 +39,15 @@ export default function ExportButtons() {
     try {
       const filters = Object.fromEntries(searchParams.entries());
       const data = await getParticipantsForPDF(filters);
+      const date = new Date().toISOString().split('T')[0];
       
-      const doc = new jsPDF();
-      doc.text("RAITE 2025 - Participant List", 14, 15);
-      doc.setFontSize(10);
-      doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 22);
-      
-      autoTable(doc, {
-        startY: 30,
-        head: [['Name', 'Email', 'School', 'Role', 'Joined']],
-        body: data.map(p => [p.name, p.email, p.school, p.role, p.date]),
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [59, 130, 246] }
+      generateRAITEReport({
+        title: "Participant List",
+        subtitle: `Generated for: RAITE 2026 Administrative Review`,
+        filename: `RAITE_2026_Participants_List_${date}`,
+        columns: ['Name', 'Email', 'School', 'Role', 'Joined'],
+        data: data.map(p => [p.name, p.email, p.school, p.role, p.date]),
       });
-      
-      doc.save(`participants_${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (error) {
       console.error("Export failed:", error);
     } finally {

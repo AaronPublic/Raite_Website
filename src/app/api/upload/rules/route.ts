@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import path from "path";
+import { writeFile, mkdir } from "fs/promises";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,29 +20,27 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     // Create unique filename
-    const filename = `${Date.now()}-${file.name.replaceAll(" ", "_")}`;
+    const filename = `rules-${Date.now()}-${file.name.replaceAll(" ", "_")}`;
     
-    // Upload to Supabase
-    const { data, error } = await supabase.storage
-      .from("rules")
-      .upload(filename, buffer, {
-        contentType: file.type,
-        upsert: true,
-      });
-
-    if (error) {
-      console.error("Supabase upload error:", error);
-      return NextResponse.json({ error: "Failed to upload to Supabase" }, { status: 500 });
+    // Define the upload directory
+    const uploadDir = path.join(process.cwd(), "public", "uploads", "rules");
+    
+    // Ensure the directory exists
+    try {
+      await mkdir(uploadDir, { recursive: true });
+    } catch (err) {
+      // Ignore if directory already exists
     }
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from("rules")
-      .getPublicUrl(filename);
+    const filePath = path.join(uploadDir, filename);
+    await writeFile(filePath, buffer);
+
+    // Return the relative URL for the browser
+    const url = `/uploads/rules/${filename}`;
     
-    return NextResponse.json({ url: publicUrl });
+    return NextResponse.json({ url });
   } catch (error: any) {
     console.error("Upload error:", error);
-    return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to upload rules locally" }, { status: 500 });
   }
 }

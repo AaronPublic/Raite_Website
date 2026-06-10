@@ -11,8 +11,8 @@ export function SafeUserButton(props: any) {
   }, []);
 
   if (!mounted) {
-    return <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />;
+    return <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" suppressHydrationWarning />;
   }
 
-  return <UserButton {...props} />;
+  return <div suppressHydrationWarning><UserButton {...props} /></div>;
 }

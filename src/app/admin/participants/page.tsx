@@ -2,6 +2,7 @@ import { getPaginatedParticipants } from "@/lib/data/participants";
 import ParticipantsTable from "@/components/admin/ParticipantsTable";
 import ParticipantFilters from "@/components/admin/ParticipantFilters";
 import ExportButtons from "@/components/admin/ExportButtons";
+import { getSchools } from "@/lib/data/schools";
 
 
 
@@ -19,16 +20,19 @@ export default async function AdminParticipantsPage({
   const params = await searchParams;
   const currentPage = parseInt(params.page || "1");
   
-  const { participants, totalPages, totalCount } = await getPaginatedParticipants(
-    currentPage,
-    10,
-    {
-      search: params.search,
-      school: params.school,
-      course: params.course,
-      role: params.role,
-    }
-  );
+  const [ { participants, totalPages, totalCount }, schools ] = await Promise.all([
+    getPaginatedParticipants(
+      currentPage,
+      10,
+      {
+        search: params.search,
+        school: params.school,
+        course: params.course,
+        role: params.role,
+      }
+    ),
+    getSchools()
+  ]);
 
   return (
     <div className="space-y-8">
@@ -47,7 +51,8 @@ export default async function AdminParticipantsPage({
       <ParticipantsTable 
         participants={participants as any} 
         totalPages={totalPages} 
-        currentPage={currentPage} 
+        currentPage={currentPage}
+        schools={schools}
       />
     </div>
   );

@@ -35,32 +35,46 @@ export async function getDashboardData() {
   };
 }
 
-const batchUpdateSchema = z.object({
-  ids: z.array(z.string()),
-  status: z.nativeEnum(RegistrationStatus),
+const schoolSchema = z.object({
+  name: z.string().min(1, "School name is required"),
+  abbreviation: z.string().min(1, "Abbreviation is required"),
 });
 
-export async function batchUpdateStatus(data: z.infer<typeof batchUpdateSchema>) {
+export async function addSchool(data: z.infer<typeof schoolSchema>) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
   const admin = await db.user.findUnique({ where: { clerkId: userId } });
   if (!admin || admin.role !== "ADMIN") throw new Error("Forbidden");
 
-  const validated = batchUpdateSchema.safeParse(data);
-  if (!validated.success) return { error: "Invalid data" };
-
-  const { ids, status } = validated.data;
+  const validated = schoolSchema.safeParse(data);
+  if (!validated.success) return { error: "Invalid school data" };
 
   try {
-    await db.registration.updateMany({
-      where: { id: { in: ids } },
-      data: { status },
+    await db.school.create({
+      data: validated.data,
     });
-
-    revalidatePath("/admin/dashboard");
+    revalidatePath("/admin/settings"); // Or wherever you place the school management
     return { success: true };
   } catch (err) {
-    return { error: "Failed to update registrations" };
+    return { error: "Failed to add school (name or abbreviation may already exist)" };
+  }
+}
+
+export async function deleteSchool(id: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const admin = await db.user.findUnique({ where: { clerkId: userId } });
+  if (!admin || admin.role !== "ADMIN") throw new Error("Forbidden");
+
+  try {
+    await db.school.delete({
+      where: { id },
+    });
+    revalidatePath("/admin/settings");
+    return { success: true };
+  } catch (err) {
+    return { error: "Failed to delete school" };
   }
 }

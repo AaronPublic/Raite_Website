@@ -4,6 +4,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { getSchoolByName } from "@/lib/data/schools";
 
 const profileSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -13,7 +14,6 @@ const profileSchema = z.object({
 });
 
 export async function completeProfile(formData: z.infer<typeof profileSchema>) {
-  console.log("completeProfile: Starting for user");
   try {
     const user = await currentUser();
     if (!user) throw new Error("Unauthorized");
@@ -29,8 +29,9 @@ export async function completeProfile(formData: z.infer<typeof profileSchema>) {
     const name = `${firstName} ${lastName}`.trim();
     const role = classification === "Faculty Coach" ? "FACULTY_COACH" : "PARTICIPANT";
 
-    console.log("completeProfile: Upserting user in DB...");
-    
+    const schoolRecord = await getSchoolByName(school);
+    if (!schoolRecord) throw new Error("School not found");
+
     const existingUserByEmail = await db.user.findUnique({ where: { email } });
 
     let updatedUser;
@@ -61,6 +62,16 @@ export async function completeProfile(formData: z.infer<typeof profileSchema>) {
             },
         });
     }
+
+    // Generate uniqueId if not set
+    if (!updatedUser.uniqueId) {
+        const uniqueId = `${schoolRecord.abbreviation}-${updatedUser.id.slice(-6).toUpperCase()}`;
+        await db.user.update({
+            where: { id: updatedUser.id },
+            data: { uniqueId },
+        });
+    }
+
     revalidatePath("/");
     return { success: true };
   } catch (error: any) {

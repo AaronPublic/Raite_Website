@@ -5,67 +5,7 @@ import { db } from "@/lib/db";
 import { getAllParticipantsForExport, ParticipantFilters } from "@/lib/data/participants";
 import { revalidatePath } from "next/cache";
 import Papa from "papaparse";
-
-const SCHOOL_MAP: Record<string, string> = {
-  "ANGELES UNIVERSITY FOUNDATION": "AUF",
-  "AURORA STATE COLLEGE OF TECHNOLOGY": "ASCOT",
-  "BATAAN HEROES COLLEGE": "BHC",
-  "BULACAN POLYTECHNIC COLLEGE": "BPC",
-  "CENTRAL LUZON COLLEGE OF SCIENCE AND TECHNOLOGY": "CLCST",
-  "CENTRO ESCOLAR UNIVERSITY MALOLOS": "CEU-M",
-  "CITY COLLEGE OF ANGELES": "CCA",
-  "CITY COLLEGE OF SAN JOSE DEL MONTE": "CCSJDM",
-  "CLARK COLLEGE OF SCIENCE AND TECHNOLOGY": "CCST",
-  "COLEGIO DE SAN GABRIEL ARCANGEL, INC.": "CDSGA",
-  "COLLEGE FOR RESEARCH & TECHNOLOGY OF CABANATUAN INC.": "CRT-C",
-  "COLUMBAN COLLEGE INC.": "CCI",
-  "COMTEQ COMPUTER AND BUSINESS COLLEGE, INC.": "CCBC",
-  "CORE GATEWAY COLLEGE, INC.": "CGCI",
-  "DR. YANGA'S COLLEGES, INC": "DYCI",
-  "EASTWOODS COLLEGE OF SCIENCE AND TECHNOLOGY": "ECST",
-  "EXACT COLLEGES OF ASIA": "ECA",
-  "FIRST CITY PROVIDENTIAL COLLEGE": "FCPC",
-  "GENERAL DE JESUS COLLEGE": "GDJC",
-  "GORDON COLLEGE": "GC",
-  "GUAGUA NATIONAL COLLEGES, INC.": "GNC",
-  "HOLY ANGEL UNIVERSITY": "HAU",
-  "HOLY CROSS COLLEGE": "HCC",
-  "HOLY CROSS COLLEGE STA. ROSA N. E. INC.": "HCC-SR",
-  "IMMACULATE CONCEPTION I- COLLEGE OF ARTS AND TECHNOLOGY": "ICICAT",
-  "LA CONSOLACION UNIVERSITY PHILIPPINES": "LCUP",
-  "LA VERDAD CHRISTIAN COLLEGE, INC.": "LVCC",
-  "LYCEUM OF SUBIC BAY": "LSB",
-  "MABALACAT CITY COLLEGE": "MCC",
-  "MANUEL V. GALLEGO FOUNDATION COLLEGES, INC.": "MVGFCI",
-  "NATIONAL UNIVERSITY - CLARK": "NU-C",
-  "NATIONAL UNIVERSITY BULACAN, INC.": "NU-B",
-  "NORZAGARAY COLLEGE": "NC",
-  "NUEVA ECIJA UNIVERSITY OF SCIENCE AND TECHNOLOGY": "NEUST",
-  "NUEVA ECIJA UNIVERSITY OF SCIENCE AND TECHNOLOGY - TALAVERA OFF CAMPUS": "NEUST-T",
-  "OUR LADY OF FATIMA UNIVERSITY - PAMPANG CAMPUS": "OLFU-P",
-  "OUR LADY OF THE SACRED HEART COLLEGE OF GUIMBA, INC.": "OLSHC",
-  "PAMBAYANG DALUBHASAAN NG MARILAO": "PDM",
-  "PAMPANGA STATE UNIVERSITY": "PSU",
-  "PAMPANGA STATE UNIVERSITY COLLEGE OF COMPUTING STUDIES": "PSU-CCS",
-  "PHILIPPINE SOCIETY OF INFORMATION TECHNOLOGY EDUCATORS-PUP BATAAN STUDENT CHAPTER": "PSITE-PUPB",
-  "POLYTECHNIC COLLEGE OF BOTOLAN": "PCB",
-  "RICHWELL COLLEGES, INC.": "RCI",
-  "SAINT MARY'S ANGELS COLLEGE OF PAMPANGA": "SMACP",
-  "SANTA RITA COLLEGE OF PAMPANGA": "SRCP",
-  "STI COLLEGE BALIUAG": "STI-B",
-  "STI COLLEGE MEYCAUAYAN": "STI-M",
-  "STI COLLEGE SAN FERNANDO": "STI-SF",
-  "STI COLLEGE SAN JOSE": "STI-SJ",
-  "TARLAC STATE UNIVERSITY": "TSU",
-  "TOPLINK GLOBAL COLLEGE INC.": "TGCI",
-  "VISION ACADEMY INC.": "VAI",
-  "WESLEYAN UNIVERSITY-PHILIPPINES": "WU-P",
-  "COLLEGE OF THE IMMACULATE CONCEPTION": "CIC",
-  "CONCEPCION HOLY CROSS COLLEGE, INC.": "CHCC",
-  "EASTWOODS PROFESSIONAL COLLEGE OF SCIENCE AND TECHNOLOGY": "EPCST",
-  "COLLEGE OF OUR LADY OF MERCY OF PULILAN FOUNDATION INC": "COLMP",
-  "UNIVERSITY OF THE ASSUMPTION": "UA",
-};
+import { getSchoolByName } from "@/lib/data/schools";
 
 async function checkAdmin() {
   const { userId } = await auth();
@@ -99,13 +39,13 @@ export async function bulkRegisterParticipants(participants: { name: string, ema
     throw new Error("Only Admins and Faculty Coaches can register participants.");
   }
 
-  const school = requester.school;
-  if (!school) {
+  const schoolName = requester.school;
+  if (!schoolName) {
     throw new Error("Your profile must have a school assigned before you can register participants.");
   }
 
-  // Get abbreviation from map, or fallback to auto-generation
-  const schoolAbbr = SCHOOL_MAP[school.toUpperCase()] || school
+  const schoolRecord = await getSchoolByName(schoolName);
+  const schoolAbbr = schoolRecord?.abbreviation || schoolName
     .split(" ")
     .filter(word => !["of", "the", "and"].includes(word.toLowerCase()))
     .map(word => word[0])
@@ -121,14 +61,14 @@ export async function bulkRegisterParticipants(participants: { name: string, ema
         update: {
           name: p.name,
           course: p.course,
-          school: school,
+          school: schoolName,
           role: "PARTICIPANT",
         },
         create: {
           email: p.email,
           name: p.name,
           course: p.course,
-          school: school,
+          school: schoolName,
           role: "PARTICIPANT",
           clerkId: null,
         },

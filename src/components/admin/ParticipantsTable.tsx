@@ -1,6 +1,6 @@
 "use client";
 
-import { User } from "@prisma/client";
+import { User, School } from "@prisma/client";
 import {
   Table,
   TableBody,
@@ -17,12 +17,14 @@ interface ParticipantsTableProps {
   participants: User[];
   totalPages: number;
   currentPage: number;
+  schools: School[];
 }
 
 export default function ParticipantsTable({
   participants,
   totalPages,
   currentPage,
+  schools,
 }: ParticipantsTableProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -31,6 +33,12 @@ export default function ParticipantsTable({
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
     router.push(`/admin/participants?${params.toString()}`);
+  };
+
+  const getFullSchoolName = (schoolAbbr: string | null) => {
+    if (!schoolAbbr) return "N/A";
+    const school = schools.find((s) => s.abbreviation === schoolAbbr || s.name === schoolAbbr);
+    return school ? school.name : schoolAbbr;
   };
 
   return (
@@ -59,7 +67,7 @@ export default function ParticipantsTable({
                 <TableRow key={user.id} className="hover:bg-gray-50/30 dark:hover:bg-gray-800/30 transition-colors border-b border-gray-100 dark:border-gray-800 text-sm">
                   <TableCell className="font-medium text-gray-900 dark:text-gray-100">{user.name || "N/A"}</TableCell>
                   <TableCell className="text-gray-700 dark:text-gray-300">{user.email}</TableCell>
-                  <TableCell className="text-gray-700 dark:text-gray-300">{user.school || "N/A"}</TableCell>
+                  <TableCell className="text-gray-700 dark:text-gray-300">{getFullSchoolName(user.school)}</TableCell>
                   <TableCell className="text-gray-700 dark:text-gray-300">{user.course || "N/A"}</TableCell>
                   <TableCell className="text-gray-700 dark:text-gray-300">{user.role}</TableCell>
                   <TableCell className="text-gray-500 dark:text-gray-400">

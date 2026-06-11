@@ -13,7 +13,9 @@ import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface ParticipantRecord {
-  name: string;
+  firstName: string;
+  lastName: string;
+  middleInitial: string;
   email: string;
   course: string;
   id: string; // Internal ID for editing/deletion
@@ -64,17 +66,10 @@ export default function BulkRegisterPage() {
         }
 
         const formattedRecords: ParticipantRecord[] = data.map((p, index) => {
-          const firstName = (p["First Name"] || "").trim();
-          const middleInitial = (p["Middle Initial"] || "").trim();
-          const lastName = (p["Last Name"] || "").trim();
-          
-          // Concatenate: First Name [Middle Initial] Last Name
-          const fullName = [firstName, middleInitial, lastName]
-            .filter(part => part && part.length > 0)
-            .join(" ");
-
           return {
-            name: fullName,
+            firstName: (p["First Name"] || "").trim(),
+            middleInitial: (p["Middle Initial"] || "").trim(),
+            lastName: (p["Last Name"] || "").trim(),
             email: (p["Email Address"] || "").trim(),
             course: (p["Course"] || "").trim(),
             id: Math.random().toString(36).substr(2, 9),
@@ -129,7 +124,9 @@ export default function BulkRegisterPage() {
   const addNewRecord = () => {
     const newRecord: ParticipantRecord = {
       id: Math.random().toString(36).substr(2, 9),
-      name: "",
+      firstName: "",
+      lastName: "",
+      middleInitial: "",
       email: "",
       course: "",
     };
@@ -150,9 +147,14 @@ export default function BulkRegisterPage() {
       r.id === editingId ? ({ ...r, ...editValues } as ParticipantRecord) : r
     );
 
-    // Filter out invalid rows
+    // Filter out invalid rows and map back to name field
     const validParticipants = finalRecords
-      .map(({ id, ...rest }) => rest)
+      .map(({ firstName, lastName, middleInitial, ...rest }) => {
+        const fullName = [firstName, middleInitial, lastName]
+            .filter(part => part && part.length > 0)
+            .join(" ");
+        return { ...rest, name: fullName };
+      })
       .filter(p => p.name && p.email && p.course);
     
     if (validParticipants.length === 0) {
@@ -260,7 +262,9 @@ export default function BulkRegisterPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
-                      <TableHead className="font-bold text-gray-900 dark:text-gray-100">Name</TableHead>
+                      <TableHead className="font-bold text-gray-900 dark:text-gray-100">First Name</TableHead>
+                      <TableHead className="font-bold text-gray-900 dark:text-gray-100">M.I.</TableHead>
+                      <TableHead className="font-bold text-gray-900 dark:text-gray-100">Last Name</TableHead>
                       <TableHead className="font-bold text-gray-900 dark:text-gray-100">Email</TableHead>
                       <TableHead className="font-bold text-gray-900 dark:text-gray-100">Course</TableHead>
                       <TableHead className="font-bold text-gray-900 dark:text-gray-100 text-right">Actions</TableHead>
@@ -271,9 +275,11 @@ export default function BulkRegisterPage() {
                       <TableRow key={record.id} className="hover:bg-gray-50/30 dark:hover:bg-gray-800/30 transition-colors border-b border-gray-100 dark:border-gray-800">
                         {editingId === record.id ? (
                           <>
-                            <TableCell><Input value={editValues.name} onChange={e => setEditValues({...editValues, name: e.target.value})} className="h-9 rounded-lg" /></TableCell>
-                            <TableCell><Input value={editValues.email} onChange={e => setEditValues({...editValues, email: e.target.value})} className="h-9 rounded-lg" /></TableCell>
-                            <TableCell><Input value={editValues.course} onChange={e => setEditValues({...editValues, course: e.target.value})} className="h-9 rounded-lg" /></TableCell>
+                            <TableCell><Input placeholder="First" value={editValues.firstName} onChange={e => setEditValues({...editValues, firstName: e.target.value})} className="h-8 rounded-lg" /></TableCell>
+                            <TableCell><Input placeholder="M.I." value={editValues.middleInitial} onChange={e => setEditValues({...editValues, middleInitial: e.target.value})} className="h-8 rounded-lg w-16" /></TableCell>
+                            <TableCell><Input placeholder="Last" value={editValues.lastName} onChange={e => setEditValues({...editValues, lastName: e.target.value})} className="h-8 rounded-lg" /></TableCell>
+                            <TableCell><Input placeholder="Email" value={editValues.email} onChange={e => setEditValues({...editValues, email: e.target.value})} className="h-8 rounded-lg" /></TableCell>
+                            <TableCell><Input placeholder="Course" value={editValues.course} onChange={e => setEditValues({...editValues, course: e.target.value})} className="h-8 rounded-lg" /></TableCell>
                             <TableCell className="text-right flex items-center justify-end gap-2 h-[57px]">
                               <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600 hover:bg-green-50" onClick={saveEdit}>
                                 <Check className="h-4 w-4" />
@@ -285,7 +291,9 @@ export default function BulkRegisterPage() {
                           </>
                         ) : (
                           <>
-                            <TableCell className="font-medium">{record.name}</TableCell>
+                            <TableCell className="font-medium">{record.firstName}</TableCell>
+                            <TableCell className="text-gray-600 dark:text-gray-400">{record.middleInitial}</TableCell>
+                            <TableCell className="font-medium">{record.lastName}</TableCell>
                             <TableCell className="text-gray-600 dark:text-gray-400">{record.email}</TableCell>
                             <TableCell className="text-gray-600 dark:text-gray-400">{record.course}</TableCell>
                             <TableCell className="text-right space-x-2">

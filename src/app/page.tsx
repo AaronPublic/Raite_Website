@@ -78,10 +78,10 @@ async function HeroActions() {
         <>
           {!hasActiveRegistration ? (
             <Link 
-              href="/register/step-1" 
+              href="/competitions" 
               className={cn(buttonVariants({ size: "lg" }), "h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30")}
             >
-              Register Now
+              Explore Events
             </Link>
           ) : (
             <Link 

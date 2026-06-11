@@ -9,6 +9,7 @@ import { RegistrationStatus } from "@prisma/client";
 const updateStatusSchema = z.object({
   id: z.string(),
   status: z.nativeEnum(RegistrationStatus),
+  comment: z.string().optional(),
 });
 
 const batchUpdateSchema = z.object({
@@ -52,13 +53,17 @@ async function checkAccess(registrationId?: string, registrationIds?: string[]) 
 }
 
 export async function updateRegistrationStatus(data: z.infer<typeof updateStatusSchema>) {
-  const { id, status } = updateStatusSchema.parse(data);
+  const { id, status, comment } = updateStatusSchema.parse(data);
   await checkAccess(id);
 
   try {
     await db.registration.update({
       where: { id },
-      data: { status },
+      data: { 
+        status,
+        adminComment: comment || null,
+        requirementsVerified: status === "APPROVED" ? true : undefined
+      },
     });
     revalidatePath("/admin/registrations");
     revalidatePath("/sub-admin/competitions");
@@ -67,6 +72,31 @@ export async function updateRegistrationStatus(data: z.infer<typeof updateStatus
     return { error: "Failed to update status" };
   }
 }
+
+export async function toggleRequirementsVerified(id: string) {
+  await checkAccess(id);
+
+  try {
+    const registration = await db.registration.findUnique({
+      where: { id },
+      select: { requirementsVerified: true }
+    });
+
+    if (!registration) return { error: "Registration not found" };
+
+    await db.registration.update({
+      where: { id },
+      data: { requirementsVerified: !registration.requirementsVerified },
+    });
+    
+    revalidatePath("/admin/registrations");
+    revalidatePath("/sub-admin/competitions");
+    return { success: true };
+  } catch (error) {
+    return { error: "Failed to toggle verification" };
+  }
+}
+
 
 export async function batchUpdateRegistrationStatus(data: z.infer<typeof batchUpdateSchema>) {
   const { ids, status } = batchUpdateSchema.parse(data);

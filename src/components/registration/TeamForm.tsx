@@ -283,7 +283,7 @@ export default function TeamForm() {
                             role="combobox"
                             aria-expanded={!!popoversOpen[index]}
                             className={cn(
-                              "w-full h-16 rounded-2xl bg-white dark:bg-gray-950 border-2 border-gray-100 dark:border-gray-800 justify-between px-4 transition-all text-left overflow-hidden hover:border-blue-500/50 hover:shadow-md group",
+                              "w-full h-16 rounded-2xl bg-gray-100/50 dark:bg-gray-800/50 border-2 border-gray-100 dark:border-gray-800 justify-between px-4 transition-all text-left overflow-hidden hover:border-blue-500/50 hover:shadow-md group",
                               (memberErrors[index] || errors.members?.[index]) ? "border-red-500 ring-4 ring-red-500/10" : "focus:ring-4 focus:ring-blue-500/10",
                               !memberValues[index] && "text-gray-400"
                             )}
@@ -353,46 +353,49 @@ export default function TeamForm() {
                                         validateMember(index, participant.email);
                                         setPopoversOpen(prev => ({ ...prev, [index]: false }));
                                       }}
-                                      className="p-3 rounded-2xl mb-2 data-selected:bg-blue-600! data-selected:text-white! cursor-pointer transition-all group/item"
+                                      className="p-3 rounded-2xl mb-2 bg-gray-100/50 dark:bg-gray-800/50 border-2 border-transparent data-selected:bg-blue-50/50 dark:data-selected:bg-blue-900/20 data-selected:border-blue-100 dark:data-selected:border-blue-800/50 data-selected:shadow-sm cursor-pointer transition-all group/item"
                                     >
                                     <div className="flex items-center gap-4 w-full">
                                       <div className={cn(
                                         "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 font-black text-lg transition-all shadow-sm",
                                         memberValues[index] === participant.email 
-                                          ? "bg-white text-blue-600 shadow-md" 
-                                          : "bg-gray-100 dark:bg-gray-800 text-gray-500 group-data-selected/item:bg-blue-500 group-data-selected/item:text-white"
+                                          ? "bg-blue-600 text-white shadow-md" 
+                                          : "bg-white dark:bg-gray-900 text-gray-500 group-data-selected/item:text-blue-600"
                                       )}>
                                         {participant.name?.charAt(0) || "?"}
                                       </div>
                                       <div className="flex flex-col flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
-                                          <span className="font-black text-lg tracking-tight leading-tight truncate">
+                                          <span className={cn(
+                                            "font-black text-lg tracking-tight leading-tight truncate",
+                                            memberValues[index] === participant.email ? "text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-200 group-data-selected/item:text-blue-700"
+                                          )}>
                                             {participant.name}
                                           </span>
                                           <Badge variant="outline" className={cn(
-                                            "h-5 px-1.5 text-[9px] font-black border-blue-200 transition-colors",
-                                            memberValues[index] === participant.email ? "text-white border-white/40 bg-white/10" : "text-blue-600 bg-blue-50"
+                                            "h-5 px-1.5 text-[9px] font-black transition-colors",
+                                            memberValues[index] === participant.email ? "bg-blue-600 text-white border-transparent" : "text-blue-600 border-blue-200 bg-blue-50/50"
                                           )}>
                                             {participant.uniqueId}
                                           </Badge>
                                         </div>
                                         <span className={cn(
                                           "text-sm font-medium truncate opacity-70 mt-0.5",
-                                          memberValues[index] === participant.email ? "text-blue-100" : "text-gray-500"
+                                          memberValues[index] === participant.email ? "text-gray-500" : "text-gray-500 group-data-selected/item:text-blue-600/70"
                                         )}>
                                           {participant.email}
                                         </span>
                                         <div className={cn(
                                           "text-[10px] uppercase tracking-[0.1em] font-black mt-1 flex items-center gap-2",
-                                          memberValues[index] === participant.email ? "text-blue-200" : "text-blue-600 dark:text-blue-400"
+                                          memberValues[index] === participant.email ? "text-blue-600" : "text-gray-400 group-data-selected/item:text-blue-500"
                                         )}>
                                           <span className="w-1.5 h-1.5 rounded-full bg-current opacity-40" />
                                           {participant.course}
                                         </div>
                                       </div>
                                       {memberValues[index] === participant.email && (
-                                        <div className="bg-white/20 p-1.5 rounded-full backdrop-blur-sm">
-                                          <Check className="h-5 w-5 text-white" />
+                                        <div className="bg-blue-600 p-1.5 rounded-full shadow-lg shadow-blue-600/20">
+                                          <Check className="h-4 w-4 text-white" />
                                         </div>
                                       )}
                                     </div>

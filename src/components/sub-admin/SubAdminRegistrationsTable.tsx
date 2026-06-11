@@ -29,14 +29,20 @@ import {
 import { 
   Loader2,
   Eye,
-  FileText
+  FileText,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Check,
+  X
 } from "lucide-react";
-import { updateRegistrationStatus } from "@/app/actions/registrations";
+import { updateRegistrationStatus, toggleRequirementsVerified } from "@/app/actions/registrations";
 import { getRegistrationDetails } from "@/app/actions/reports";
 import { RegistrationStatus } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import SubAdminExportButtons from "./SubAdminExportButtons";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Registration {
   id: string;
@@ -45,6 +51,7 @@ interface Registration {
   requirements: any;
   requirementsVerified: boolean;
   createdAt: string;
+  adminComment: string | null;
   user: {
     name: string | null;
     email: string;
@@ -56,7 +63,89 @@ interface Registration {
   };
 }
 
-function RegistrationDetailsModal({ registration }: { registration: Registration }) {
+function RejectionModal({ 
+  registration, 
+  onReject, 
+  isUpdating 
+}: { 
+  registration: Registration; 
+  onReject: (id: string, comment: string) => Promise<void>;
+  isUpdating: boolean;
+}) {
+  const [comment, setComment] = React.useState("");
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const handleSubmit = async () => {
+    if (!comment.trim()) {
+      toast.error("Please provide a reason for rejection");
+      return;
+    }
+    await onReject(registration.id, comment);
+    setIsOpen(false);
+    setComment("");
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 gap-1.5 rounded-lg border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+          disabled={isUpdating}
+        >
+          <X className="h-3.5 w-3.5" /> Reject
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="text-xl font-black">Reject Registration</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="bg-red-50 p-4 rounded-xl border border-red-100 flex gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 shrink-0" />
+            <p className="text-sm text-red-700 font-medium">
+              Please provide a reason for rejecting this registration. This comment will be visible to the participant.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase text-gray-500">Rejection Reason</label>
+            <Textarea 
+              placeholder="e.g., Missing valid ID, Incorrect documentation..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="rounded-xl border-gray-200 min-h-[120px]"
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setIsOpen(false)} className="rounded-xl font-bold">Cancel</Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleSubmit} 
+              disabled={isUpdating}
+              className="rounded-xl font-bold gap-2"
+            >
+              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+              Confirm Rejection
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function RegistrationDetailsModal({ 
+  registration,
+  onStatusUpdate,
+  onToggleVerified,
+  isUpdating
+}: { 
+  registration: Registration;
+  onStatusUpdate: (id: string, status: RegistrationStatus, comment?: string) => Promise<void>;
+  onToggleVerified: (id: string) => Promise<void>;
+  isUpdating: string | null;
+}) {
   const [details, setDetails] = React.useState<any>(null);
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -76,12 +165,11 @@ function RegistrationDetailsModal({ registration }: { registration: Registration
     ? JSON.parse(registration.requirements) 
     : registration.requirements;
     
-  const documents = requirements?.documents || [];
-
-  // If requirements is stored as key-value pairs of URLs (as seen in submitRegistration)
   const documentEntries = !Array.isArray(requirements) && typeof requirements === 'object' && requirements !== null
     ? Object.entries(requirements).filter(([key]) => key !== 'participants' && key !== 'members')
     : [];
+
+  const loading = isUpdating === registration.id;
 
   return (
     <Dialog onOpenChange={(open) => open && fetchDetails()}>
@@ -91,8 +179,34 @@ function RegistrationDetailsModal({ registration }: { registration: Registration
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
+        <DialogHeader className="flex flex-row items-center justify-between border-b pb-4">
           <DialogTitle className="text-xl font-black">Registration Details</DialogTitle>
+          <div className="flex items-center gap-2 pr-8">
+            {registration.status !== "APPROVED" && (
+              <Button
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold gap-2"
+                onClick={() => onStatusUpdate(registration.id, "APPROVED")}
+                disabled={!!isUpdating}
+              >
+                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                Approve
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                "rounded-xl font-bold gap-2",
+                registration.requirementsVerified ? "border-green-200 text-green-600" : "border-gray-200"
+              )}
+              onClick={() => onToggleVerified(registration.id)}
+              disabled={!!isUpdating}
+            >
+              {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle className="h-3.5 w-3.5" />}
+              {registration.requirementsVerified ? "Verified" : "Mark Verified"}
+            </Button>
+          </div>
         </DialogHeader>
         
         {isLoading ? (
@@ -101,7 +215,17 @@ function RegistrationDetailsModal({ registration }: { registration: Registration
             <p className="text-sm font-bold text-gray-500 uppercase tracking-widest">Loading details...</p>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-8 mt-4">
+            {registration.adminComment && (
+              <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
+                <div>
+                  <p className="text-[10px] font-black uppercase text-amber-600">Admin Comment / Reason</p>
+                  <p className="text-sm font-medium text-amber-900">{registration.adminComment}</p>
+                </div>
+              </div>
+            )}
+
             <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-2xl grid grid-cols-2 gap-4">
               <div>
                 <p className="text-[10px] font-black uppercase text-gray-500">School / Institution</p>
@@ -175,11 +299,23 @@ export default function SubAdminRegistrationsTable({ initialData, eventId }: { i
   const router = useRouter();
   const [isUpdating, setIsUpdating] = React.useState<string | null>(null);
 
-  const handleStatusUpdate = async (id: string, status: RegistrationStatus) => {
+  const handleStatusUpdate = async (id: string, status: RegistrationStatus, comment?: string) => {
     setIsUpdating(id);
-    const result = await updateRegistrationStatus({ id, status });
+    const result = await updateRegistrationStatus({ id, status, comment });
     if (result.success) {
       toast.success(`Registration ${status.toLowerCase()}`);
+      router.refresh();
+    } else {
+      toast.error(result.error || "Update failed");
+    }
+    setIsUpdating(null);
+  };
+
+  const handleToggleVerified = async (id: string) => {
+    setIsUpdating(id);
+    const result = await toggleRequirementsVerified(id);
+    if (result.success) {
+      toast.success("Verification status updated");
       router.refresh();
     } else {
       toast.error(result.error || "Update failed");
@@ -210,9 +346,24 @@ export default function SubAdminRegistrationsTable({ initialData, eventId }: { i
       accessorKey: "requirementsVerified",
       header: "Verified",
       cell: ({ row }) => (
-        <Badge variant={row.original.requirementsVerified ? "default" : "secondary"}>
-          {row.original.requirementsVerified ? "Yes" : "No"}
-        </Badge>
+        <button 
+          onClick={() => handleToggleVerified(row.original.id)}
+          disabled={isUpdating === row.original.id}
+          className="hover:opacity-80 transition-opacity"
+        >
+          <Badge 
+            variant={row.original.requirementsVerified ? "default" : "secondary"}
+            className={cn(
+              "cursor-pointer",
+              row.original.requirementsVerified ? "bg-green-600" : ""
+            )}
+          >
+            {isUpdating === row.original.id ? (
+              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+            ) : null}
+            {row.original.requirementsVerified ? "Yes" : "No"}
+          </Badge>
+        </button>
       ),
     },
     {
@@ -238,10 +389,50 @@ export default function SubAdminRegistrationsTable({ initialData, eventId }: { i
     },
     {
       id: "details",
-      header: "Details",
-      cell: ({ row }) => <RegistrationDetailsModal registration={row.original} />
+      header: "View",
+      cell: ({ row }) => (
+        <RegistrationDetailsModal 
+          registration={row.original} 
+          onStatusUpdate={handleStatusUpdate}
+          onToggleVerified={handleToggleVerified}
+          isUpdating={isUpdating}
+        />
+      )
     },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+        const reg = row.original;
+        const loading = isUpdating === reg.id;
+        
+        return (
+          <div className="flex items-center gap-2">
+            {reg.status !== "APPROVED" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1.5 rounded-lg border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-300"
+                onClick={() => handleStatusUpdate(reg.id, "APPROVED")}
+                disabled={!!isUpdating}
+              >
+                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                Approve
+              </Button>
+            )}
+            {reg.status !== "REJECTED" && (
+              <RejectionModal 
+                registration={reg} 
+                onReject={(id, comment) => handleStatusUpdate(id, "REJECTED", comment)} 
+                isUpdating={!!isUpdating}
+              />
+            )}
+          </div>
+        );
+      }
+    }
   ];
+
 
   const table = useReactTable({
     data: initialData,

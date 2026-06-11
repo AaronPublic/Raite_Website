@@ -4,7 +4,8 @@ import { Prisma } from "@prisma/client";
 export interface ParticipantFilters {
   search?: string;
   school?: string;
-  course?: string; // Added course filter
+  course?: string;
+  role?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
 }
@@ -13,7 +14,7 @@ export async function getPaginatedParticipants(page: number = 1, limit: number =
   const skip = (page - 1) * limit;
 
   const where: Prisma.UserWhereInput = {
-    role: { in: ["PARTICIPANT", "FACULTY_COACH"] }, // Restrict to these roles
+    role: filters.role ? (filters.role as any) : { in: ["PARTICIPANT", "FACULTY_COACH"] },
     AND: [
       filters.search ? {
         OR: [
@@ -23,7 +24,6 @@ export async function getPaginatedParticipants(page: number = 1, limit: number =
       } : {},
       filters.school ? { school: filters.school } : {},
       filters.course ? { course: filters.course } : {},
-      filters.role ? { role: filters.role as any } : {},
     ],
   };
 // ... rest of function ...
@@ -51,7 +51,7 @@ export async function getPaginatedParticipants(page: number = 1, limit: number =
 
 export async function getAllParticipantsForExport(filters: ParticipantFilters = {}) {
   const where: Prisma.UserWhereInput = {
-    role: "PARTICIPANT",
+    role: filters.role ? (filters.role as any) : { in: ["PARTICIPANT", "FACULTY_COACH"] },
     AND: [
       filters.search ? {
         OR: [

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, CheckCircle2, FileUp, Loader2, Info, Trash2, Edit2, X, Check, Plus } from "lucide-react";
+import { AlertCircle, CheckCircle2, FileUp, Loader2, Info, Trash2, Edit2, X, Check, Plus, Download } from "lucide-react";
 import { bulkRegisterParticipants } from "@/app/actions/participants";
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -52,8 +52,8 @@ export default function BulkRegisterPage() {
       complete: (results) => {
         const data = results.data as any[];
         
-        // Validation
-        const requiredFields = ["name", "email", "course"];
+        // Validation: Required columns as per prompt
+        const requiredFields = ["First Name", "Last Name", "Middle Initial", "Email Address", "Course"];
         const headers = results.meta.fields || [];
         const missingFields = requiredFields.filter(f => !headers.includes(f));
 
@@ -63,12 +63,23 @@ export default function BulkRegisterPage() {
           return;
         }
 
-        const formattedRecords: ParticipantRecord[] = data.map((p, index) => ({
-          name: p.name || "",
-          email: p.email || "",
-          course: p.course || "",
-          id: Math.random().toString(36).substr(2, 9),
-        }));
+        const formattedRecords: ParticipantRecord[] = data.map((p, index) => {
+          const firstName = (p["First Name"] || "").trim();
+          const middleInitial = (p["Middle Initial"] || "").trim();
+          const lastName = (p["Last Name"] || "").trim();
+          
+          // Concatenate: First Name [Middle Initial] Last Name
+          const fullName = [firstName, middleInitial, lastName]
+            .filter(part => part && part.length > 0)
+            .join(" ");
+
+          return {
+            name: fullName,
+            email: (p["Email Address"] || "").trim(),
+            course: (p["Course"] || "").trim(),
+            id: Math.random().toString(36).substr(2, 9),
+          };
+        });
 
         setRecords(formattedRecords);
         if (formattedRecords.length === 0) {
@@ -79,6 +90,19 @@ export default function BulkRegisterPage() {
         setError("Failed to parse CSV file.");
       }
     });
+  };
+
+  const downloadTemplate = () => {
+    const headers = ["First Name", "Last Name", "Middle Initial", "Email Address", "Course"];
+    const csvContent = headers.join(",") + "\n";
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "raite_bulk_registration_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleDelete = (id: string) => {
@@ -174,7 +198,7 @@ export default function BulkRegisterPage() {
             <div className="text-sm space-y-1">
               <p className="font-bold text-blue-900 dark:text-blue-300">CSV Instructions:</p>
               <ul className="list-disc list-inside text-blue-700 dark:text-blue-400 space-y-1">
-                <li>Columns required: <code className="bg-white/50 dark:bg-black/20 px-1 rounded">name</code>, <code className="bg-white/50 dark:bg-black/20 px-1 rounded">email</code>, <code className="bg-white/50 dark:bg-black/20 px-1 rounded">course</code></li>
+                <li>Required Columns: <code className="bg-white/50 dark:bg-black/20 px-1 rounded">First Name</code>, <code className="bg-white/50 dark:bg-black/20 px-1 rounded">Last Name</code>, <code className="bg-white/50 dark:bg-black/20 px-1 rounded">Middle Initial</code>, <code className="bg-white/50 dark:bg-black/20 px-1 rounded">Email Address</code>, <code className="bg-white/50 dark:bg-black/20 px-1 rounded">Course</code></li>
                 <li>You can edit records directly in the preview table below.</li>
                 <li>Participants will inherit your school profile.</li>
               </ul>
@@ -182,7 +206,16 @@ export default function BulkRegisterPage() {
           </div>
 
           <div className="space-y-4">
-            <Label htmlFor="csv-upload" className="text-lg font-bold">Upload CSV File</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="csv-upload" className="text-lg font-bold">Upload CSV File</Label>
+              <Button 
+                variant="link" 
+                onClick={downloadTemplate}
+                className="text-blue-600 font-bold h-auto p-0 flex items-center gap-1"
+              >
+                <Download className="w-4 h-4" /> Download Template
+              </Button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-3 relative group">
                 <Input 

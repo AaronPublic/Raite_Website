@@ -11,7 +11,9 @@ export default async function AdminParticipantsPage({
   searchParams: Promise<{ 
     page?: string; 
     search?: string; 
-    school?: string; 
+    school?: string;
+    course?: string;
+    role?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -23,6 +25,8 @@ export default async function AdminParticipantsPage({
     {
       search: params.search,
       school: params.school,
+      course: params.course,
+      role: params.role,
     }
   );
 

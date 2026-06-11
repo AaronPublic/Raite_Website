@@ -39,3 +39,18 @@ export async function updateSystemSetting(key: string, value: string) {
     return { error: error.message || "Failed to update setting" };
   }
 }
+
+export async function fetchSystemSetting(key: string) {
+  try {
+    const model = (db as any).systemSetting || (db as any).system_setting;
+    if (!model) return null;
+
+    const setting = await model.findUnique({
+      where: { key },
+    });
+    return setting?.value || null;
+  } catch (error) {
+    console.error(`Error fetching system setting ${key}:`, error);
+    return null;
+  }
+}

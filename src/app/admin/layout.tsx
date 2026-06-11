@@ -11,7 +11,8 @@ import {
   BarChart3,
   ChevronRight,
   ShieldAlert,
-  Settings
+  Settings,
+  FileText
 } from "lucide-react";
 import { SafeUserButton } from "@/components/SafeUserButton";
 import { Suspense } from "react";
@@ -35,6 +36,7 @@ async function AdminSidebarContent() {
     { href: "/admin/participants", label: "Participants", icon: Users },
     { href: "/admin/registrations", label: "Registrations", icon: ClipboardList },
     { href: "/admin/announcements", label: "Announcements", icon: Megaphone },
+    { href: "/admin/guidelines", label: "Guidelines", icon: FileText },
     { href: "/admin/reports", label: "Reports", icon: BarChart3 },
     { href: "/admin/ranking", label: "Ranking", icon: Trophy },
     { href: "/admin/settings", label: "Settings", icon: Settings },

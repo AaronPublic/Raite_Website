@@ -12,7 +12,7 @@ import { getLeaderboard, getCompetitionWinners } from "@/app/actions/ranking";
 import CountdownTimer from "@/components/home/CountdownTimer";
 import AnnouncementCarousel from "@/components/home/AnnouncementCarousel";
 import DecorativeLayout from "@/components/layout/DecorativeLayout";
-import { Calendar, MapPin, School, Mail, ArrowRight, Sparkles, Trophy, Megaphone, ChevronRight } from "lucide-react";
+import { Calendar, MapPin, School, Mail, ArrowRight, Sparkles, Trophy, Megaphone, ChevronRight, BookOpen } from "lucide-react";
 import * as motion from "framer-motion/client";
 import { Suspense } from "react";
 
@@ -35,6 +35,9 @@ async function HeroActions() {
   const isAdminOrCoach = user?.role === "ADMIN" || user?.role === "FACULTY_COACH";
   const isParticipant = user?.role === "PARTICIPANT";
 
+  const guidelinesUrl = await getSystemSetting("GENERAL_GUIDELINES_URL");
+  const guidelinesHref = guidelinesUrl || "/competitions";
+
   return (
     <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-5 pt-4">
       {isGuest && <Button asChild size="lg" className="h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30"><Link href="/sign-in">Get Started</Link></Button>}
@@ -50,7 +53,17 @@ async function HeroActions() {
           {!hasActiveRegistration ? <Button size="lg" className="h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30"><Link href="/register/step-1">Register Now</Link></Button> : <Button size="lg" className="h-16 px-10 rounded-xl text-lg font-bold shadow-2xl shadow-primary/30"><Link href="/registrations/my">My Status</Link></Button>}
         </>
       )}
-      <Button variant="ghost" size="lg" className="h-16 px-8 rounded-xl text-lg font-bold group border border-border/50"><Link href="/competitions" className="flex items-center gap-2">Explore Events<ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" /></Link></Button>
+      <Button asChild variant="ghost" size="lg" className="h-16 px-8 rounded-xl text-lg font-bold group border border-border/50">
+        <Link 
+          href={guidelinesHref} 
+          target={guidelinesUrl ? "_blank" : undefined} 
+          rel={guidelinesUrl ? "noopener noreferrer" : undefined}
+          className="flex items-center gap-2"
+        >
+          General Guidelines
+          <BookOpen className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+        </Link>
+      </Button>
     </div>
   );
 }

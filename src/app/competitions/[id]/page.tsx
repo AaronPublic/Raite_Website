@@ -1,12 +1,13 @@
 import { getEventById } from "@/lib/data/events";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Calendar, Users, Info, BookOpen, ArrowLeft, FileText, ExternalLink } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button-variants";
+import { Calendar, Users, Info, BookOpen, ArrowLeft, FileText, ExternalLink, Eye, Download } from "lucide-react";
 import Link from "next/link";
 import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { cn } from "@/lib/utils";
+import { getSystemSetting } from "@/lib/data/settings";
 
 export default async function CompetitionDetailPage({
   params,
@@ -20,6 +21,10 @@ export default async function CompetitionDetailPage({
   if (!event) {
     notFound();
   }
+
+  // Fetch general guidelines as fallback
+  const generalGuidelinesUrl = await getSystemSetting("GENERAL_GUIDELINES_URL");
+  const rulesUrl = event.rulesPdfUrl || generalGuidelinesUrl || "/assets/mechanics-and-rules.pdf";
 
   // Fetch user role from DB
   let userRole = "PARTICIPANT";
@@ -117,29 +122,44 @@ export default async function CompetitionDetailPage({
                 <BookOpen className="w-6 h-6 text-primary" />
                 Mechanics & Rules
               </h2>
-              <a
-                href={event.rulesPdfUrl || "/assets/mechanics-and-rules.pdf"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group block"
-              >
-                <div className="bg-secondary dark:bg-gray-800 p-6 rounded-2xl border border-border text-gray-700 dark:text-gray-300 leading-relaxed transition-all hover:bg-accent/15 dark:hover:bg-gray-750 hover:border-primary/30 hover:shadow-md flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-white dark:bg-gray-900 p-3 rounded-xl text-primary group-hover:scale-110 transition-transform border border-border">
-                      <FileText className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-primary leading-tight">Download / View Mechanics & Rules (PDF)</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {event.rulesPdfUrl 
-                          ? "Click to open the official guidelines for this competition" 
-                          : "Click to open the general guidelines in a new tab"}
-                      </p>
-                    </div>
+              
+              <div className="bg-secondary dark:bg-gray-800 p-8 rounded-[2rem] border border-border shadow-sm">
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl text-primary border border-border shadow-sm shrink-0">
+                    <FileText className="w-8 h-8" />
                   </div>
-                  <ExternalLink className="w-5 h-5 text-primary/70 group-hover:text-primary transition-colors" />
+                  <div className="flex-1 text-center sm:text-left space-y-1">
+                    <h3 className="text-xl font-black tracking-tight text-gray-900 dark:text-white uppercase">Competition Guidelines</h3>
+                    <p className="text-sm text-muted-foreground font-medium">Official mechanics, rules, and technical requirements for this event.</p>
+                  </div>
                 </div>
-              </a>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+                  <a
+                    href={rulesUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      buttonVariants({ variant: "outline" }),
+                      "h-14 rounded-xl font-bold border-2 group transition-all hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center gap-2"
+                    )}
+                  >
+                    <Eye className="w-5 h-5 transition-transform group-hover:scale-110" />
+                    View Rules
+                  </a>
+                  <a
+                    href={rulesUrl}
+                    download={`RAITE_2026_${event.title.replaceAll(" ", "_")}_Rules.pdf`}
+                    className={cn(
+                      buttonVariants(),
+                      "h-14 rounded-xl font-bold shadow-lg shadow-primary/20 group transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+                    )}
+                  >
+                    <Download className="w-5 h-5 transition-transform group-hover:translate-y-0.5" />
+                    Download PDF
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -153,11 +173,12 @@ export default async function CompetitionDetailPage({
               {isOpen ? (
                 user ? (
                   canRegister ? (
-                    <Button className="w-full h-12 text-lg font-bold">
-                      <Link href={`/register/step-2?eventId=${event.id}`}>
-                        Register Team
-                      </Link>
-                    </Button>
+                    <Link 
+                      href={`/register/step-2?eventId=${event.id}`}
+                      className={cn(buttonVariants(), "w-full h-12 text-lg font-bold flex items-center justify-center")}
+                    >
+                      Register Team
+                    </Link>
                   ) : (
                     <div className="p-4 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 rounded-xl text-sm font-semibold">
                       Registration is only allowed for Faculty Coaches. Please contact your coach.
@@ -165,18 +186,24 @@ export default async function CompetitionDetailPage({
                   )
                 ) : (
                   <div className="space-y-4">
-                    <Button className="w-full h-12 text-lg font-bold">
-                      <Link href="/sign-in">Sign in to register</Link>
-                    </Button>
+                    <Link 
+                      href="/sign-in"
+                      className={cn(buttonVariants(), "w-full h-12 text-lg font-bold flex items-center justify-center")}
+                    >
+                      Sign in to register
+                    </Link>
                     <p className="text-center text-xs text-gray-400 dark:text-gray-500 italic">
                       Registration requires a verified faculty account.
                     </p>
                   </div>
                 )
               ) : (
-                <Button disabled className="w-full h-12 text-lg font-bold">
+                <button 
+                  disabled 
+                  className={cn(buttonVariants({ variant: "secondary" }), "w-full h-12 text-lg font-bold opacity-50 cursor-not-allowed")}
+                >
                   Registration Closed
-                </Button>
+                </button>
               )}
             </div>
           </aside>

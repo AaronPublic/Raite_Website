@@ -115,6 +115,20 @@ export default async function CompetitionDetailPage({
           </div>
         </section>
 
+        {event.description && (
+          <section className="space-y-4">
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Info className="w-6 h-6 text-primary" />
+              About the Competition
+            </h2>
+            <div className="bg-gray-50 dark:bg-gray-800/50 p-6 md:p-8 rounded-[2rem] border border-border">
+              <p className="whitespace-pre-wrap leading-relaxed text-gray-700 dark:text-gray-300">
+                {event.description}
+              </p>
+            </div>
+          </section>
+        )}
+
         <section className="grid md:grid-cols-3 gap-12">
           <div className="md:col-span-2 space-y-12">
             <div className="space-y-4">

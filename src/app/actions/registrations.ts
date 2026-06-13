@@ -22,7 +22,7 @@ const revisionSchema = z.object({
   comment: z.string().min(5, "Comment must be at least 5 characters"),
 });
 
-async function checkAccess(registrationId?: string, registrationIds?: string[]) {
+export async function checkAccess(registrationId?: string, registrationIds?: string[]) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
   const user = await db.user.findUnique({ where: { clerkId: userId } });

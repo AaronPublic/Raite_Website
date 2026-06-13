@@ -320,8 +320,12 @@ export async function submitEntryUrl(registrationId: string, entryUrl: string) {
 
     if (!registration) throw new Error("Registration not found");
 
-    // Check if the user is the coach or an admin
-    if (user.role !== "ADMIN" && registration.coachId !== user.id) {
+    // Check if the user is the coach, admin, or assigned sub-admin
+    const isAdmin = user.role === "ADMIN";
+    const isCoach = registration.coachId === user.id;
+    const isSubAdmin = user.role === "SUB_ADMIN" && registration.event.subAdminId === user.id;
+
+    if (!isAdmin && !isCoach && !isSubAdmin) {
       throw new Error("You are not authorized to submit for this team.");
     }
 
@@ -336,6 +340,7 @@ export async function submitEntryUrl(registrationId: string, entryUrl: string) {
 
     revalidatePath("/registrations/my");
     revalidatePath("/admin/registrations");
+    revalidatePath("/sub-admin/competitions");
     return { success: true };
   } catch (err: any) {
     console.error("submitEntryUrl error:", err);

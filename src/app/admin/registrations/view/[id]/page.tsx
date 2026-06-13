@@ -5,8 +5,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Globe } from "lucide-react";
 import Link from "next/link";
+import EntryUrlEditor from "@/components/registration/EntryUrlEditor";
 
 export default async function AdminViewRegistrationPage({ params }: { params: Promise<{ id: string }> }) {
   const { userId } = await auth();
@@ -39,6 +40,8 @@ export default async function AdminViewRegistrationPage({ params }: { params: Pr
     redirect("/");
   }
 
+  const isOnline = registration.event.subcategory === "ONLINE";
+
   return (
     <div className="container mx-auto py-10 max-w-4xl space-y-8">
       <div className="flex items-center gap-4">
@@ -55,6 +58,23 @@ export default async function AdminViewRegistrationPage({ params }: { params: Pr
             <p className="text-gray-500 font-medium">Registration Details</p>
         </div>
       </div>
+
+      {isOnline && (
+        <Card className="p-6 rounded-[2rem] border-blue-100 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/20">
+              <Globe className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Online Submission Link</p>
+              <p className="text-xs text-blue-900/60 dark:text-blue-300/60 font-medium mt-0.5">Sub-admins and Admins can edit this if the coach submitted a wrong link.</p>
+            </div>
+          </div>
+          <div className="flex-1 max-w-md bg-white dark:bg-gray-900 p-4 rounded-2xl border border-blue-100 dark:border-blue-800">
+            <EntryUrlEditor registrationId={registration.id} initialEntryUrl={registration.entryUrl} />
+          </div>
+        </Card>
+      )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Card className="p-8 rounded-[2rem] border-gray-100 dark:border-gray-800 shadow-sm space-y-6">

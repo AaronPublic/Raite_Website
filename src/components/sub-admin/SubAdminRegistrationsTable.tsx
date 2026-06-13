@@ -36,13 +36,11 @@ import {
   Check,
   X
 } from "lucide-react";
-import { updateRegistrationStatus, toggleRequirementsVerified } from "@/app/actions/registrations";
 import { getRegistrationDetails } from "@/app/actions/reports";
-import { RegistrationStatus } from "@prisma/client";
+import EntryUrlEditor from "@/components/registration/EntryUrlEditor";
+import { RegistrationStatus, EventSubcategory } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import SubAdminExportButtons from "./SubAdminExportButtons";
-import { Textarea } from "@/components/ui/textarea";
 
 interface Registration {
   id: string;
@@ -50,6 +48,7 @@ interface Registration {
   teamName: string | null;
   requirements: any;
   requirementsVerified: boolean;
+  entryUrl: string | null;
   createdAt: string;
   adminComment: string | null;
   user: {
@@ -60,6 +59,7 @@ interface Registration {
   event: {
     id: string;
     title: string;
+    subcategory: EventSubcategory | null;
   };
 }
 
@@ -170,9 +170,14 @@ function RegistrationDetailsModal({
     : [];
 
   const loading = isUpdating === registration.id;
+  const isOnline = registration.event.subcategory === "ONLINE";
 
   return (
-    <Dialog onOpenChange={(open) => open && fetchDetails()}>
+    <Dialog onOpenChange={(open) => {
+      if (open) {
+        fetchDetails();
+      }
+    }}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2 rounded-xl text-xs">
           <Eye className="h-3.5 w-3.5" /> View
@@ -237,6 +242,16 @@ function RegistrationDetailsModal({
                 <p className="text-xs text-gray-500">{details?.coach?.email || registration.user.email}</p>
               </div>
             </div>
+
+            {isOnline && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-2xl border border-blue-100 dark:border-blue-800/50">
+                <p className="text-[10px] font-black uppercase text-blue-600 mb-4">Submission Link (Online Competition)</p>
+                <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl border border-blue-100 dark:border-blue-800">
+                  <EntryUrlEditor registrationId={registration.id} initialEntryUrl={registration.entryUrl} />
+                </div>
+                <p className="text-[10px] text-blue-900/60 dark:text-blue-300/60 font-medium mt-2">Admins and assigned Sub-Admins can edit this link if the coach provided a wrong one.</p>
+              </div>
+            )}
             
             <div>
               <p className="text-sm font-black uppercase tracking-widest text-gray-900 dark:text-white mb-4">Registered Participants</p>

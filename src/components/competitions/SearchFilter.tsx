@@ -43,12 +43,12 @@ export default function SearchFilter({ categories }: SearchFilterProps) {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 mb-8">
+    <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-8">
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <Input
           placeholder="Search competitions..."
-          className="pl-10"
+          className="pl-10 h-11 md:h-12 text-sm md:text-base"
           defaultValue={searchParams.get("search")?.toString()}
           onChange={(e) => handleSearch(e.target.value)}
         />
@@ -58,7 +58,7 @@ export default function SearchFilter({ categories }: SearchFilterProps) {
           defaultValue={searchParams.get("category")?.toString() || "all"}
           onValueChange={handleCategoryChange}
         >
-          <SelectTrigger>
+          <SelectTrigger className="h-11 md:h-12">
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>

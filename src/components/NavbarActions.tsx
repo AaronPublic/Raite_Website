@@ -43,7 +43,7 @@ export default function NavbarActions({ userId, userRole }: NavbarActionsProps) 
       {userRole === "ADMIN" && (
         <Link 
           href="/admin/dashboard" 
-          className="rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+          className="hidden sm:inline-flex rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
         >
           Admin
         </Link>
@@ -52,7 +52,7 @@ export default function NavbarActions({ userId, userRole }: NavbarActionsProps) 
       {userRole === "SUB_ADMIN" && (
         <Link 
           href="/sub-admin/competitions" 
-          className="rounded-full border border-blue-600/20 bg-blue-600/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-blue-600 transition-colors hover:bg-blue-600 hover:text-white"
+          className="hidden sm:inline-flex rounded-full border border-blue-600/20 bg-blue-600/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-blue-600 transition-colors hover:bg-blue-600 hover:text-white"
         >
           My Competitions
         </Link>
@@ -72,7 +72,7 @@ export default function NavbarActions({ userId, userRole }: NavbarActionsProps) 
           <SignUpButton mode="modal">
             <Button 
               size="sm" 
-              className="h-10 rounded-full border-primary bg-primary px-5 text-[10px] font-black uppercase tracking-widest text-white shadow-[0_10px_20px_rgba(0,56,168,0.22)] hover:bg-[#002673] sm:px-6"
+              className="hidden sm:inline-flex h-10 rounded-full border-primary bg-primary px-5 text-[10px] font-black uppercase tracking-widest text-white shadow-[0_10px_20px_rgba(0,56,168,0.22)] hover:bg-[#002673] sm:px-6"
             >
               Register
             </Button>

@@ -8,9 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Trophy, Plus, Trash2 } from "lucide-react";
-import { SCHOOLS } from "@/lib/constants";
 
-export default function RankingForm({ initialEntries }: { initialEntries?: any[] }) {
+export default function RankingForm({ 
+  initialEntries, 
+  schools 
+}: { 
+  initialEntries?: any[], 
+  schools: any[] 
+}) {
   const [entries, setEntries] = useState<{ place: number; university: string }[]>(
     initialEntries?.length 
       ? initialEntries.map(e => ({ place: e.place, university: e.university })) 
@@ -69,9 +74,9 @@ export default function RankingForm({ initialEntries }: { initialEntries?: any[]
           <form onSubmit={handleSubmit} className="space-y-6">
             {[1, 2, 3].map(place => (
               <div key={place} className="space-y-4 p-5 bg-muted/30 dark:bg-secondary/20 rounded-[2rem] border border-border/40 transition-all hover:border-primary/20">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm shadow-sm ${
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm shadow-sm shrink-0 ${
                       place === 1 ? "bg-accent text-accent-foreground" : 
                       place === 2 ? "bg-muted text-foreground border border-border" : 
                       "bg-destructive/10 text-destructive border border-destructive/20"
@@ -79,7 +84,7 @@ export default function RankingForm({ initialEntries }: { initialEntries?: any[]
                       {place === 1 ? "1st" : place === 2 ? "2nd" : "3rd"}
                     </div>
                     <div>
-                      <h3 className="font-black text-foreground uppercase tracking-wider text-xs">
+                      <h3 className="font-black text-foreground uppercase tracking-wider text-xs leading-tight">
                         {place === 1 ? "Champion" : place === 2 ? "1st Runner Up" : "2nd Runner Up"}
                       </h3>
                       <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">University Placement</p>
@@ -90,7 +95,7 @@ export default function RankingForm({ initialEntries }: { initialEntries?: any[]
                     variant="ghost" 
                     size="sm" 
                     onClick={() => addTie(place)}
-                    className="h-8 gap-1.5 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/10 hover:text-primary transition-all"
+                    className="h-8 w-full sm:w-auto gap-1.5 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/10 hover:text-primary transition-all border border-primary/10 sm:border-transparent"
                   >
                     <Plus className="w-3 h-3" /> Add Tie
                   </Button>
@@ -105,9 +110,9 @@ export default function RankingForm({ initialEntries }: { initialEntries?: any[]
                             <SelectValue placeholder="Select University..." />
                           </SelectTrigger>
                           <SelectContent className="max-h-[300px]">
-                            {SCHOOLS.map((school) => (
-                              <SelectItem key={school} value={school}>
-                                {school}
+                            {schools.map((school) => (
+                              <SelectItem key={school.name} value={school.name}>
+                                {school.name}
                               </SelectItem>
                             ))}
                           </SelectContent>

@@ -5,6 +5,7 @@ import { getUserByClerkId } from "@/lib/data/users";
 import { ThemeToggle } from "./ThemeToggle";
 import NavItems from "./NavItems";
 import NavbarActions from "./NavbarActions";
+import MobileMenu from "./MobileMenu";
 
 export default async function Navbar() {
   try {
@@ -12,7 +13,7 @@ export default async function Navbar() {
     const user = userId ? await getUserByClerkId(userId) : null;
 
     return (
-      <nav className="sticky top-0 z-50 w-full border-b border-border bg-white/95 dark:bg-[#07142F]/95 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,56,168,0.08)] transition-colors duration-300">
+      <nav className="sticky top-0 z-50 w-full border-b border-border bg-white dark:bg-[#07142F] shadow-[0_10px_30px_rgba(0,56,168,0.08)] transition-colors duration-300">
         <div className="absolute inset-x-0 top-0 flex h-1.5" aria-hidden="true">
           <span className="flex-1 bg-primary" />
           <span className="flex-1 bg-accent" />
@@ -20,27 +21,30 @@ export default async function Navbar() {
         </div>
 
         <div className="container mx-auto px-4 h-20 pt-1.5 flex items-center justify-between gap-4">
-          {/* Logo */}
-          <Link href="/" className="transition-opacity hover:opacity-80">
-            <div className="relative w-12 h-12" style={{ position: 'relative', width: '3rem', height: '3rem' }}>
-              <Image
-                src="/RAITE.png"
-                alt="RAITE Logo"
-                fill
-                className="object-contain"
-                priority
-                sizes="48px"
-              />
-            </div>
-          </Link>
+          <div className="flex items-center gap-4">
+            {/* Logo */}
+            <Link href="/" className="transition-opacity hover:opacity-80">
+              <div className="relative w-12 h-12" style={{ position: 'relative', width: '3rem', height: '3rem' }}>
+                <Image
+                  src="/RAITE.png"
+                  alt="RAITE Logo"
+                  fill
+                  className="object-contain"
+                  priority
+                  sizes="48px"
+                />
+              </div>
+            </Link>
 
-          {/* Desktop Links (Client Component for active indicator) */}
-          <NavItems userRole={user?.role || null} />
+            {/* Desktop Links (Client Component for active indicator) */}
+            <NavItems userRole={user?.role || null} />
+          </div>
 
           {/* Actions */}
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <NavbarActions userId={userId} userRole={user?.role || null} />
+            <MobileMenu userId={userId} userRole={user?.role || null} />
           </div>
         </div>
       </nav>

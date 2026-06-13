@@ -119,3 +119,21 @@ export const SCHOOL_MAP: Record<string, string> = {
   "COLLEGE OF OUR LADY OF MERCY OF PULILAN FOUNDATION INC": "COLMP",
   "UNIVERSITY OF THE ASSUMPTION": "UA",
 };
+
+export const COURSES = [
+  "Associate in Computing Technology",
+  "Bachelor of Multimedia Arts",
+  "Bachelor of Science in Accounting Information Systems",
+  "Bachelor of Science in Information Technology",
+  "Bachelor of Science in Computer Engineering",
+  "Bachelor of Science in Computer Science",
+  "Bachelor of Science in Cybersecurity",
+  "Bachelor of Science in Data Science",
+  "Bachelor of Science in Entertainment and Multimedia Computing",
+  "Bachelor of Industrial Technology major in Computer Technology",
+  "Bachelor of Industrial Technology - Major in Graphics Technology",
+  "Bachelor of Library and Information Science",
+  "Bachelor of Science in Information Systems",
+  "Senior High School (SHS)",
+  "TESDA IT-related courses"
+].sort();

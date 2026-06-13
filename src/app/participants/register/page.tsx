@@ -7,10 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, CheckCircle2, FileUp, Loader2, Info, Trash2, Edit2, X, Check, Plus, Download } from "lucide-react";
+import { AlertCircle, CheckCircle2, FileUp, Loader2, Info, Trash2, Edit2, X, Check, Plus, Download, MoreVertical } from "lucide-react";
 import { bulkRegisterParticipants } from "@/app/actions/participants";
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { COURSES } from "@/lib/constants";
 
 interface ParticipantRecord {
   firstName: string;
@@ -182,63 +185,62 @@ export default function BulkRegisterPage() {
   return (
     <div className="container max-w-4xl mx-auto py-10 px-4">
       <Card className="border-2 border-gray-100 dark:border-gray-800 shadow-xl rounded-[2rem] overflow-hidden">
-        <CardHeader className="bg-blue-600 text-white p-8">
+        <CardHeader className="bg-blue-600 text-white p-6 sm:p-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-white/10 rounded-xl">
-              <FileUp className="w-6 h-6" />
+              <FileUp className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <CardTitle className="text-2xl font-black tracking-tight">Bulk Participant Registration</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl font-black tracking-tight">Bulk Participant Registration</CardTitle>
           </div>
-          <CardDescription className="text-blue-100 font-medium">
+          <CardDescription className="text-blue-100 font-medium text-sm sm:text-base">
             Upload, preview, and edit participant records before final submission.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-8 space-y-8">
+        <CardContent className="p-4 sm:p-8 space-y-6 sm:space-y-8">
           
           <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800 flex gap-3">
             <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-            <div className="text-sm space-y-1">
+            <div className="text-xs space-y-1">
               <p className="font-bold text-blue-900 dark:text-blue-300">CSV Instructions:</p>
               <ul className="list-disc list-inside text-blue-700 dark:text-blue-400 space-y-1">
-                <li>Required Columns: <code className="bg-white/50 dark:bg-black/20 px-1 rounded">First Name</code>, <code className="bg-white/50 dark:bg-black/20 px-1 rounded">Last Name</code>, <code className="bg-white/50 dark:bg-black/20 px-1 rounded">Middle Initial</code>, <code className="bg-white/50 dark:bg-black/20 px-1 rounded">Email Address</code>, <code className="bg-white/50 dark:bg-black/20 px-1 rounded">Course</code></li>
+                <li>Required Columns: <code className="bg-white/50 dark:bg-black/20 px-1 rounded">First Name</code>, <code className="bg-white/50 dark:bg-black/20 px-1 rounded">Last Name</code>...</li>
                 <li>You can edit records directly in the preview table below.</li>
-                <li>Participants will inherit your school profile.</li>
               </ul>
             </div>
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <Label htmlFor="csv-upload" className="text-lg font-bold">Upload CSV File</Label>
               <Button
                 variant="ghost"
                 onClick={downloadTemplate}
-                className="text-blue-600 font-bold h-auto p-0 flex items-center gap-1 hover:bg-transparent hover:underline"
+                className="text-blue-600 font-bold h-auto p-0 flex items-center gap-1 hover:bg-transparent hover:underline text-xs"
               >
                 <Download className="w-4 h-4" /> Download Template
               </Button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="md:col-span-3 relative group">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div className="sm:col-span-3 relative group">
                 <Input 
                   id="csv-upload" 
                   type="file" 
                   accept=".csv"
                   onChange={handleFileChange}
                   disabled={isUploading}
-                  className="h-32 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl bg-gray-50 dark:bg-gray-900/50 cursor-pointer hover:border-blue-400 transition-colors file:hidden text-center flex items-center justify-center pt-10"
+                  className="h-24 sm:h-32 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl bg-gray-50 dark:bg-gray-900/50 cursor-pointer hover:border-blue-400 transition-colors file:hidden text-center flex items-center justify-center pt-10"
                 />
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-gray-400 group-hover:text-blue-500 transition-colors">
-                  <FileUp className="w-8 h-8 mb-2" />
-                  <p className="font-bold">{file ? file.name : "Click or drag file to upload"}</p>
+                  <FileUp className="w-6 h-6 sm:w-8 sm:h-8 mb-2" />
+                  <p className="font-bold text-xs sm:text-base">{file ? file.name : "Click or drag to upload"}</p>
                 </div>
               </div>
               <Button 
                 variant="outline" 
                 onClick={addNewRecord}
-                className="h-32 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800 hover:border-blue-400 hover:text-blue-600 flex flex-col gap-2 transition-all"
+                className="h-16 sm:h-32 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-800 hover:border-blue-400 hover:text-blue-600 flex sm:flex-col gap-2 transition-all items-center justify-center"
               >
-                <Plus className="w-8 h-8" />
+                <Plus className="w-5 h-5 sm:w-8 sm:h-8" />
                 <span className="font-bold">Manual Entry</span>
               </Button>
             </div>
@@ -248,13 +250,34 @@ export default function BulkRegisterPage() {
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-black tracking-tight text-gray-900 dark:text-white">Preview & Edit Records ({records.length})</h3>
-                <div className="flex gap-2">
+                
+                {/* Desktop Buttons */}
+                <div className="hidden md:flex gap-2">
                   <Button variant="outline" size="sm" onClick={addNewRecord} className="text-blue-600 font-bold border-blue-100 hover:bg-blue-50">
                     <Plus className="w-4 h-4 mr-1" /> Add Row
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => setRecords([])} className="text-red-500 hover:text-red-600 hover:bg-red-50 font-bold border-red-100">
                     Clear All
                   </Button>
+                </div>
+                
+                {/* Mobile Dropdown */}
+                <div className="md:hidden">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">
+                                <MoreVertical className="w-4 h-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={addNewRecord}>
+                                <Plus className="w-4 h-4 mr-2" /> Add Row
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setRecords([])} className="text-red-500">
+                                <Trash2 className="w-4 h-4 mr-2" /> Clear All
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
               </div>
               
@@ -279,7 +302,21 @@ export default function BulkRegisterPage() {
                             <TableCell><Input placeholder="M.I." value={editValues.middleInitial} onChange={e => setEditValues({...editValues, middleInitial: e.target.value})} className="h-8 rounded-lg w-16" /></TableCell>
                             <TableCell><Input placeholder="Last" value={editValues.lastName} onChange={e => setEditValues({...editValues, lastName: e.target.value})} className="h-8 rounded-lg" /></TableCell>
                             <TableCell><Input placeholder="Email" value={editValues.email} onChange={e => setEditValues({...editValues, email: e.target.value})} className="h-8 rounded-lg" /></TableCell>
-                            <TableCell><Input placeholder="Course" value={editValues.course} onChange={e => setEditValues({...editValues, course: e.target.value})} className="h-8 rounded-lg" /></TableCell>
+                            <TableCell>
+                              <Select 
+                                value={editValues.course} 
+                                onValueChange={value => setEditValues({...editValues, course: value})}
+                              >
+                                <SelectTrigger className="h-8 rounded-lg w-full min-w-[280px]">
+                                  <SelectValue placeholder="Course" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {COURSES.map(course => (
+                                    <SelectItem key={course} value={course}>{course}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
                             <TableCell className="text-right flex items-center justify-end gap-2 h-[57px]">
                               <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600 hover:bg-green-50" onClick={saveEdit}>
                                 <Check className="h-4 w-4" />

@@ -80,13 +80,13 @@ export default function AnnouncementCarousel({ announcements }: AnnouncementCaro
                 </div>
               )}
               <div className={`flex flex-col ${!announcement.imageUrl ? "md:col-span-2" : ""}`}>
-                <div className="flex justify-between items-start mb-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-2 mb-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      {announcement.pinned && <Pin className="w-4 h-4 text-blue-500 fill-blue-500" />}
-                      <h3 className="text-2xl font-bold tracking-tight">{announcement.title}</h3>
+                      {announcement.pinned && <Pin className="w-4 h-4 text-blue-500 fill-blue-500 shrink-0" />}
+                      <h3 className="text-xl md:text-2xl font-bold tracking-tight leading-tight">{announcement.title}</h3>
                     </div>
-                    <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">
+                    <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-widest font-bold">
                       {new Date(announcement.createdAt).toLocaleDateString(undefined, { 
                         month: 'long', 
                         day: 'numeric', 
@@ -118,7 +118,7 @@ export default function AnnouncementCarousel({ announcements }: AnnouncementCaro
                       variant="ghost"
                       size="icon"
                       onClick={(e) => { e.preventDefault(); slidePrev(); }}
-                      className="h-8 w-8 rounded-full border opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="h-8 w-8 rounded-full border opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -136,7 +136,7 @@ export default function AnnouncementCarousel({ announcements }: AnnouncementCaro
                       variant="ghost"
                       size="icon"
                       onClick={(e) => { e.preventDefault(); slideNext(); }}
-                      className="h-8 w-8 rounded-full border opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="h-8 w-8 rounded-full border opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </Button>

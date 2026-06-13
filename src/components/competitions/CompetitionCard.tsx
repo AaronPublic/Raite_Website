@@ -39,14 +39,14 @@ export default function CompetitionCard({ event, index = 0, isAssigned = false }
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
       whileTap={{ scale: 0.98 }}
-      className="w-full"
+      className="w-full h-full"
     >
       <Card className={cn(
-        "group relative flex flex-col aspect-square bg-white dark:bg-gray-900/40 border-gray-100 dark:border-gray-800 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-blue-600/10 hover:-translate-y-1 rounded-[2rem] active:border-primary/50",
+        "group relative flex flex-col min-h-[420px] h-full bg-white dark:bg-gray-900/40 border-gray-100 dark:border-gray-800 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-blue-600/10 hover:-translate-y-1 rounded-[2rem] active:border-primary/50",
         isAssigned && "ring-2 ring-blue-500 ring-offset-4 dark:ring-offset-gray-950"
       )}>
         {/* Top Half: Image */}
-        <div className="relative h-1/2 w-full overflow-hidden">
+        <div className="relative h-48 sm:h-52 w-full overflow-hidden shrink-0">
           {event.imageUrl ? (
             <Image 
               src={event.imageUrl} 

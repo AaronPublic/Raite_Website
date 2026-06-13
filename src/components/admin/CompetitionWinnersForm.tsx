@@ -8,9 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Plus, Trash2, Trophy, School } from "lucide-react";
-import { SCHOOLS } from "@/lib/constants";
 
-export default function CompetitionWinnersForm({ initialWinners }: { initialWinners?: any[] }) {
+export default function CompetitionWinnersForm({ 
+  initialWinners, 
+  schools 
+}: { 
+  initialWinners?: any[], 
+  schools: any[] 
+}) {
   const [winners, setWinners] = useState(
     initialWinners?.length ? initialWinners : []
   );
@@ -60,78 +65,78 @@ export default function CompetitionWinnersForm({ initialWinners }: { initialWinn
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="overflow-hidden rounded-2xl border border-border/50 bg-muted/20 dark:bg-secondary/10">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[1000px]">
+              <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-muted/50 dark:bg-secondary/30">
-                    <th className="py-4 px-4 font-black text-muted-foreground uppercase text-[10px] tracking-widest w-1/4">Competition Name</th>
-                    <th className="py-4 px-4 font-black text-muted-foreground uppercase text-[10px] tracking-widest w-1/4">Champion</th>
-                    <th className="py-4 px-4 font-black text-muted-foreground uppercase text-[10px] tracking-widest w-1/4">1st Runner Up</th>
-                    <th className="py-4 px-4 font-black text-muted-foreground uppercase text-[10px] tracking-widest w-1/4">2nd Runner Up</th>
-                    <th className="py-4 px-4 w-10"></th>
+                    <th className="py-3 px-2 font-black text-muted-foreground uppercase text-[9px] tracking-widest w-1/4">Competition</th>
+                    <th className="py-3 px-2 font-black text-muted-foreground uppercase text-[9px] tracking-widest w-1/4">Champion</th>
+                    <th className="py-3 px-2 font-black text-muted-foreground uppercase text-[9px] tracking-widest w-1/4">1st Runner Up</th>
+                    <th className="py-3 px-2 font-black text-muted-foreground uppercase text-[9px] tracking-widest w-1/4">2nd Runner Up</th>
+                    <th className="py-3 px-2 w-8"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {winners.map((winner, index) => (
                     <tr key={index} className="border-t border-border/40 hover:bg-card/50 transition-colors">
-                      <td className="py-3 px-2">
+                      <td className="py-2 px-2">
                         <Input 
-                          placeholder="e.g. Web Development" 
+                          placeholder="Comp. Name" 
                           value={winner.competitionName}
                           onChange={(e) => handleChange(index, "competitionName", e.target.value)}
-                          className="bg-transparent border-transparent focus:border-primary/30 h-10 rounded-xl"
+                          className="bg-transparent border-transparent focus:border-primary/30 h-9 rounded-lg text-xs"
                         />
                       </td>
-                      <td className="py-3 px-2">
+                      <td className="py-2 px-2">
                         <Select value={winner.champion} onValueChange={(v) => handleChange(index, "champion", v)}>
-                          <SelectTrigger className="bg-transparent border-transparent focus:ring-0 h-10 rounded-xl text-xs">
-                            <SelectValue placeholder="Select School" />
+                          <SelectTrigger className="bg-transparent border-transparent focus:ring-0 h-9 rounded-lg text-[10px]">
+                            <SelectValue placeholder="Select" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[300px]">
-                            {SCHOOLS.map((school) => (
-                              <SelectItem key={school} value={school} className="text-xs">
-                                {school}
+                            {schools.map((school) => (
+                              <SelectItem key={school.name} value={school.name} className="text-xs">
+                                {school.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </td>
-                      <td className="py-3 px-2">
+                      <td className="py-2 px-2">
                         <Select value={winner.firstRunnerUp} onValueChange={(v) => handleChange(index, "firstRunnerUp", v)}>
-                          <SelectTrigger className="bg-transparent border-transparent focus:ring-0 h-10 rounded-xl text-xs">
-                            <SelectValue placeholder="Select School" />
+                          <SelectTrigger className="bg-transparent border-transparent focus:ring-0 h-9 rounded-lg text-[10px]">
+                            <SelectValue placeholder="Select" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[300px]">
-                            {SCHOOLS.map((school) => (
-                              <SelectItem key={school} value={school} className="text-xs">
-                                {school}
+                            {schools.map((school) => (
+                              <SelectItem key={school.name} value={school.name} className="text-xs">
+                                {school.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </td>
-                      <td className="py-3 px-2">
+                      <td className="py-2 px-2">
                         <Select value={winner.secondRunnerUp} onValueChange={(v) => handleChange(index, "secondRunnerUp", v)}>
-                          <SelectTrigger className="bg-transparent border-transparent focus:ring-0 h-10 rounded-xl text-xs">
-                            <SelectValue placeholder="Select School" />
+                          <SelectTrigger className="bg-transparent border-transparent focus:ring-0 h-9 rounded-lg text-[10px]">
+                            <SelectValue placeholder="Select" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[300px]">
-                            {SCHOOLS.map((school) => (
-                              <SelectItem key={school} value={school} className="text-xs">
-                                {school}
+                            {schools.map((school) => (
+                              <SelectItem key={school.name} value={school.name} className="text-xs">
+                                {school.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </td>
-                      <td className="py-3 px-2">
+                      <td className="py-2 px-2">
                         <Button 
                           type="button"
                           variant="ghost" 
                           size="icon" 
                           onClick={() => removeRow(index)} 
-                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all"
+                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all h-8 w-8"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3 h-3" />
                         </Button>
                       </td>
                     </tr>

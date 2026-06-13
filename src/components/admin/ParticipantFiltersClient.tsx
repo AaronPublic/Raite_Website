@@ -7,24 +7,7 @@ import { Search, X } from "lucide-react";
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { School } from "@prisma/client";
-
-const courses = [
-  "Associate in Computing Technology",
-  "Bachelor of Multimedia Arts",
-  "Bachelor of Science in Accounting Information Systems",
-  "Bachelor of Science in Information Technology",
-  "Bachelor of Science in Computer Engineering",
-  "Bachelor of Science in Computer Science",
-  "Bachelor of Science in Cybersecurity",
-  "Bachelor of Science in Data Science",
-  "Bachelor of Science in Entertainment and Multimedia Computing",
-  "Bachelor of Industrial Technology major in Computer Technology",
-  "Bachelor of Industrial Technology - Major in Graphics Technology",
-  "Bachelor of Library and Information Science",
-  "Bachelor of Science in Information Systems",
-  "Senior High School (SHS)",
-  "TESDA IT-related courses"
-];
+import { COURSES } from "@/lib/constants";
 
 export default function ParticipantFiltersClient({ schools }: { schools: School[] }) {
   const router = useRouter();
@@ -88,12 +71,12 @@ export default function ParticipantFiltersClient({ schools }: { schools: School[
             defaultValue={searchParams.get("course")?.toString() || "all"}
             onValueChange={(v) => updateFilters({ course: v === "all" ? null : v })}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[300px]">
               <SelectValue placeholder="Course" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Courses</SelectItem>
-              {courses.map((course) => (
+              {COURSES.map((course) => (
                 <SelectItem key={course} value={course}>
                   {course}
                 </SelectItem>

@@ -53,8 +53,8 @@ const YoutubeIcon = ({ className }: { className?: string }) => (
 const Footer = () => {
   return (
     <footer className="w-full bg-card border-t border-border mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           {/* Logos Section */}
           <div className="col-span-1 md:col-span-1 flex flex-col items-center md:items-start space-y-4">
             <div className="flex items-center space-x-4">
@@ -63,17 +63,17 @@ const Footer = () => {
                 alt="PSITE Logo"
                 width={60}
                 height={60}
-                className="h-12 w-auto object-contain"
+                className="h-10 w-auto object-contain"
               />
               <Image
                 src="/RAITE.png"
                 alt="RAITE Logo"
                 width={60}
                 height={60}
-                className="h-12 w-auto object-contain"
+                className="h-10 w-auto object-contain"
               />
             </div>
-            <p className="text-sm text-muted-foreground text-center md:text-left">
+            <p className="text-xs text-muted-foreground text-center md:text-left">
               PSITE Region III - RAITE Event Registration Platform
             </p>
             <div className="flex items-center space-x-4 pt-2">
@@ -82,21 +82,21 @@ const Footer = () => {
                 alt="UA Logo"
                 width={60}
                 height={60}
-                className="h-12 w-auto object-contain"
+                className="h-10 w-auto object-contain"
               />
               <Image
                 src="/newcit.png"
                 alt="CIT Logo"
                 width={70}
                 height={70}
-                className="h-14 w-auto object-contain"
+                className="h-12 w-auto object-contain"
               />
             </div>
           </div>
 
           {/* Quick Links */}
-          <div className="col-span-1">
-            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
+          <div className="col-span-1 text-center md:text-left">
+            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">
               Quick Links
             </h3>
             <ul className="space-y-2">
@@ -119,11 +119,11 @@ const Footer = () => {
           </div>
 
           {/* Social Links */}
-          <div className="col-span-1">
-            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
-              Connect With Us
+          <div className="col-span-1 text-center md:text-left">
+            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">
+              Connect
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-3 flex flex-col items-center md:items-start">
               <a
                 href="https://facebook.com/psiteregion3"
                 target="_blank"
@@ -153,17 +153,17 @@ const Footer = () => {
           </div>
 
           {/* Developed By */}
-          <div className="col-span-1 flex flex-col items-center md:items-end justify-between">
-            <div className="text-right hidden md:block">
-              <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">
+          <div className="col-span-1 flex flex-col items-center md:items-end justify-between text-center md:text-right">
+            <div className="hidden md:block">
+              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">
                 About
               </h3>
-              <p className="text-xs text-muted-foreground max-w-[200px]">
+              <p className="text-[10px] text-muted-foreground max-w-[200px]">
                 Providing quality IT education and professional development in Region III.
               </p>
             </div>
-            <div className="mt-8 md:mt-0 text-center md:text-right flex flex-col md:items-end gap-2">
-              <p className="text-sm font-medium text-foreground">
+            <div className="mt-8 md:mt-0 flex flex-col items-center md:items-end gap-2">
+              <p className="text-xs font-medium text-foreground">
                 Developed by:{" "}
                 <span className="font-bold">
                   <span className="text-blue-600">H</span>
@@ -175,34 +175,32 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 text-xs text-muted-foreground">
+        <div className="mt-12 pt-8 border-t border-border flex flex-col items-center gap-4 text-[10px] text-muted-foreground">
           <p>© 2026 PSITE Region III. All rights reserved.</p>
-          <div className="flex space-x-6">
-            <Dialog>
-              <DialogTrigger asChild>
-                <button className="hover:text-primary transition-colors cursor-pointer outline-none">
-                  Privacy Policy
-                </button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[550px]">
-                <DialogHeader>
-                  <DialogTitle>Privacy Policy</DialogTitle>
-                </DialogHeader>
-                <div className="py-4">
-                  <DialogDescription className="text-sm leading-relaxed text-justify">
-                    PSITE Central Luzon recognizes the responsibilities under the Republic Act No. 10173, also known as the Data Privacy Act of 2012, with respect to the data to collect, record, organize, update, use, consolidate or destruct from the applicants. The personal data obtained from this form will be stored in the organization's database and will only be accessed by authorized members of the PSITE Central Luzon. Furthermore, the information collected and stored shall only be used for the following purposes: processing and reporting of documents, researches for program improvement, and announcements / promotions of events, programs, courses and other activities offered by the organization. PSITE shall not disclose the participant's personal information without their consent and shall retain this information over a period of ten years for the effective implementation and management of the program.
-                  </DialogDescription>
-                </div>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button type="button" variant="secondary">
-                      Close
-                    </Button>
-                  </DialogClose>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <button className="hover:text-primary transition-colors cursor-pointer outline-none underline">
+                Privacy Policy
+              </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[550px] w-[95vw]">
+              <DialogHeader>
+                <DialogTitle>Privacy Policy</DialogTitle>
+              </DialogHeader>
+              <div className="py-4">
+                <DialogDescription className="text-xs sm:text-sm leading-relaxed text-justify">
+                  PSITE Central Luzon recognizes the responsibilities under the Republic Act No. 10173, also known as the Data Privacy Act of 2012, with respect to the data to collect, record, organize, update, use, consolidate or destruct from the applicants. The personal data obtained from this form will be stored in the organization's database and will only be accessed by authorized members of the PSITE Central Luzon. Furthermore, the information collected and stored shall only be used for the following purposes: processing and reporting of documents, researches for program improvement, and announcements / promotions of events, programs, courses and other activities offered by the organization. PSITE shall not disclose the participant's personal information without their consent and shall retain this information over a period of ten years for the effective implementation and management of the program.
+                </DialogDescription>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button type="button" variant="secondary" className="w-full">
+                    Close
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </footer>

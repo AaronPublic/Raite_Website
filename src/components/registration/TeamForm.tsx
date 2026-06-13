@@ -370,7 +370,8 @@ export default function TeamForm() {
                             </div>
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[450px] p-0 rounded-[2rem] shadow-2xl border-gray-100 dark:border-gray-800 overflow-hidden" align="start">
+                        <PopoverContent className="w-[95vw] md:w-[450px] p-0 rounded-[2rem] shadow-2xl border-gray-100 dark:border-gray-800 overflow-hidden" align="start">
+
                           <Command className="rounded-[2rem] border-0 shadow-none">
                             <div className="p-4 bg-gray-50/50 dark:bg-gray-900/50 border-b">
                               <div className="flex items-center gap-3 px-3 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 focus-within:border-blue-500 transition-all">
@@ -534,7 +535,8 @@ export default function TeamForm() {
                       </div>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[450px] p-0 rounded-[2.5rem] shadow-2xl border-gray-100 dark:border-gray-800 overflow-hidden" align="start">
+                  <PopoverContent className="w-[95vw] md:w-[450px] p-0 rounded-[2rem] shadow-2xl border-gray-100 dark:border-gray-800 overflow-hidden" align="start">
+
                     <Command className="rounded-[2.5rem] border-0 shadow-none">
                       <div className="p-4 bg-gray-50/50 dark:bg-gray-900/50 border-b">
                         <div className="flex items-center gap-3 px-3 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 focus-within:border-blue-500 transition-all">
@@ -650,20 +652,20 @@ export default function TeamForm() {
         </div>
       </div>
 
-      <div className="flex justify-between items-center pt-8 border-t dark:border-gray-800">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-8 border-t dark:border-gray-800">
         <Button
           type="button"
           variant="ghost"
           onClick={() => router.push("/register/step-1")}
-          className="flex items-center gap-2 font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-full px-6"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white rounded-full px-6"
         >
           <ArrowLeft className="w-4 h-4" />
           Back
         </Button>
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-col items-center sm:items-end gap-2 w-full sm:w-auto">
           <Button 
             type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8 shadow-xl shadow-blue-600/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 font-bold"
+            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8 h-12 shadow-xl shadow-blue-600/20 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 font-bold"
             disabled={Object.values(validating).some(v => v) || Object.values(memberErrors).some(err => !!err) || isCheckingLimits}
           >
             {isCheckingLimits ? (
@@ -679,7 +681,7 @@ export default function TeamForm() {
             )}
           </Button>
           {Object.keys(errors).length > 0 && (
-            <p className="text-[10px] font-black uppercase text-red-500 animate-pulse">Please complete all required fields</p>
+            <p className="text-[9px] font-black uppercase text-red-500 animate-pulse">Please complete all required fields</p>
           )}
         </div>
       </div>

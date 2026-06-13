@@ -55,7 +55,7 @@ export default function SearchFilter({ categories }: SearchFilterProps) {
       </div>
       <div className="w-full md:w-64">
         <Select
-          defaultValue={searchParams.get("category")?.toString() || "all"}
+          value={searchParams.get("category")?.toString() || "all"}
           onValueChange={handleCategoryChange}
         >
           <SelectTrigger className="h-11 md:h-12">

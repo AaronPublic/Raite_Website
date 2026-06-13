@@ -38,7 +38,7 @@ function DialogClose({
     <DialogPrimitive.Close
       data-slot="dialog-close"
       render={asChild ? <Slot /> : undefined}
-      nativeButton={asChild ? false : undefined}
+      nativeButton={asChild ? true : undefined}
       {...props}
     />
   )

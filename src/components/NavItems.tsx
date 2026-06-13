@@ -24,7 +24,7 @@ export default function NavItems({ userRole }: NavItemsProps) {
           <Link 
             key={link.name} 
             href={link.href} 
-            className={`rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+            className={`flex items-center justify-center rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
               isActive 
                 ? "bg-primary text-primary-foreground shadow-sm" 
                 : "text-muted-foreground hover:bg-white dark:hover:bg-white/10 hover:text-primary"

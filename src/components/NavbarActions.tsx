@@ -34,7 +34,7 @@ export default function NavbarActions({ userId, userRole }: NavbarActionsProps) 
       {userRole === "FACULTY_COACH" && (
         <Link 
           href="/registrations/my" 
-          className="hidden rounded-full border border-border bg-secondary px-4 py-2 text-[10px] font-black uppercase tracking-widest text-primary transition-colors hover:bg-accent/20 sm:inline-flex"
+          className="hidden items-center justify-center rounded-full border border-border bg-secondary px-4 py-2 text-[10px] font-black uppercase tracking-widest text-primary transition-colors hover:bg-accent/20 sm:inline-flex"
         >
           My Registrations
         </Link>
@@ -43,7 +43,7 @@ export default function NavbarActions({ userId, userRole }: NavbarActionsProps) 
       {userRole === "ADMIN" && (
         <Link 
           href="/admin/dashboard" 
-          className="hidden sm:inline-flex rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+          className="hidden items-center justify-center sm:inline-flex rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
         >
           Admin
         </Link>
@@ -52,7 +52,7 @@ export default function NavbarActions({ userId, userRole }: NavbarActionsProps) 
       {userRole === "SUB_ADMIN" && (
         <Link 
           href="/sub-admin/competitions" 
-          className="hidden sm:inline-flex rounded-full border border-blue-600/20 bg-blue-600/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-blue-600 transition-colors hover:bg-blue-600 hover:text-white"
+          className="hidden items-center justify-center sm:inline-flex rounded-full border border-blue-600/20 bg-blue-600/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-blue-600 transition-colors hover:bg-blue-600 hover:text-white"
         >
           My Competitions
         </Link>

@@ -46,6 +46,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import ExportButtons from "./ExportButtons";
 
 interface Registration {
   id: string;

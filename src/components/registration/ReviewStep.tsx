@@ -64,11 +64,18 @@ export default function ReviewStep() {
     setIsSubmitting(true);
     setError(null);
     try {
+      const finalRequirements = { ...(data.requirements || {}) };
+      if (data.eventSubcategory === "ONSITE_PAGEANT") {
+        if (data.repName) finalRequirements.repName = data.repName;
+        if (data.repContact) finalRequirements.repContact = data.repContact;
+        if (data.repEmail) finalRequirements.repEmail = data.repEmail;
+      }
+
       const result = await submitRegistration({
         eventId: data.eventId!,
         teamName: data.teamName,
         members: data.members || [],
-        requirements: data.requirements || {},
+        requirements: finalRequirements,
       });
 
       if (result.success) {
@@ -98,6 +105,19 @@ export default function ReviewStep() {
           <CardTitle className="text-xl font-black mb-4 dark:text-white">Team Information</CardTitle>
           <div className="space-y-4">
             <p className="font-bold text-lg text-gray-900 dark:text-white">Team: {data.teamName || "N/A"}</p>
+            
+            {data.eventSubcategory === "ONSITE_PAGEANT" && (
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-800 space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">School Representative</p>
+                <div className="space-y-1">
+                  <p className="font-black text-gray-900 dark:text-white">{data.repName}</p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-bold text-gray-500">
+                    <span className="flex items-center gap-1.5 uppercase tracking-tighter">Email: {data.repEmail}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-3">
               <p className="text-sm font-bold uppercase text-gray-400 dark:text-gray-500 tracking-wider">Members</p>
               {participantDetails.map((p, i) => (

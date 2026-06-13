@@ -11,7 +11,7 @@ const registrationSchema = z.object({
   eventId: z.string().min(1),
   teamName: z.string().optional(),
   members: z.array(z.string().email()),
-  requirements: z.record(z.string(), z.string().url()),
+  requirements: z.record(z.string(), z.string()),
 });
 
 export async function checkRegistrationExists(eventId: string) {
@@ -84,12 +84,12 @@ export async function validateParticipantLimits(eventId: string, emails: string[
     }
 
     const onlineCount = existingRegistrations.filter(r => r.event.subcategory === "ONLINE").length;
-    const onsiteCount = existingRegistrations.filter(r => r.event.subcategory === "ONSITE").length;
+    const onsiteCount = existingRegistrations.filter(r => r.event.subcategory === "ONSITE" || r.event.subcategory === "ONSITE_PAGEANT").length;
 
     if (event.subcategory === "ONLINE" && onlineCount >= 1) {
       return { error: `Participant ${participant.name} has already reached the limit of 1 ONLINE event.` };
     }
-    if (event.subcategory === "ONSITE" && onsiteCount >= 1) {
+    if ((event.subcategory === "ONSITE" || event.subcategory === "ONSITE_PAGEANT") && onsiteCount >= 1) {
       return { error: `Participant ${participant.name} has already reached the limit of 1 ONSITE event.` };
     }
   }
@@ -232,14 +232,14 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
         }
 
         const onlineCount = existingRegistrations.filter(r => r.event.subcategory === "ONLINE").length;
-        const onsiteCount = existingRegistrations.filter(r => r.event.subcategory === "ONSITE").length;
+        const onsiteCount = existingRegistrations.filter(r => r.event.subcategory === "ONSITE" || r.event.subcategory === "ONSITE_PAGEANT").length;
 
         console.log(`Debug: ${participant.email} - Online: ${onlineCount}, Onsite: ${onsiteCount}`);
 
         if (event.subcategory === "ONLINE" && onlineCount >= 1) {
           throw new Error(`Participant ${participant.name} has already reached the limit of 1 ONLINE event.`);
         }
-        if (event.subcategory === "ONSITE" && onsiteCount >= 1) {
+        if ((event.subcategory === "ONSITE" || event.subcategory === "ONSITE_PAGEANT") && onsiteCount >= 1) {
           throw new Error(`Participant ${participant.name} has already reached the limit of 1 ONSITE event.`);
         }
       }
@@ -329,7 +329,7 @@ export async function submitEntryUrl(registrationId: string, entryUrl: string) {
       throw new Error("You are not authorized to submit for this team.");
     }
 
-    if (registration.event.subcategory !== "ONLINE") {
+    if (registration.event.subcategory !== "ONLINE" && registration.event.subcategory !== "ONSITE_PAGEANT") {
       throw new Error("This competition does not support online submissions.");
     }
 

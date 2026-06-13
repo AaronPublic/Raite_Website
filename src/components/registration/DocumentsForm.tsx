@@ -116,7 +116,7 @@ export default function DocumentsForm() {
           {description && <p className="text-sm text-gray-600">{description}</p>}
           {key === "participantDocs" && (
             <a 
-              href="/assets/RAITE_2026_COR_Template.pdf" 
+              href="/assets/RAITE_2026_COR_TEMPLATE.docx" 
               download
               className="flex items-center gap-1.5 text-xs font-black text-blue-600 uppercase tracking-wider hover:text-blue-800 transition-colors w-fit group/btn"
             >

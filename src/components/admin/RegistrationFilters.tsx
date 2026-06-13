@@ -23,7 +23,7 @@ export default function RegistrationFilters({ events }: { events: Event[] }) {
 
   const selectedEventId = searchParams.get("eventId");
   const selectedEvent = events.find(e => e.id === selectedEventId);
-  const isOnlineRelevant = !selectedEventId || selectedEvent?.subcategory === "ONLINE";
+  const isOnlineRelevant = !selectedEventId || selectedEvent?.subcategory === "ONLINE" || selectedEvent?.subcategory === "ONSITE_PAGEANT";
 
   const updateFilters = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams);

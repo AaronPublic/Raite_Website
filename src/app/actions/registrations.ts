@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { RegistrationStatus } from "@prisma/client";
+import { getFilteredRegistrations, RegistrationFilters } from "@/lib/data/registrations";
+import Papa from "papaparse";
 
 const updateStatusSchema = z.object({
   id: z.string(),
@@ -148,4 +150,33 @@ export async function deleteRegistration(id: string) {
   } catch (error) {
     return { error: "Failed to delete registration" };
   }
+}
+
+export async function exportRegistrationsCSV(filters: RegistrationFilters) {
+  await checkAccess(); // Admin check
+  const registrations = await getFilteredRegistrations(filters);
+  
+  const data = registrations.map(r => ({
+    School: r.user.school,
+    Competition: r.event.title,
+    Status: r.status,
+    Coach: r.user.name,
+    Email: r.user.email,
+    RegisteredAt: r.createdAt
+  }));
+  
+  return Papa.unparse(data);
+}
+
+export async function getRegistrationsForPDF(filters: RegistrationFilters) {
+  await checkAccess(); // Admin check
+  const registrations = await getFilteredRegistrations(filters);
+  
+  return registrations.map(r => ({
+    school: r.user.school || "N/A",
+    competition: r.event.title,
+    status: r.status,
+    coach: r.user.name || "N/A",
+    date: new Date(r.createdAt).toLocaleDateString()
+  }));
 }

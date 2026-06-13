@@ -92,6 +92,21 @@ export async function getCoachSchool() {
   return user?.school || null;
 }
 
+export async function getCurrentCoach() {
+  const { userId } = await auth();
+  if (!userId) return null;
+
+  return await db.user.findUnique({
+    where: { clerkId: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      school: true,
+    },
+  });
+}
+
 export async function isProfileComplete() {
   const { userId } = await auth();
   if (!userId) return true;

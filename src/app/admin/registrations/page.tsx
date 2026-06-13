@@ -2,8 +2,7 @@ import { getFilteredRegistrations } from "@/lib/data/registrations";
 import RegistrationsTable from "@/components/admin/RegistrationsTable";
 import { getAllEvents } from "@/lib/data/events";
 import RegistrationFilters from "@/components/admin/RegistrationFilters";
-
-
+import AdminRegistrationExportButtons from "@/components/admin/AdminRegistrationExportButtons";
 
 export default async function AdminRegistrationsPage({
   searchParams,
@@ -21,11 +20,14 @@ export default async function AdminRegistrationsPage({
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Registrations</h1>
-        <p className="text-gray-500 text-sm">
-          Review and manage all {registrations.length} applications.
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Registrations</h1>
+          <p className="text-gray-500 text-sm">
+            Review and manage all {registrations.length} applications.
+          </p>
+        </div>
+        <AdminRegistrationExportButtons />
       </div>
 
       <RegistrationFilters events={events as any} />

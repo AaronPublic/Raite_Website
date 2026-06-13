@@ -117,6 +117,7 @@ enum EventSubcategory {
   ONLINE
   ONSITE
   EGAMES
+  ONSITE_PAGEANT
 }
 
 enum Role {

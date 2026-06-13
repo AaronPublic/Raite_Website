@@ -264,7 +264,7 @@ export default function CompetitionForm({ initialData, subAdmins = [], isSubAdmi
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubAdmin}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={isSubAdmin}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select category" />
@@ -296,6 +296,7 @@ export default function CompetitionForm({ initialData, subAdmins = [], isSubAdmi
                       <SelectContent>
                         <SelectItem value="ONLINE">Online (Pre-Submission)</SelectItem>
                         <SelectItem value="ONSITE">On-site</SelectItem>
+                        <SelectItem value="ONSITE_PAGEANT">On-site (Pageants)</SelectItem>
                         <SelectItem value="EGAMES">E-GAMES</SelectItem>
                       </SelectContent>
                     </Select>

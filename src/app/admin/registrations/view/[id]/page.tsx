@@ -40,7 +40,8 @@ export default async function AdminViewRegistrationPage({ params }: { params: Pr
     redirect("/");
   }
 
-  const isOnline = registration.event.subcategory === "ONLINE";
+  const isOnlineRelevant = registration.event.subcategory === "ONLINE" || registration.event.subcategory === "ONSITE_PAGEANT";
+  const isPageant = registration.event.subcategory === "ONSITE_PAGEANT";
 
   return (
     <div className="container mx-auto py-10 max-w-4xl space-y-8">
@@ -59,19 +60,52 @@ export default async function AdminViewRegistrationPage({ params }: { params: Pr
         </div>
       </div>
 
-      {isOnline && (
+      {isOnlineRelevant && (
         <Card className="p-6 rounded-[2rem] border-blue-100 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/20">
               <Globe className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Online Submission Link</p>
-              <p className="text-xs text-blue-900/60 dark:text-blue-300/60 font-medium mt-0.5">Sub-admins and Admins can edit this if the coach submitted a wrong link.</p>
+              <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">
+                {isPageant ? "Pageant Photo Submissions" : "Online Submission Link"}
+              </p>
+              <p className="text-xs text-blue-900/60 dark:text-blue-300/60 font-medium mt-0.5">
+                {isPageant ? "View and verify the submitted 3R photo links." : "Sub-admins and Admins can edit this if the coach submitted a wrong link."}
+              </p>
             </div>
           </div>
           <div className="flex-1 max-w-md bg-white dark:bg-gray-900 p-4 rounded-2xl border border-blue-100 dark:border-blue-800">
-            <EntryUrlEditor registrationId={registration.id} initialEntryUrl={registration.entryUrl} />
+            {isPageant ? (
+               <div className="flex flex-col gap-3">
+                 {(() => {
+                   if (!registration.entryUrl) return <span className="text-gray-500 italic text-sm">No photos submitted yet.</span>;
+                   try {
+                     const parsed = JSON.parse(registration.entryUrl);
+                     return (
+                       <>
+                         <div className="flex items-center justify-between gap-4 p-2 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                            <span className="text-xs font-black uppercase text-gray-400">Male Photo</span>
+                            <a href={parsed.malePhoto} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-bold hover:underline text-sm truncate flex-1 text-right">
+                              {parsed.malePhoto}
+                            </a>
+                         </div>
+                         <div className="flex items-center justify-between gap-4 p-2 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                            <span className="text-xs font-black uppercase text-gray-400">Female Photo</span>
+                            <a href={parsed.femalePhoto} target="_blank" rel="noopener noreferrer" className="text-blue-600 font-bold hover:underline text-sm truncate flex-1 text-right">
+                              {parsed.femalePhoto}
+                            </a>
+                         </div>
+                       </>
+                     );
+                   } catch {
+                     return <span className="text-red-500 text-sm font-bold">Invalid submission data format.</span>;
+                   }
+                 })()}
+               </div>
+            ) : (
+              <EntryUrlEditor registrationId={registration.id} initialEntryUrl={registration.entryUrl} />
+            )}
           </div>
         </Card>
       )}

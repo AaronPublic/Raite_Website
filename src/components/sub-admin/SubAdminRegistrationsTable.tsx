@@ -34,7 +34,8 @@ import {
   XCircle,
   AlertCircle,
   Check,
-  X
+  X,
+  Globe
 } from "lucide-react";
 import { updateRegistrationStatus } from "@/app/actions/registrations";
 import { getRegistrationDetails } from "@/app/actions/reports";
@@ -168,11 +169,12 @@ function RegistrationDetailsModal({
     : registration.requirements;
     
   const documentEntries = !Array.isArray(requirements) && typeof requirements === 'object' && requirements !== null
-    ? Object.entries(requirements).filter(([key]) => key !== 'participants' && key !== 'members')
+    ? Object.entries(requirements).filter(([key]) => !['participants', 'members', 'repName', 'repContact', 'repEmail'].includes(key))
     : [];
 
   const loading = isUpdating === registration.id;
-  const isOnline = registration.event.subcategory === "ONLINE";
+  const isOnlineRelevant = registration.event.subcategory === "ONLINE" || registration.event.subcategory === "ONSITE_PAGEANT";
+  const isPageant = registration.event.subcategory === "ONSITE_PAGEANT";
 
   return (
     <Dialog onOpenChange={(open) => {
@@ -187,7 +189,7 @@ function RegistrationDetailsModal({
       </DialogTrigger>
       
       {/* Optimized Modal Outer Shell */}
-      <DialogContent className="w-full max-w-[95vw] lg:max-w-6xl xl:max-w-7xl h-[90vh] flex flex-col rounded-[2rem] md:rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-gray-900 transition-all duration-300">
+      <DialogContent className="w-full max-w-[95vw] lg:max-w-6xl xl:max-w-7xl h-[90vh] flex flex-col rounded-[2rem] md:rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden bg-white dark:bg-gray-900 transition-all duration-300 no-scrollbar">
         
         {/* Pinned Sticky Header */}
         <DialogHeader className="sticky top-0 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 px-6 py-6 md:px-12 md:py-8 flex flex-row items-center justify-between gap-4 shrink-0">
@@ -229,7 +231,7 @@ function RegistrationDetailsModal({
         </DialogHeader>
         
         {/* Isolated Scroll Space Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 md:p-12">
+        <div className="flex-1 overflow-y-auto px-6 py-6 md:p-12 no-scrollbar">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-32 gap-8">
               <div className="relative">
@@ -257,7 +259,7 @@ function RegistrationDetailsModal({
               )}
 
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
-                <div className="xl:col-span-7 bg-gray-50/50 dark:bg-gray-800/50 p-10 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm space-y-8">
+                <div className={cn("bg-gray-50/50 dark:bg-gray-800/50 p-10 rounded-[2.5rem] border border-gray-100 dark:border-gray-700 shadow-sm space-y-8", isOnlineRelevant ? "xl:col-span-7" : "xl:col-span-12")}>
                   <div className="flex items-center gap-5 mb-2">
                     <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-2xl shadow-md border border-gray-50 flex items-center justify-center">
                       <CheckCircle className="w-6 h-6 text-blue-600" />
@@ -274,6 +276,30 @@ function RegistrationDetailsModal({
                       <p className="text-[11px] font-black uppercase text-gray-400 tracking-wider">Team Alias</p>
                       <p className="font-black text-2xl text-gray-900 dark:text-white leading-tight tracking-tight">{registration.teamName || "N/A"}</p>
                     </div>
+
+                    {isPageant && (
+                      <div className="md:col-span-2 p-6 bg-blue-50/50 dark:bg-blue-900/10 rounded-3xl border border-blue-100 dark:border-blue-800 space-y-4">
+                        <p className="text-[11px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest flex items-center gap-2">
+                          <Globe className="w-3.5 h-3.5" />
+                          School Representative
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                           <div>
+                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mb-1">Full Name</p>
+                              <p className="font-black text-gray-900 dark:text-white">{requirements.repName || "N/A"}</p>
+                           </div>
+                           <div>
+                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mb-1">Contact Number</p>
+                              <p className="font-black text-gray-900 dark:text-white">{requirements.repContact || "N/A"}</p>
+                           </div>
+                           <div className="md:col-span-2">
+                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mb-1">Email Address</p>
+                              <p className="font-black text-gray-900 dark:text-white">{requirements.repEmail || "N/A"}</p>
+                           </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="md:col-span-2 pt-8 border-t border-gray-200/50">
                       <p className="text-[11px] font-black uppercase text-gray-400 tracking-wider mb-6">Faculty Liaison</p>
                       <div className="flex items-center gap-6">
@@ -289,7 +315,7 @@ function RegistrationDetailsModal({
                   </div>
                 </div>
 
-                {isOnline && (
+                {isOnlineRelevant && (
                   <div className="xl:col-span-5 bg-blue-600 p-10 rounded-[2.5rem] shadow-xl shadow-blue-600/20 flex flex-col justify-between text-white relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
                     <div className="relative z-10">
@@ -297,13 +323,44 @@ function RegistrationDetailsModal({
                         <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-lg">
                           <FileText className="w-6 h-6 text-white" />
                         </div>
-                        <h3 className="text-base font-black uppercase tracking-wider">Online Asset</h3>
+                        <h3 className="text-base font-black uppercase tracking-wider">{isPageant ? "Pageant Assets" : "Online Asset"}</h3>
                       </div>
-                      <p className="text-sm text-blue-100 mb-8 leading-relaxed max-w-sm">Verification of digital entry required. Submission URL maintains exclusive override status.</p>
+                      <p className="text-sm text-blue-100 mb-8 leading-relaxed max-w-sm">
+                        {isPageant ? "Verification of 3R photos required for male and female participants." : "Verification of digital entry required. Submission URL maintains exclusive override status."}
+                      </p>
                     </div>
                     
                     <div className="bg-white/10 backdrop-blur-md p-8 rounded-3xl border border-white/20 shadow-inner relative z-10">
-                      <EntryUrlEditor registrationId={registration.id} initialEntryUrl={registration.entryUrl} />
+                      {isPageant ? (
+                         <div className="flex flex-col gap-3">
+                           {(() => {
+                             if (!registration.entryUrl) return <span className="text-blue-100 italic text-sm">No photos submitted.</span>;
+                             try {
+                               const parsed = JSON.parse(registration.entryUrl);
+                               return (
+                                 <>
+                                   <div className="flex flex-col gap-1 p-3 bg-white/5 rounded-xl border border-white/10">
+                                      <span className="text-[9px] font-black uppercase text-blue-200">Male Photo</span>
+                                      <a href={parsed.malePhoto} target="_blank" rel="noopener noreferrer" className="text-white font-black hover:underline text-xs truncate">
+                                        {parsed.malePhoto}
+                                      </a>
+                                   </div>
+                                   <div className="flex flex-col gap-1 p-3 bg-white/5 rounded-xl border border-white/10">
+                                      <span className="text-[9px] font-black uppercase text-blue-200">Female Photo</span>
+                                      <a href={parsed.femalePhoto} target="_blank" rel="noopener noreferrer" className="text-white font-black hover:underline text-xs truncate">
+                                        {parsed.femalePhoto}
+                                      </a>
+                                   </div>
+                                 </>
+                               );
+                             } catch {
+                               return <span className="text-white text-xs font-bold">Invalid submission format.</span>;
+                             }
+                           })()}
+                         </div>
+                      ) : (
+                        <EntryUrlEditor registrationId={registration.id} initialEntryUrl={registration.entryUrl} />
+                      )}
                     </div>
                   </div>
                 )}
@@ -459,10 +516,10 @@ export default function SubAdminRegistrationsTable({ initialData, eventId }: { i
             variant="outline" 
             className={cn(
               "font-black text-[10px] uppercase tracking-widest px-2.5 py-0.5 rounded-full border-2",
-              status === "APPROVED" ? "bg-green-50 text-green-700 border-green-100" : 
-              status === "REJECTED" ? "bg-red-50 text-red-700 border-red-100" : 
-              status === "PENDING" ? "bg-blue-50 text-blue-700 border-blue-100" : 
-              "bg-gray-50 text-gray-700 border-gray-100"
+              status === "APPROVED" ? "bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30" : 
+              status === "REJECTED" ? "bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30" : 
+              status === "PENDING" ? "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30" : 
+              "bg-gray-50 text-gray-700 border-gray-100 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700"
             )}
           >
             {status}
@@ -527,11 +584,11 @@ export default function SubAdminRegistrationsTable({ initialData, eventId }: { i
       <div className="flex justify-end">
         <SubAdminExportButtons eventId={eventId} />
       </div>
-      <div className="rounded-2xl border-2 border-gray-100 bg-white overflow-hidden shadow-sm">
+      <div className="rounded-[2rem] border-2 border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900/40 overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="bg-gray-50/50 border-b-2 border-gray-100 hover:bg-transparent">
+              <TableRow key={headerGroup.id} className="bg-gray-50/50 dark:bg-gray-800/30 border-b-2 border-gray-100 dark:border-gray-800 hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id} className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">
                     {flexRender(header.column.columnDef.header, header.getContext())}
@@ -543,9 +600,9 @@ export default function SubAdminRegistrationsTable({ initialData, eventId }: { i
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="h-14 hover:bg-gray-50/50 transition-all border-b border-gray-100">
+                <TableRow key={row.id} className="h-20 border-b border-gray-100 dark:border-gray-800/50 hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-colors">
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="px-6 py-2">
+                    <TableCell key={cell.id} className="px-6">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

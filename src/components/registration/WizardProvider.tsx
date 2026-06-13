@@ -7,10 +7,14 @@ interface WizardData {
   eventId?: string;
   eventTitle?: string;
   eventCategory?: string;
+  eventSubcategory?: string;
   maxParticipantsPerRegistration?: number;
   teamName?: string;
   members?: string[];
   requirements?: Record<string, string>;
+  repName?: string;
+  repContact?: string;
+  repEmail?: string;
 }
 
 interface WizardContextType {

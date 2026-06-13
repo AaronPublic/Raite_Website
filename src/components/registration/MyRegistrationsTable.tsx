@@ -8,7 +8,9 @@ import {
   useReactTable,
   getPaginationRowModel,
   getFilteredRowModel,
+  getSortedRowModel,
   ColumnFiltersState,
+  SortingState,
 } from "@tanstack/react-table";
 import { 
   Table,
@@ -29,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RegistrationStatus, EventSubcategory } from "@prisma/client";
-import { Pencil, Send, CheckCircle, ExternalLink, Globe, Loader2, AlertCircle } from "lucide-react";
+import { Pencil, Send, CheckCircle, ExternalLink, Globe, Loader2, AlertCircle, ArrowUpDown } from "lucide-react";
 import Link from "next/link";
 import { submitEntryUrl } from "@/app/actions/registration";
 import { toast } from "sonner";
@@ -63,23 +65,38 @@ interface Registration {
 
 export function MyRegistrationsTable({ registrations }: { registrations: Registration[] }) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
   const [isSubmitting, setIsSubmitting] = React.useState<string | null>(null);
   const [entryUrl, setEntryUrl] = React.useState("");
+  const [malePhoto, setMalePhoto] = React.useState("");
+  const [femalePhoto, setFemalePhoto] = React.useState("");
   const [openDialog, setOpenDialog] = React.useState<string | null>(null);
 
-  const handleSubmitEntry = async (registrationId: string) => {
-    if (!entryUrl) {
-      toast.error("Please enter a valid URL");
-      return;
+  const handleSubmitEntry = async (registrationId: string, subcategory: EventSubcategory | null) => {
+    let submissionData = entryUrl;
+    
+    if (subcategory === "ONSITE_PAGEANT") {
+      if (!malePhoto || !femalePhoto) {
+        toast.error("Please provide both photo links");
+        return;
+      }
+      submissionData = JSON.stringify({ malePhoto, femalePhoto });
+    } else {
+      if (!entryUrl) {
+        toast.error("Please enter a valid URL");
+        return;
+      }
     }
 
     setIsSubmitting(registrationId);
     try {
-      const result = await submitEntryUrl(registrationId, entryUrl);
+      const result = await submitEntryUrl(registrationId, submissionData);
       if (result.success) {
         toast.success("Entry submitted successfully!");
         setOpenDialog(null);
         setEntryUrl("");
+        setMalePhoto("");
+        setFemalePhoto("");
       } else {
         toast.error(result.error || "Failed to submit entry");
       }
@@ -93,20 +110,28 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
   const columns: ColumnDef<Registration>[] = [
     {
       accessorKey: "event.title",
-      header: "Competition",
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-black uppercase tracking-widest text-[10px]">
+          Competition <ArrowUpDown className="ml-2 h-3 w-3" />
+        </Button>
+      ),
       cell: ({ row }) => (
         <div className="flex flex-col text-left">
           <span className="font-bold text-gray-900 dark:text-white leading-tight">{row.original.event.title}</span>
           <span className="text-[10px] font-black uppercase tracking-tighter text-blue-600 mt-1 flex items-center gap-1">
              <Globe className="w-3 h-3" />
-             {row.original.event.subcategory}
+             {row.original.event.subcategory?.replace("_", " ")}
           </span>
         </div>
       ),
     },
     {
       accessorKey: "user.school",
-      header: "Institution",
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-black uppercase tracking-widest text-[10px]">
+          Institution <ArrowUpDown className="ml-2 h-3 w-3" />
+        </Button>
+      ),
       cell: ({ row }) => (
         <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
           {row.original.user?.school || "N/A"}
@@ -115,7 +140,11 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
     },
     {
       accessorKey: "status",
-      header: "Approval Status",
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-black uppercase tracking-widest text-[10px]">
+          Approval Status <ArrowUpDown className="ml-2 h-3 w-3" />
+        </Button>
+      ),
       cell: ({ row }) => {
         const status = row.original.status as RegistrationStatus;
         return (
@@ -139,7 +168,8 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
       header: "Entry Status",
       cell: ({ row }) => {
         const isOnline = row.original.event.subcategory === "ONLINE";
-        if (!isOnline) return <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest italic">N/A</span>;
+        const isPageant = row.original.event.subcategory === "ONSITE_PAGEANT";
+        if (!isOnline && !isPageant) return <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest italic">N/A</span>;
         
         const hasSubmitted = !!row.original.entryUrl;
         const isApproved = row.original.status === "APPROVED";
@@ -157,13 +187,24 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
               </Badge>
             )}
 
-            {isOnline && isApproved && !hasSubmitted && (
+            {(isOnline || isPageant) && isApproved && !hasSubmitted && (
               <Dialog 
                 open={openDialog === row.original.id} 
                 onOpenChange={(open) => {
                   if (open) {
                     setOpenDialog(row.original.id);
-                    setEntryUrl(row.original.entryUrl || "");
+                    if (isPageant && row.original.entryUrl) {
+                       try {
+                         const parsed = JSON.parse(row.original.entryUrl);
+                         setMalePhoto(parsed.malePhoto || "");
+                         setFemalePhoto(parsed.femalePhoto || "");
+                       } catch {
+                         setMalePhoto("");
+                         setFemalePhoto("");
+                       }
+                    } else {
+                      setEntryUrl(row.original.entryUrl || "");
+                    }
                   } else {
                     setOpenDialog(null);
                   }
@@ -179,42 +220,77 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
                     Submit Entry
                   </Button>
                 </DialogTrigger>
-                {/* Made this layout wider and visually elevated */}
-                <DialogContent className="w-[95vw] sm:max-w-xl md:max-w-2xl lg:max-w-3xl rounded-[2rem] md:rounded-[2.5rem] p-6 sm:p-10 md:p-12 border-none shadow-2xl bg-white dark:bg-gray-900 transition-all duration-300">
-                  <DialogHeader className="space-y-4 md:space-y-6">
-                    <DialogTitle className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-gray-900 dark:text-white">
-                      Submit Competition Entry
+                <DialogContent className="w-[95vw] sm:max-w-lg md:max-w-xl rounded-[2rem] p-6 sm:p-8 border-none shadow-2xl bg-white dark:bg-gray-900 transition-all duration-300 overflow-y-auto max-h-[90vh] no-scrollbar">
+                  <DialogHeader className="space-y-3 md:space-y-4">
+                    <DialogTitle className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-gray-900 dark:text-white">
+                      {isPageant ? "Submit Pageant Photos" : "Submit Competition Entry"}
                     </DialogTitle>
-                    <DialogDescription className="font-medium space-y-6 text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
-                      <span className="block mb-6">Provide the URL to your project, video, or document as required by the competition mechanics.</span>
-                      
-                      {/* Fully justified important notice layout box */}
-                      <div className="flex gap-4 p-5 md:p-6 bg-amber-50/60 dark:bg-amber-950/20 text-amber-900 dark:text-amber-200 rounded-2xl md:rounded-3xl border border-amber-200/50 dark:border-amber-900/50 items-start">
-                        <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-xl text-amber-600 dark:text-amber-400 shrink-0">
-                          <AlertCircle className="w-5 h-5 md:w-6 md:h-6" />
-                        </div>
-                        <div className="space-y-2 flex-1">
-                          <p className="text-sm md:text-base font-black uppercase tracking-wider text-amber-900 dark:text-amber-100">
-                            Important Submission Notice
-                          </p>
-                          <p className="text-xs sm:text-sm md:text-base font-medium leading-relaxed text-justify">
-                            Submission of entries is allowed only once. Once your entry has been submitted, no further edits, updates, or modifications can be made. Please review and verify all information, files, and details carefully before clicking the Submit button.
-                          </p>
+                    <DialogDescription asChild className="font-medium space-y-4 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
+                      <div>
+                        {isPageant ? (
+                          <div className="space-y-3">
+                            <p>Provide the Google Drive links to the 3R photos.</p>
+                            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 rounded-xl border border-blue-100 dark:border-blue-800 text-xs">
+                              <p className="font-black uppercase text-[9px] mb-0.5 tracking-widest">3R Photo Size</p>
+                              <p className="leading-tight">Standard 3.5 x 5 inches (8.9 x 12.7 cm).</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="block mb-4">Provide the URL to your project or document.</span>
+                        )}
+                        
+                        <div className="flex gap-3 p-4 bg-amber-50/60 dark:bg-amber-950/20 text-amber-900 dark:text-amber-200 rounded-2xl border border-amber-200/50 dark:border-amber-900/50 items-start mt-4">
+                          <div className="p-1.5 bg-amber-100 dark:bg-amber-900/50 rounded-lg text-amber-600 dark:text-amber-400 shrink-0">
+                            <AlertCircle className="w-4 h-4" />
+                          </div>
+                          <div className="space-y-1 flex-1">
+                            <p className="text-xs font-black uppercase tracking-wider text-amber-900 dark:text-amber-100">
+                              Important Notice
+                            </p>
+                            <p className="text-[11px] sm:text-xs font-medium leading-normal text-justify">
+                              Submission is allowed only once. No further edits or modifications can be made after submission.
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="space-y-4 py-4 md:py-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="entryUrl" className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-500">Submission Link (URL)</Label>
-                      <Input
-                        id="entryUrl"
-                        placeholder="https://docs.google.com/..."
-                        value={entryUrl}
-                        onChange={(e) => setEntryUrl(e.target.value)}
-                        className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-blue-500/10 font-medium text-base transition-all"
-                      />
-                    </div>
+                  <div className="space-y-3 py-3 md:py-4">
+                    {isPageant ? (
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="malePhoto" className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-500">Male Participant 3R Photo (Gdrive Link)</Label>
+                          <Input
+                            id="malePhoto"
+                            placeholder="https://drive.google.com/..."
+                            value={malePhoto}
+                            onChange={(e) => setMalePhoto(e.target.value)}
+                            className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-blue-500/10 font-medium text-base transition-all"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="femalePhoto" className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-500">Female Participant 3R Photo (Gdrive Link)</Label>
+                          <Input
+                            id="femalePhoto"
+                            placeholder="https://drive.google.com/..."
+                            value={femalePhoto}
+                            onChange={(e) => setFemalePhoto(e.target.value)}
+                            className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-blue-500/10 font-medium text-base transition-all"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Label htmlFor="entryUrl" className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-500">Submission Link (URL)</Label>
+                        <Input
+                          id="entryUrl"
+                          placeholder="https://docs.google.com/..."
+                          value={entryUrl}
+                          onChange={(e) => setEntryUrl(e.target.value)}
+                          className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-blue-500/10 font-medium text-base transition-all"
+                        />
+                      </div>
+                    )}
                   </div>
                   <DialogFooter className="sm:justify-end gap-3 pt-2">
                     <Button
@@ -227,7 +303,7 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
                     </Button>
                     <Button
                       type="button"
-                      onClick={() => handleSubmitEntry(row.original.id)}
+                      onClick={() => handleSubmitEntry(row.original.id, row.original.event.subcategory)}
                       disabled={isSubmitting === row.original.id}
                       className="bg-blue-600 hover:bg-blue-700 text-white rounded-full h-12 px-10 font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
                     >
@@ -237,7 +313,7 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
                           Submitting...
                         </>
                       ) : (
-                        "Submit Link"
+                        "Submit Entry"
                       )}
                     </Button>
                   </DialogFooter>
@@ -246,11 +322,39 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
             )}
 
             {hasSubmitted && (
-               <Button variant="ghost" size="icon" asChild className="rounded-full h-8 w-8 hover:bg-blue-50 hover:text-blue-600">
-                 <a href={row.original.entryUrl!} target="_blank" rel="noopener noreferrer" title="View Entry">
-                    <ExternalLink className="h-4 w-4" />
-                 </a>
-               </Button>
+               <div className="flex items-center gap-1">
+                 {isPageant ? (
+                   (() => {
+                     try {
+                       const parsed = JSON.parse(row.original.entryUrl!);
+                       return (
+                         <>
+                           <Button variant="ghost" size="icon" asChild className="rounded-full h-8 w-8 hover:bg-blue-50 hover:text-blue-600" title="Male Photo">
+                             <a href={parsed.malePhoto} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="h-3.5 w-3.5" />
+                                <span className="sr-only">Male Photo</span>
+                             </a>
+                           </Button>
+                           <Button variant="ghost" size="icon" asChild className="rounded-full h-8 w-8 hover:bg-blue-50 hover:text-blue-600" title="Female Photo">
+                             <a href={parsed.femalePhoto} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="h-3.5 w-3.5" />
+                                <span className="sr-only">Female Photo</span>
+                             </a>
+                           </Button>
+                         </>
+                       );
+                     } catch {
+                       return null;
+                     }
+                   })()
+                 ) : (
+                   <Button variant="ghost" size="icon" asChild className="rounded-full h-8 w-8 hover:bg-blue-50 hover:text-blue-600">
+                     <a href={row.original.entryUrl!} target="_blank" rel="noopener noreferrer" title="View Entry">
+                        <ExternalLink className="h-4 w-4" />
+                     </a>
+                   </Button>
+                 )}
+               </div>
             )}
           </div>
         );
@@ -259,15 +363,25 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
     {
       id: "actions",
       header: () => <div className="text-center">Actions</div>,
-      cell: ({ row }) => (
-        <div className="flex items-center justify-center">
-          <Button variant="ghost" size="sm" asChild className="rounded-xl font-bold h-9 hover:bg-gray-100">
-            <Link href={`/registrations/edit/${row.original.id}`}>
-              <Pencil className="h-4 w-4 mr-2" /> Edit Info
-            </Link>
-          </Button>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const isApproved = row.original.status === "APPROVED";
+        
+        return (
+          <div className="flex items-center justify-center">
+            {isApproved ? (
+              <Button variant="ghost" size="sm" disabled className="rounded-xl font-bold h-9 bg-gray-50 text-gray-400 opacity-50 cursor-not-allowed">
+                <Pencil className="h-4 w-4 mr-2" /> Edit Info
+              </Button>
+            ) : (
+              <Button variant="ghost" size="sm" asChild className="rounded-xl font-bold h-9 hover:bg-gray-100">
+                <Link href={`/registrations/edit/${row.original.id}`}>
+                  <Pencil className="h-4 w-4 mr-2" /> Edit Info
+                </Link>
+              </Button>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
@@ -277,9 +391,12 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
+    onSortingChange: setSorting,
     state: {
       columnFilters,
+      sorting,
     },
   });
 

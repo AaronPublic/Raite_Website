@@ -75,6 +75,17 @@ CREATE TABLE "Announcement" (
     CONSTRAINT "Announcement_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "School" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" VARCHAR(255) NOT NULL UNIQUE,
+    "abbreviation" VARCHAR(50) NOT NULL,
+    "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    
+    CONSTRAINT "School_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 

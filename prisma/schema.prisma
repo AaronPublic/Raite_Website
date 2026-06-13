@@ -1,5 +1,5 @@
 generator client {
-  provider   = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -7,9 +7,9 @@ datasource db {
 }
 
 model School {
-  id           String @id @default(cuid())
-  name         String @unique
-  abbreviation String @unique
+  id           String   @id @default(cuid())
+  name         String   @unique
+  abbreviation String   @unique
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -26,9 +26,9 @@ model User {
   uniqueId           String?        @unique
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
+  assignedEvents     Event[]        @relation("SubAdminEvents")
   coachRegistrations Registration[] @relation("CoachRegistrations")
   registrations      Registration[]
-  assignedEvents     Event[]        @relation("SubAdminEvents")
 }
 
 model Event {
@@ -48,9 +48,9 @@ model Event {
   submissionLink                 String?
   createdAt                      DateTime          @default(now())
   updatedAt                      DateTime          @updatedAt
-  registrations                  Registration[]
   subAdminId                     String?
   subAdmin                       User?             @relation("SubAdminEvents", fields: [subAdminId], references: [id])
+  registrations                  Registration[]
 }
 
 model Registration {
@@ -96,11 +96,11 @@ model SystemSetting {
 }
 
 model LeaderboardEntry {
-  id          String   @id @default(cuid())
-  place       Int      // 1, 2, or 3
-  university  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(cuid())
+  place      Int
+  university String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model CompetitionWinner {

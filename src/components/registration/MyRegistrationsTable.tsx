@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RegistrationStatus, EventSubcategory } from "@prisma/client";
-import { Pencil, Send, CheckCircle, ExternalLink, Globe, Loader2 } from "lucide-react";
+import { Pencil, Send, CheckCircle, ExternalLink, Globe, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { submitEntryUrl } from "@/app/actions/registration";
 import { toast } from "sonner";
@@ -179,31 +179,49 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
                     Submit Entry
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="rounded-[2rem] sm:max-w-md border-gray-100">
-                  <DialogHeader>
-                    <DialogTitle className="text-2xl font-black tracking-tight">Submit Competition Entry</DialogTitle>
-                    <DialogDescription className="font-medium">
-                      Provide the URL to your project, video, or document as required by the competition mechanics.
+                {/* Made this layout wider and visually elevated */}
+                <DialogContent className="w-[95vw] sm:max-w-xl md:max-w-2xl lg:max-w-3xl rounded-[2rem] md:rounded-[2.5rem] p-6 sm:p-10 md:p-12 border-none shadow-2xl bg-white dark:bg-gray-900 transition-all duration-300">
+                  <DialogHeader className="space-y-4 md:space-y-6">
+                    <DialogTitle className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-gray-900 dark:text-white">
+                      Submit Competition Entry
+                    </DialogTitle>
+                    <DialogDescription className="font-medium space-y-6 text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+                      <span className="block mb-6">Provide the URL to your project, video, or document as required by the competition mechanics.</span>
+                      
+                      {/* Fully justified important notice layout box */}
+                      <div className="flex gap-4 p-5 md:p-6 bg-amber-50/60 dark:bg-amber-950/20 text-amber-900 dark:text-amber-200 rounded-2xl md:rounded-3xl border border-amber-200/50 dark:border-amber-900/50 items-start">
+                        <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-xl text-amber-600 dark:text-amber-400 shrink-0">
+                          <AlertCircle className="w-5 h-5 md:w-6 md:h-6" />
+                        </div>
+                        <div className="space-y-2 flex-1">
+                          <p className="text-sm md:text-base font-black uppercase tracking-wider text-amber-900 dark:text-amber-100">
+                            Important Submission Notice
+                          </p>
+                          <p className="text-xs sm:text-sm md:text-base font-medium leading-relaxed text-justify">
+                            Submission of entries is allowed only once. Once your entry has been submitted, no further edits, updates, or modifications can be made. Please review and verify all information, files, and details carefully before clicking the Submit button.
+                          </p>
+                        </div>
+                      </div>
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="space-y-4 py-4">
+                  <div className="space-y-4 py-4 md:py-6">
                     <div className="space-y-2">
-                      <Label htmlFor="entryUrl" className="text-xs font-black uppercase tracking-widest text-gray-500">Submission Link (URL)</Label>
+                      <Label htmlFor="entryUrl" className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-500">Submission Link (URL)</Label>
                       <Input
                         id="entryUrl"
                         placeholder="https://docs.google.com/..."
                         value={entryUrl}
                         onChange={(e) => setEntryUrl(e.target.value)}
-                        className="h-12 rounded-xl bg-gray-50 border-gray-100 focus:ring-4 focus:ring-blue-500/10 font-medium"
+                        className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-gray-50 dark:bg-gray-800/50 border-gray-100 dark:border-gray-800 focus:ring-4 focus:ring-blue-500/10 font-medium text-base transition-all"
                       />
                     </div>
                   </div>
-                  <DialogFooter className="sm:justify-end gap-2">
+                  <DialogFooter className="sm:justify-end gap-3 pt-2">
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={() => setOpenDialog(null)}
-                      className="rounded-full font-bold"
+                      className="rounded-full font-bold h-12 px-6"
                     >
                       Cancel
                     </Button>
@@ -211,7 +229,7 @@ export function MyRegistrationsTable({ registrations }: { registrations: Registr
                       type="button"
                       onClick={() => handleSubmitEntry(row.original.id)}
                       disabled={isSubmitting === row.original.id}
-                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8 font-bold shadow-lg shadow-blue-600/20"
+                      className="bg-blue-600 hover:bg-blue-700 text-white rounded-full h-12 px-10 font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
                     >
                       {isSubmitting === row.original.id ? (
                         <>

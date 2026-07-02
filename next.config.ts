@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import withBundleAnalyzer from "@next/bundle-analyzer";
 import withSerwistInit from "@serwist/next";
 
 const withSerwist = withSerwistInit({
@@ -31,8 +30,17 @@ const nextConfig: NextConfig = {
   },
 };
 
-const bundleAnalyzer = withBundleAnalyzer({
-  enabled: process.env.ANALYZE === "true",
-});
+let finalConfig = nextConfig;
 
-export default withSerwist(bundleAnalyzer(nextConfig));
+if (process.env.ANALYZE === "true") {
+  try {
+    const withBundleAnalyzer = require("@next/bundle-analyzer")({
+      enabled: true,
+    });
+    finalConfig = withBundleAnalyzer(finalConfig);
+  } catch (err) {
+    console.warn("Bundle analyzer not installed, skipping.");
+  }
+}
+
+export default withSerwist(finalConfig);

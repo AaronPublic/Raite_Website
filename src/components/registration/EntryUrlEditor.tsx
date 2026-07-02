@@ -26,9 +26,9 @@ export default function EntryUrlEditor({ registrationId, initialEntryUrl }: Entr
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (50MB maximum limit)
-    if (file.size > 50 * 1024 * 1024) {
-      toast.error("File is too large. Maximum allowed size is 50MB.");
+    // Check file size (1GB maximum limit)
+    if (file.size > 1 * 1024 * 1024 * 1024) {
+      toast.error("File is too large. Maximum allowed size is 1GB.");
       e.target.value = "";
       return;
     }

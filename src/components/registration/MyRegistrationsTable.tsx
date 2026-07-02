@@ -110,9 +110,9 @@ export function MyRegistrationsTable({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (50MB maximum limit)
-    if (file.size > 50 * 1024 * 1024) {
-      toast.error("File is too large. Maximum allowed size is 50MB.");
+    // Check file size (1GB maximum limit)
+    if (file.size > 1 * 1024 * 1024 * 1024) {
+      toast.error("File is too large. Maximum allowed size is 1GB.");
       e.target.value = "";
       return;
     }
@@ -435,7 +435,7 @@ export function MyRegistrationsTable({
                     </DialogTitle>
                     <DialogDescription asChild className="font-medium space-y-4 text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
                       <div>
-                        {isPageant ? (
+                        {isPageant && (
                           <div className="space-y-3">
                             <p>Provide the Google Drive links to the 3R photos.</p>
                             <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 rounded-xl border border-blue-100 dark:border-blue-800 text-xs">
@@ -443,8 +443,6 @@ export function MyRegistrationsTable({
                               <p className="leading-tight">Standard 3.5 x 5 inches (8.9 x 12.7 cm).</p>
                             </div>
                           </div>
-                        ) : (
-                          <span className="block mb-4">Provide the URL to your project or document.</span>
                         )}
                         
                         <div className="flex gap-3 p-4 bg-amber-50/60 dark:bg-amber-950/20 text-amber-900 dark:text-amber-200 rounded-2xl border border-amber-200/50 dark:border-amber-900/50 items-start mt-4">
@@ -456,7 +454,7 @@ export function MyRegistrationsTable({
                               Important Notice
                             </p>
                             <p className="text-[11px] sm:text-xs font-medium leading-normal text-justify">
-                              Submission is allowed only once. No further edits or modifications can be made after submission.
+                              Submission is allowed only once. No further edits or modifications can be made after submission. For multi-file submission, archive the files through zip format. For submissions with more than 1GB of file size, upload the file to google drive, make sure that permissions are set to EVERYONE. Put the shareable link to a .txt file and upload.
                             </p>
                           </div>
                         </div>
@@ -772,7 +770,7 @@ export function MyRegistrationsTable({
                       Important Notice
                     </p>
                     <p className="text-[11px] sm:text-xs font-medium leading-normal text-justify">
-                      Submission is allowed only once. No further edits or modifications can be made after submission.
+                      Submission is allowed only once. No further edits or modifications can be made after submission. For multi-file submission, archive the files through zip format. For submissions with more than 1GB of file size, upload the file to google drive, make sure that permissions are set to EVERYONE. Put the shareable link to a .txt file and upload.
                     </p>
                   </div>
                 </div>

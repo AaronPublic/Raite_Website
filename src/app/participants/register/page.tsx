@@ -63,6 +63,13 @@ export default function BulkRegisterPage() {
       complete: (results) => {
         const data = results.data as any[];
         
+        // Limit check
+        if (data.length > 40) {
+          setError("Bulk upload limit exceeded: You can only upload a maximum of 40 competitors per batch. Please split your file into smaller batches.");
+          setRecords([]);
+          return;
+        }
+        
         // Validation: Required columns as per prompt
         const requiredFields = ["First Name", "Last Name", "Middle Initial", "Email Address", "Course"];
         const headers = results.meta.fields || [];
@@ -145,6 +152,10 @@ export default function BulkRegisterPage() {
   };
 
   const addNewRecord = () => {
+    if (records.length >= 40) {
+      toast.error("You cannot add more than 40 competitors in a single batch.");
+      return;
+    }
     const newRecord: ParticipantRecord = {
       id: Math.random().toString(36).substr(2, 9),
       firstName: "",
@@ -183,6 +194,12 @@ export default function BulkRegisterPage() {
     
     if (validParticipants.length === 0) {
       setError("No valid competitor data to register. Please fill in all fields (name, email, course).");
+      setIsUploading(false);
+      return;
+    }
+
+    if (validParticipants.length > 40) {
+      setError("Bulk registration limit exceeded: You can only register a maximum of 40 competitors per batch. Please reduce the number of entries.");
       setIsUploading(false);
       return;
     }
@@ -236,6 +253,9 @@ export default function BulkRegisterPage() {
                 <li>You can edit records directly in the preview table below.</li>
                 <li className="text-amber-600 dark:text-amber-400">
                   <strong>Please double-check the competitors' details as they will reflect in the certificates.</strong>
+                </li>
+                <li className="text-red-600 dark:text-red-400 font-semibold">
+                  <strong>Batch Limit:</strong> You can only register a maximum of 40 competitors per batch. Split larger files if needed.
                 </li>
               </ul>
             </div>

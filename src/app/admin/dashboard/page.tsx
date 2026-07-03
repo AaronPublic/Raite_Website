@@ -81,7 +81,7 @@ export default function AdminDashboardPage() {
           <div className="flex items-center gap-4 text-sm font-bold text-gray-500 dark:text-gray-400">
             <p className="flex items-center gap-1.5">
               <Calendar className="w-4 h-4" />
-              RAITE 2025 Live Pulse
+              RAITE 2026 Live Pulse
             </p>
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
             <p className="flex items-center gap-1.5 text-green-600 dark:text-green-500">

@@ -342,6 +342,10 @@ export async function submitEntryUrl(registrationId: string, entryUrl: string) {
 
     if (!registration) throw new Error("Registration not found");
 
+    if (registration.status !== "APPROVED") {
+      throw new Error("You can only submit entry files for approved registrations.");
+    }
+
     // Check if the user is the coach, admin, or assigned sub-admin
     const isAdmin = user.role === "ADMIN";
     const isCoach = registration.coachId === user.id;

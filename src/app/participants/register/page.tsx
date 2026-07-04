@@ -340,7 +340,7 @@ export default function BulkRegisterPage() {
                       <TableHead className="font-bold text-gray-900 dark:text-gray-100">First Name</TableHead>
                       <TableHead className="font-bold text-gray-900 dark:text-gray-100">M.I.</TableHead>
                       <TableHead className="font-bold text-gray-900 dark:text-gray-100">Last Name</TableHead>
-                      <TableHead className="font-bold text-gray-900 dark:text-gray-100">Email</TableHead>
+                      <TableHead className="font-bold text-gray-900 dark:text-gray-100 min-w-[280px]">Email</TableHead>
                       <TableHead className="font-bold text-gray-900 dark:text-gray-100">Course</TableHead>
                       <TableHead className="font-bold text-gray-900 dark:text-gray-100 text-right">Actions</TableHead>
                     </TableRow>
@@ -353,7 +353,7 @@ export default function BulkRegisterPage() {
                             <TableCell><Input placeholder="First" value={editValues.firstName} onChange={e => setEditValues({...editValues, firstName: e.target.value})} className="h-8 rounded-lg" /></TableCell>
                             <TableCell><Input placeholder="M.I." value={editValues.middleInitial} onChange={e => setEditValues({...editValues, middleInitial: e.target.value})} className="h-8 rounded-lg w-16" /></TableCell>
                             <TableCell><Input placeholder="Last" value={editValues.lastName} onChange={e => setEditValues({...editValues, lastName: e.target.value})} className="h-8 rounded-lg" /></TableCell>
-                            <TableCell><Input placeholder="Email" value={editValues.email} onChange={e => setEditValues({...editValues, email: e.target.value})} className="h-8 rounded-lg" /></TableCell>
+                            <TableCell><Input placeholder="Email" value={editValues.email} onChange={e => setEditValues({...editValues, email: e.target.value})} className="h-8 rounded-lg min-w-[280px]" /></TableCell>
                             <TableCell>
                               <div className="flex flex-col gap-2 min-w-[280px]">
                                 <Select 
@@ -405,7 +405,7 @@ export default function BulkRegisterPage() {
                             <TableCell className="font-medium">{record.firstName}</TableCell>
                             <TableCell className="text-gray-600 dark:text-gray-400">{record.middleInitial}</TableCell>
                             <TableCell className="font-medium">{record.lastName}</TableCell>
-                            <TableCell className="text-gray-600 dark:text-gray-400">{record.email}</TableCell>
+                            <TableCell className="text-gray-600 dark:text-gray-400 min-w-[280px] break-all">{record.email}</TableCell>
                             <TableCell className="text-gray-600 dark:text-gray-400">{record.course}</TableCell>
                             <TableCell className="text-right space-x-2">
                               <Button size="icon" variant="ghost" className="h-8 w-8 text-blue-600 hover:bg-blue-50" onClick={() => startEditing(record)}>

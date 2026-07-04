@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 
 const SCOPES = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/drive.file"];
 
-export async function getOrCreateFolder(drive: any, name: string, parentId: string): Promise<string> {
+async function getOrCreateFolder(drive: any, name: string, parentId: string): Promise<string> {
   const cleanName = name.replace(/['"\\]/g, "");
   
   // Search for folder matching name and parent
@@ -39,7 +39,7 @@ export async function getOrCreateFolder(drive: any, name: string, parentId: stri
   return folder.data.id;
 }
 
-export function getDriveClient() {
+function getDriveClient() {
   const clean = (val: string | undefined) => {
     if (!val) return undefined;
     let cleaned = val.trim();

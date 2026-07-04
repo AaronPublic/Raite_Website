@@ -1,7 +1,101 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDriveClient, getOrCreateFolder } from "@/app/actions/gdrive";
+import { google } from "googleapis";
 import { db } from "@/lib/db";
 import { Readable } from "stream";
+
+const SCOPES = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/drive.file"];
+
+async function getOrCreateFolder(drive: any, name: string, parentId: string): Promise<string> {
+  const cleanName = name.replace(/['"\\]/g, "");
+  
+  // Search for folder matching name and parent
+  const response = await drive.files.list({
+    q: `name = '${cleanName}' and mimeType = 'application/vnd.google-apps.folder' and '${parentId}' in parents and trashed = false`,
+    spaces: "drive",
+    fields: "files(id)",
+    supportsAllDrives: true,
+    includeItemsFromAllDrives: true,
+  });
+
+  const files = response.data.files;
+  if (files && files.length > 0) {
+    return files[0].id;
+  }
+
+  // Create folder if not found
+  const folderMetadata = {
+    name: cleanName,
+    mimeType: "application/vnd.google-apps.folder",
+    parents: [parentId],
+  };
+
+  const folder = await drive.files.create({
+    requestBody: folderMetadata,
+    fields: "id",
+    supportsAllDrives: true,
+  });
+
+  return folder.data.id;
+}
+
+function getDriveClient() {
+  const clean = (val: string | undefined) => {
+    if (!val) return undefined;
+    let cleaned = val.trim();
+    if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+      cleaned = cleaned.slice(1, -1);
+    }
+    if (cleaned.startsWith("'") && cleaned.endsWith("'")) {
+      cleaned = cleaned.slice(1, -1);
+    }
+    return cleaned.trim();
+  };
+
+  const clientEmail = clean(process.env.GOOGLE_CLIENT_EMAIL);
+  const rawPrivateKey = process.env.GOOGLE_PRIVATE_KEY;
+  const clientId = clean(process.env.GOOGLE_CLIENT_ID);
+  const clientSecret = clean(process.env.GOOGLE_CLIENT_SECRET);
+  const refreshToken = clean(process.env.GOOGLE_REFRESH_TOKEN);
+
+  // Use OAuth2 client if credentials are provided
+  if (clientId && clientSecret && refreshToken) {
+    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
+    oauth2Client.setCredentials({ refresh_token: refreshToken });
+    return google.drive({ version: "v3", auth: oauth2Client });
+  }
+
+  if (!clientEmail || !rawPrivateKey) {
+    throw new Error(
+      "Google Drive API credentials are not configured. Please configure either Service Account credentials or OAuth2 credentials."
+    );
+  }
+
+  // Handle literal newlines and trim whitespace
+  let cleanedKey = rawPrivateKey.replace(/\\n/g, "\n").trim();
+
+  // Strip wrapping double quotes if present
+  if (cleanedKey.startsWith('"') && cleanedKey.endsWith('"')) {
+    cleanedKey = cleanedKey.slice(1, -1);
+  }
+
+  // Extract the raw base64 body to rebuild a standard, valid PEM format
+  const base64Body = cleanedKey
+    .replace("-----BEGIN PRIVATE KEY-----", "")
+    .replace("-----END PRIVATE KEY-----", "")
+    .replace(/\s+/g, ""); // strip all spaces/newlines
+
+  const formattedKey = `-----BEGIN PRIVATE KEY-----\n${base64Body}\n-----END PRIVATE KEY-----\n`;
+
+  const auth = new google.auth.GoogleAuth({
+    credentials: {
+      client_email: clientEmail,
+      private_key: formattedKey,
+    },
+    scopes: SCOPES,
+  });
+
+  return google.drive({ version: "v3", auth });
+}
 
 export const maxDuration = 300; // 5 minutes max duration
 

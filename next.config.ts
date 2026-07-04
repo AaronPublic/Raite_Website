@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@prisma/client"],
   cacheComponents: true,
   experimental: {
-    middlewareClientMaxBodySize: "1200mb",
+    proxyClientMaxBodySize: "1200mb",
     serverActions: {
       bodySizeLimit: "2048mb",
     },

@@ -34,7 +34,6 @@ import { RegistrationStatus, EventSubcategory } from "@prisma/client";
 import { Pencil, Send, CheckCircle, ExternalLink, Globe, Loader2, AlertCircle, ArrowUpDown, ChevronDown, Users, Upload } from "lucide-react";
 import Link from "next/link";
 import { submitEntryUrl } from "@/app/actions/registration";
-import { uploadFileToDrive } from "@/app/actions/gdrive";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -124,6 +123,18 @@ export function MyRegistrationsTable({
     e.target.value = "";
   };
 
+  const uploadFileViaApi = async (formData: FormData) => {
+    const response = await fetch("/api/upload/entry", {
+      method: "POST",
+      body: formData,
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { success: false, error: errorData.error || "Failed to upload file to Google Drive" };
+    }
+    return await response.json();
+  };
+
   const handleSubmitEntry = async (registrationId: string, subcategory: EventSubcategory | null) => {
     let submissionData = "";
     
@@ -141,7 +152,7 @@ export function MyRegistrationsTable({
         const maleFormData = new FormData();
         maleFormData.append("file", selectedMalePhotoFile);
         maleFormData.append("registrationId", registrationId);
-        const maleResult = await uploadFileToDrive(maleFormData);
+        const maleResult = await uploadFileViaApi(maleFormData);
         if (!maleResult.success || !maleResult.link) {
           toast.error(maleResult.error || "Failed to upload male photo to Google Drive", { id: toastId });
           setIsSubmitting(null);
@@ -152,7 +163,7 @@ export function MyRegistrationsTable({
         const femaleFormData = new FormData();
         femaleFormData.append("file", selectedFemalePhotoFile);
         femaleFormData.append("registrationId", registrationId);
-        const femaleResult = await uploadFileToDrive(femaleFormData);
+        const femaleResult = await uploadFileViaApi(femaleFormData);
         if (!femaleResult.success || !femaleResult.link) {
           toast.error(femaleResult.error || "Failed to upload female photo to Google Drive", { id: toastId });
           setIsSubmitting(null);
@@ -174,7 +185,7 @@ export function MyRegistrationsTable({
         const fileFormData = new FormData();
         fileFormData.append("file", selectedFile);
         fileFormData.append("registrationId", registrationId);
-        const fileResult = await uploadFileToDrive(fileFormData);
+        const fileResult = await uploadFileViaApi(fileFormData);
         if (!fileResult.success || !fileResult.link) {
           toast.error(fileResult.error || "Failed to upload file to Google Drive", { id: toastId });
           setIsSubmitting(null);

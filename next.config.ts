@@ -11,8 +11,8 @@ const nextConfig: NextConfig = {
   turbopack: {},
   serverExternalPackages: ["@prisma/client"],
   cacheComponents: true,
-  middlewareClientMaxBodySize: 1258291200,
   experimental: {
+    middlewareClientMaxBodySize: "1200mb",
     serverActions: {
       bodySizeLimit: "2048mb",
     },

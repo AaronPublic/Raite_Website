@@ -7,6 +7,7 @@ import { z } from "zod";
 import { sendBrevoEmail } from "@/lib/email";
 
 const registrationSchema = z.object({
+  id: z.string().optional(),
   eventId: z.string().min(1),
   teamName: z.string().optional(),
   members: z.array(z.string().email()),

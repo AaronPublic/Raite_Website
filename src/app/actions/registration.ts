@@ -141,7 +141,7 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
     return { error: "Invalid registration data" };
   }
 
-  const { eventId, teamName, members, requirements } = validated.data;
+  const { id, eventId, teamName, members, requirements } = validated.data;
 
   try {
     const result = await db.$transaction(async (tx) => {
@@ -158,41 +158,6 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
 
       if (registrar && registrar.role === "FACULTY_COACH" && !registrar.approved) {
         throw new Error("Your Faculty Coach account must be approved by an Admin before you can register teams for competitions.");
-      }
-
-      const existing = await tx.registration.findUnique({
-        where: {
-          userId_eventId: {
-            userId: user.id,
-            eventId: eventId,
-          },
-        },
-      });
-
-      // Capacity and Deadline Check
-      const event = await tx.event.findUnique({ where: { id: eventId } });
-      if (!event) throw new Error("Event not found");
-
-      if (existing) {
-        if (existing.status === "APPROVED") {
-          throw new Error("Cannot edit an approved registration.");
-        }
-      }
-
-      if (new Date() > event.endDate) {
-        throw new Error("Registration is closed as the competition deadline has passed.");
-      }
-
-      // Check registration limits
-      const currentCount = await tx.registration.count({
-        where: { 
-          eventId, 
-          status: { notIn: ["REJECTED", "WAITLISTED"] } 
-        },
-      });
-
-      if (event.maxRegistrations && currentCount >= event.maxRegistrations && (!existing || existing.status === "REJECTED")) {
-        throw new Error("Registration limit for this competition has been reached.");
       }
 
       // Check if all members are pre-registered
@@ -216,6 +181,66 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
         throw new Error(`The following competitors are not yet approved by an Admin: ${unapprovedNames}. They must be approved before they can be registered to a competition.`);
       }
 
+      // Determine the target user ID for the registration.
+      // If a coach is registering, we tie the registration to the primary competitor/captain (first email in members).
+      // Otherwise, it is tied to the logged-in user themselves.
+      let targetUserId = user.id;
+      if (registrar && registrar.role === "FACULTY_COACH") {
+        const firstMemberEmail = members[0];
+        if (!firstMemberEmail) {
+          throw new Error("At least one team member is required.");
+        }
+        const primaryCompetitor = preRegisteredMembers.find(
+          (m) => m.email.trim().toLowerCase() === firstMemberEmail.trim().toLowerCase()
+        );
+        if (!primaryCompetitor) {
+          throw new Error("The team captain/primary competitor is not registered in the system.");
+        }
+        targetUserId = primaryCompetitor.id;
+      }
+
+      // Query existing registration
+      let existing = null;
+      if (id) {
+        existing = await tx.registration.findUnique({
+          where: { id },
+        });
+      } else {
+        existing = await tx.registration.findUnique({
+          where: {
+            userId_eventId: {
+              userId: targetUserId,
+              eventId: eventId,
+            },
+          },
+        });
+      }
+
+      // Capacity and Deadline Check
+      const event = await tx.event.findUnique({ where: { id: eventId } });
+      if (!event) throw new Error("Event not found");
+
+      if (existing && existing.status === "APPROVED") {
+        throw new Error("Cannot edit an approved registration.");
+      }
+
+      if (new Date() > event.endDate) {
+        throw new Error("Registration is closed as the competition deadline has passed.");
+      }
+
+      // Check registration limits
+      const currentCount = await tx.registration.count({
+        where: { 
+          eventId, 
+          status: { notIn: ["REJECTED", "WAITLISTED"] },
+          NOT: id ? { id } : {}
+        },
+      });
+
+      if (event.maxRegistrations && currentCount >= event.maxRegistrations && (!existing || existing.status === "REJECTED")) {
+        throw new Error("Registration limit for this competition has been reached.");
+      }
+
       // Check team size
       if (members.length < event.minParticipantsPerRegistration || members.length > event.maxParticipantsPerRegistration) {
         throw new Error(`Team size must be between ${event.minParticipantsPerRegistration} and ${event.maxParticipantsPerRegistration} members. You currently have ${members.length}.`);
@@ -230,7 +255,8 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
               path: [],
               array_contains: email
             }
-          }))
+          })),
+          NOT: id ? { id } : {}
         },
         include: { event: true },
       });
@@ -270,37 +296,43 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
       }
 
       const status = "PENDING";
+      let registration;
 
-      const registration = await tx.registration.upsert({
-        where: {
-          userId_eventId: {
-            userId: user.id,
-            eventId: eventId,
+      if (id || existing) {
+        registration = await tx.registration.update({
+          where: { id: id || existing!.id },
+          data: {
+            userId: targetUserId,
+            teamName: teamName || null,
+            members: members as any,
+            requirements: requirements as any,
+            status,
+            registeredBy: registrar?.name || "Unknown",
+            coachId: registrar?.id,
           },
-        },
-        update: {
-          teamName: teamName || null,
-          members: members as any,
-          requirements: requirements as any,
-          status,
-          registeredBy: registrar?.name || "Unknown",
-          coachId: registrar?.id,
-        },
-        create: {
-          userId: user.id,
-          eventId: eventId,
-          teamName: teamName || null,
-          members: members as any,
-          requirements: requirements as any,
-          status,
-          registeredBy: registrar?.name || "Unknown",
-          coachId: registrar?.id,
-        },
-        include: {
-          event: true,
-          user: true,
-        },
-      });
+          include: {
+            event: true,
+            user: true,
+          },
+        });
+      } else {
+        registration = await tx.registration.create({
+          data: {
+            userId: targetUserId,
+            eventId: eventId,
+            teamName: teamName || null,
+            members: members as any,
+            requirements: requirements as any,
+            status,
+            registeredBy: registrar?.name || "Unknown",
+            coachId: registrar?.id,
+          },
+          include: {
+            event: true,
+            user: true,
+          },
+        });
+      }
 
       return registration;
     }, { timeout: 30000 });

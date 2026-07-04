@@ -9,6 +9,14 @@ import { getEligibleParticipants } from "@/app/actions/participants";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ParticipantInfo {
   name: string | null;
@@ -22,6 +30,13 @@ export default function ReviewStep() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [participantDetails, setParticipantInfo] = useState<ParticipantInfo[]>([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const handleCloseModal = () => {
+    setShowSuccessModal(false);
+    clearData();
+    router.push("/");
+  };
 
   useEffect(() => {
     if (isReady && !data.eventId) {
@@ -79,8 +94,7 @@ export default function ReviewStep() {
       });
 
       if (result.success) {
-        clearData();
-        router.push("/");
+        setShowSuccessModal(true);
       } else if (result.error) {
         setError(result.error);
       }
@@ -164,6 +178,34 @@ export default function ReviewStep() {
           <CheckCircle className="w-4 h-4 ml-2" />
         </Button>
       </div>
+      
+      <Dialog open={showSuccessModal} onOpenChange={(open) => { if (!open) handleCloseModal(); }}>
+        <DialogContent className="sm:max-w-md rounded-[2.5rem] border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="flex flex-col items-center justify-center text-center space-y-6 py-4">
+            <div className="w-20 h-20 bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center border-4 border-green-100 dark:border-green-900/50 shadow-md animate-bounce">
+              <CheckCircle className="w-12 h-12" />
+            </div>
+            
+            <div className="space-y-2">
+              <DialogTitle className="text-2xl font-black tracking-tight text-gray-900 dark:text-white uppercase">
+                Registration Received!
+              </DialogTitle>
+              <DialogDescription className="text-base text-gray-500 dark:text-gray-400 font-bold max-w-xs mx-auto">
+                Your entry for <span className="text-blue-600 dark:text-blue-400 font-extrabold">{data.eventTitle}</span> has been submitted and is pending review.
+              </DialogDescription>
+            </div>
+          </div>
+
+          <DialogFooter className="sm:justify-center pt-4">
+            <Button 
+              onClick={handleCloseModal}
+              className="w-full sm:w-auto px-10 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-sm font-black transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+            >
+              Back to Homepage
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

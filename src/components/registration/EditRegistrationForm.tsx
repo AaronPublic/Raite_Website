@@ -136,6 +136,7 @@ export default function EditRegistrationForm({
 
     try {
       const result = await submitRegistration({
+        id: registration.id,
         eventId: registration.eventId,
         ...values,
         teamName: finalTeamName,

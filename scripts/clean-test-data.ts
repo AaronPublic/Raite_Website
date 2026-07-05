@@ -1,10 +1,11 @@
-import { PrismaClient, Role } from "@prisma/client";
+import { Role } from "@prisma/client";
 import { loadEnvConfig } from "@next/env";
 
 // Load environment variables from .env
 loadEnvConfig(process.cwd());
 
-const prisma = new PrismaClient();
+// Import the pre-configured db client
+import { db } from "../src/lib/db";
 
 async function main() {
   console.log("====================================================");
@@ -17,12 +18,12 @@ async function main() {
   try {
     // 1. Delete all registrations (competitor submissions/files)
     console.log("Deleting all registrations...");
-    const deletedRegistrations = await prisma.registration.deleteMany({});
+    const deletedRegistrations = await db.registration.deleteMany({});
     console.log(`✓ Deleted ${deletedRegistrations.count} registration records.`);
 
     // 2. Delete all participant users
     console.log("Deleting all participant users...");
-    const deletedParticipants = await prisma.user.deleteMany({
+    const deletedParticipants = await db.user.deleteMany({
       where: {
         role: Role.PARTICIPANT,
       },
@@ -35,7 +36,7 @@ async function main() {
   } catch (error) {
     console.error("❌ Cleanup failed:", error);
   } finally {
-    await prisma.$disconnect();
+    await db.$disconnect();
   }
 }
 

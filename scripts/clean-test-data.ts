@@ -1,13 +1,13 @@
-import { Role } from "@prisma/client";
 import { loadEnvConfig } from "@next/env";
 
-// Load environment variables from .env
+// Load environment variables FIRST
 loadEnvConfig(process.cwd());
 
-// Import the pre-configured db client
-import { db } from "../src/lib/db";
-
 async function main() {
+  // Dynamically import db and Role after env variables are loaded
+  const { db } = await import("../src/lib/db");
+  const { Role } = await import("@prisma/client");
+
   console.log("====================================================");
   console.log("   EMERGENCY DATABASE CLEANUP SCRIPT (POST-TEST)    ");
   console.log("====================================================");

@@ -59,6 +59,7 @@ export default function MobileMenu({ userId, userRole }: MobileMenuProps) {
     { name: "Home", href: "/", icon: Home },
     { name: "Competitions", href: "/competitions", icon: Trophy },
     { name: "Contact", href: "/contact", icon: Mail },
+    { name: "Activate Membership", href: "https://docs.google.com/forms/d/e/1FAIpQLSem1wHAV_OFiGYfygqFzZ-X4-vgsROcPf-DQyvuTODRDOkndQ/viewform", icon: UserPlus },
   ];
 
   const adminLinks = [
@@ -139,6 +140,23 @@ export default function MobileMenu({ userId, userRole }: MobileMenuProps) {
                       {navLinks.map((link) => {
                         const Icon = link.icon;
                         const isActive = pathname === link.href;
+                        const isExternal = link.href.startsWith("http");
+
+                        if (isExternal) {
+                          return (
+                            <a
+                              key={link.name}
+                              href={link.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-4 rounded-2xl px-4 py-4 text-sm font-bold transition-all text-foreground hover:bg-secondary"
+                            >
+                              <Icon className="h-5 w-5 text-primary" />
+                              {link.name}
+                            </a>
+                          );
+                        }
+
                         return (
                           <Link
                             key={link.name}

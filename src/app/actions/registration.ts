@@ -336,7 +336,7 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
       }
 
       return registration;
-    }, { timeout: 120000 });
+    }, { timeout: 600000 });
 
     // Send confirmation email
     const subject = result.status === "WAITLISTED" 

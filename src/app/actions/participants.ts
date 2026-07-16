@@ -109,7 +109,7 @@ export async function bulkRegisterParticipants(participants: { name: string, ema
       users.push(updatedUser);
     }
     return users;
-  }, { timeout: 30000 });
+  }, { timeout: 120000 });
 
   revalidatePath("/admin/users");
   return { success: true, count: results.length };

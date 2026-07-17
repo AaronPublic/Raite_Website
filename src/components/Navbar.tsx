@@ -42,8 +42,8 @@ export default async function Navbar() {
         {/* Actions */}
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <NavbarActions userId={userId} userRole={user?.role || null} />
-          <MobileMenu userId={userId} userRole={user?.role || null} />
+          <NavbarActions userId={userId} userRole={user?.role || null} userApproved={user?.approved ?? false} />
+          <MobileMenu userId={userId} userRole={user?.role || null} userApproved={user?.approved ?? false} />
         </div>
       </div>
     </nav>

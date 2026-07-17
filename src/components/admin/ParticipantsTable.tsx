@@ -215,13 +215,13 @@ export default function ParticipantsTable({
           <Table className="min-w-[900px] lg:min-w-full">
             <TableHeader>
               <TableRow className="bg-gray-50/50 dark:bg-gray-800/30 border-b-2 border-gray-100 dark:border-gray-800 hover:bg-transparent">
+                <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Approved</TableHead>
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Name</TableHead>
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Email</TableHead>
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">School</TableHead>
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Course</TableHead>
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Role</TableHead>
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Certificate</TableHead>
-                <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Approved</TableHead>
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Joined</TableHead>
               </TableRow>
             </TableHeader>
@@ -235,6 +235,9 @@ export default function ParticipantsTable({
               ) : (
                 participants.map((user) => (
                   <TableRow key={user.id} className="h-20 transition-all border-b border-gray-100 dark:border-gray-800/50 hover:bg-gray-50/50 dark:hover:bg-gray-800/20 group">
+                    <TableCell className="px-6">
+                      <ApprovalCell userId={user.id} initialApproved={(user as any).approved} />
+                    </TableCell>
                     <TableCell className="px-6 font-bold text-gray-900 dark:text-white">{user.name || "N/A"}</TableCell>
                     <TableCell className="px-6 text-sm font-medium text-gray-500">{user.email}</TableCell>
                     <TableCell className="px-6 text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-tight">{getFullSchoolName(user.school)}</TableCell>
@@ -255,9 +258,6 @@ export default function ParticipantsTable({
                           —
                         </span>
                       )}
-                    </TableCell>
-                    <TableCell className="px-6">
-                      <ApprovalCell userId={user.id} initialApproved={(user as any).approved} />
                     </TableCell>
                     <TableCell className="px-6 text-xs font-bold text-gray-400">
                       {new Date(user.createdAt).toLocaleDateString()}

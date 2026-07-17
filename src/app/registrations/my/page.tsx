@@ -54,15 +54,39 @@ export default async function MyRegistrationsPage() {
           <p className="text-lg text-gray-500 font-medium">Manage and track your competition entries.</p>
         </div>
         <div className="flex gap-3">
-          <Link
-            href="/registrations/competitors"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-900 dark:text-white rounded-2xl text-sm font-black transition-all shadow-sm active:scale-[0.98] shrink-0"
-          >
-            <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            Registered Competitors
-          </Link>
+          {user.approved ? (
+            <Link
+              href="/registrations/competitors"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-900 dark:text-white rounded-2xl text-sm font-black transition-all shadow-sm active:scale-[0.98] shrink-0"
+            >
+              <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              Registered Competitors
+            </Link>
+          ) : (
+            <div
+              title="Your account must be approved by an Admin before you can access this."
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 rounded-2xl text-sm font-black cursor-not-allowed select-none shrink-0"
+            >
+              <Users className="w-4 h-4" />
+              Registered Competitors
+            </div>
+          )}
         </div>
       </div>
+
+      {!user.approved && (
+        <div className="mb-8 p-4 sm:p-6 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50 rounded-3xl flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0 border border-amber-200 dark:border-amber-700">
+            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+          </div>
+          <div>
+            <p className="text-sm font-black text-amber-800 dark:text-amber-300 uppercase tracking-tight mb-1">Account Pending Approval</p>
+            <p className="text-sm font-medium text-amber-700 dark:text-amber-400 leading-relaxed">
+              Your Faculty Coach account is currently pending admin approval. You will be able to register competitors and manage team entries once an administrator has approved your account. Please check back later or contact the RAITE committee.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="mb-10 p-4 sm:p-8 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/50 rounded-3xl w-full shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">

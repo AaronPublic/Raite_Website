@@ -21,7 +21,8 @@ import {
   Megaphone,
   FileText,
   BarChart3,
-  Settings
+  Settings,
+  ShieldAlert
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
@@ -37,9 +38,10 @@ import {
 interface MobileMenuProps {
   userId: string | null;
   userRole: string | null;
+  userApproved: boolean;
 }
 
-export default function MobileMenu({ userId, userRole }: MobileMenuProps) {
+export default function MobileMenu({ userId, userRole, userApproved }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -195,6 +197,28 @@ export default function MobileMenu({ userId, userRole }: MobileMenuProps) {
                           const Icon = link.icon;
                           const isActive = pathname === link.href;
                           const isCompact = activeAdminLinks.length > 1;
+                          // Gray out My Registrations for unapproved Faculty Coaches
+                          const isDisabled = link.role === "FACULTY_COACH" && link.name === "My Registrations" && !userApproved;
+
+                          if (isDisabled) {
+                            return (
+                              <div
+                                key={link.name}
+                                title="Your account must be approved by an Admin before you can access registrations."
+                                className={cn(
+                                  "flex items-center transition-all duration-300 cursor-not-allowed select-none",
+                                  isCompact
+                                    ? "flex-col justify-center gap-2 rounded-2xl p-4 text-[10px] font-black uppercase text-center border border-border/50"
+                                    : "gap-4 rounded-2xl px-4 py-4 text-sm font-bold",
+                                  "text-gray-300 dark:text-gray-600 bg-gray-50 dark:bg-gray-800/20 border-gray-100 dark:border-gray-800/30"
+                                )}
+                              >
+                                <ShieldAlert className="h-5 w-5 text-gray-300 dark:text-gray-600" />
+                                <span className="truncate w-full">{link.name}</span>
+                                <span className="text-[8px] font-black uppercase tracking-widest text-gray-300 dark:text-gray-700">(Pending Approval)</span>
+                              </div>
+                            );
+                          }
 
                           return (
                             <Link

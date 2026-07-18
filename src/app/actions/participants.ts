@@ -32,87 +32,92 @@ export async function exportParticipantsCSV(filters: ParticipantFilters) {
 }
 
 export async function bulkRegisterParticipants(participants: { name: string, email: string, course: string }[]) {
-  const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
+  try {
+    const { userId } = await auth();
+    if (!userId) return { success: false, error: "Unauthorized" };
 
-  const requester = await db.user.findUnique({ where: { clerkId: userId } });
-  if (!requester || (requester.role !== "ADMIN" && requester.role !== "FACULTY_COACH" && requester.role !== "SUB_ADMIN")) {
-    throw new Error("Only Admins, Sub-Admins, and Faculty Coaches can register competitors.");
-  }
-
-  if (requester.role === "FACULTY_COACH" && !requester.approved) {
-    throw new Error("Your account must be approved by an Admin before you can register competitors.");
-  }
-
-  const schoolName = requester.school;
-  if (!schoolName) {
-    throw new Error("Your profile must have a school assigned before you can register competitors.");
-  }
-
-  const schoolRecord = await getSchoolByName(schoolName);
-  const schoolAbbr = schoolRecord?.abbreviation || schoolName
-    .split(" ")
-    .filter(word => !["of", "the", "and"].includes(word.toLowerCase()))
-    .map(word => word[0])
-    .join("")
-    .toUpperCase();
-
-  // Email Domain Validation check
-  const coachEmail = requester.email;
-  const coachDomain = coachEmail.split("@")[1]?.toLowerCase();
-  const publicDomains = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com"];
-  const isPublicDomain = publicDomains.includes(coachDomain);
-
-  for (const p of participants) {
-    const email = p.email.trim().toLowerCase();
-    const isValidEmail = 
-      email.endsWith("@gmail.com") || 
-      (!isPublicDomain && email.endsWith(`@${coachDomain}`)) ||
-      (isPublicDomain && (email.endsWith(".edu.ph") || email.endsWith(".edu") || /@[a-zA-Z0-9.-]+\.edu(\.[a-zA-Z]{2,})?$/.test(email)));
-
-    if (!isValidEmail) {
-      const allowedMsg = isPublicDomain 
-        ? "gmail.com or any school email (.edu or .edu.ph)" 
-        : `gmail.com or your school domain (${coachDomain})`;
-      throw new Error(`Invalid email address for ${p.name}: ${p.email}. Email must end with ${allowedMsg}.`);
+    const requester = await db.user.findUnique({ where: { clerkId: userId } });
+    if (!requester || (requester.role !== "ADMIN" && requester.role !== "FACULTY_COACH" && requester.role !== "SUB_ADMIN")) {
+      return { success: false, error: "Only Admins, Sub-Admins, and Faculty Coaches can register competitors." };
     }
-  }
 
-  const results = await db.$transaction(async (tx) => {
-    const users = [];
+    if (requester.role === "FACULTY_COACH" && !requester.approved) {
+      return { success: false, error: "Your account must be approved by an Admin before you can register competitors." };
+    }
+
+    const schoolName = requester.school;
+    if (!schoolName) {
+      return { success: false, error: "Your profile must have a school assigned before you can register competitors." };
+    }
+
+    const schoolRecord = await getSchoolByName(schoolName);
+    const schoolAbbr = schoolRecord?.abbreviation || schoolName
+      .split(" ")
+      .filter(word => !["of", "the", "and"].includes(word.toLowerCase()))
+      .map(word => word[0])
+      .join("")
+      .toUpperCase();
+
+    // Email Domain Validation check
+    const coachEmail = requester.email;
+    const coachDomain = coachEmail.split("@")[1]?.toLowerCase();
+    const publicDomains = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com"];
+    const isPublicDomain = publicDomains.includes(coachDomain);
+
     for (const p of participants) {
-      // 1. Upsert without uniqueId first (or update existing)
-      const user = await tx.user.upsert({
-        where: { email: p.email },
-        update: {
-          name: p.name,
-          course: p.course,
-          school: schoolName,
-          role: "PARTICIPANT",
-        },
-        create: {
-          email: p.email,
-          name: p.name,
-          course: p.course,
-          school: schoolName,
-          role: "PARTICIPANT",
-          clerkId: null,
-        },
-      });
+      const email = p.email.trim().toLowerCase();
+      const isValidEmail = 
+        email.endsWith("@gmail.com") || 
+        (!isPublicDomain && email.endsWith(`@${coachDomain}`)) ||
+        (isPublicDomain && (email.endsWith(".edu.ph") || email.endsWith(".edu") || /@[a-zA-Z0-9.-]+\.edu(\.[a-zA-Z]{2,})?$/.test(email)));
 
-      // 2. Generate and update uniqueId using the ID from the DB
-      const uniqueId = `${schoolAbbr}-${user.id.slice(-6).toUpperCase()}`;
-      const updatedUser = await tx.user.update({
-        where: { id: user.id },
-        data: { uniqueId },
-      });
-      users.push(updatedUser);
+      if (!isValidEmail) {
+        const allowedMsg = isPublicDomain 
+          ? "gmail.com or any school email (.edu or .edu.ph)" 
+          : `gmail.com or your school domain (${coachDomain})`;
+        return { success: false, error: `Invalid email address for ${p.name}: ${p.email}. Email must end with ${allowedMsg}.` };
+      }
     }
-    return users;
-  }, { timeout: 600000 });
 
-  revalidatePath("/admin/users");
-  return { success: true, count: results.length };
+    const results = await db.$transaction(async (tx) => {
+      const users = [];
+      for (const p of participants) {
+        // 1. Upsert without uniqueId first (or update existing)
+        const user = await tx.user.upsert({
+          where: { email: p.email },
+          update: {
+            name: p.name,
+            course: p.course,
+            school: schoolName,
+            role: "PARTICIPANT",
+          },
+          create: {
+            email: p.email,
+            name: p.name,
+            course: p.course,
+            school: schoolName,
+            role: "PARTICIPANT",
+            clerkId: null,
+          },
+        });
+
+        // 2. Generate and update uniqueId using the ID from the DB
+        const uniqueId = `${schoolAbbr}-${user.id.slice(-6).toUpperCase()}`;
+        const updatedUser = await tx.user.update({
+          where: { id: user.id },
+          data: { uniqueId },
+        });
+        users.push(updatedUser);
+      }
+      return users;
+    }, { timeout: 600000 });
+
+    revalidatePath("/admin/users");
+    return { success: true, count: results.length };
+  } catch (error: any) {
+    console.error("Bulk registration failed:", error);
+    return { success: false, error: error.message || "Failed to register competitors. Please try again." };
+  }
 }
 
 export async function getEligibleParticipants() {

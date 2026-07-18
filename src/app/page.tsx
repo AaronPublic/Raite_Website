@@ -13,6 +13,7 @@ import { getLeaderboard, getCompetitionWinners } from "@/app/actions/ranking";
 import CountdownTimer from "@/components/home/CountdownTimer";
 import AnnouncementCarousel from "@/components/home/AnnouncementCarousel";
 import DecorativeLayout from "@/components/layout/DecorativeLayout";
+import CoachHeroButtons from "@/components/home/CoachHeroButtons";
 import { Calendar, MapPin, School, Mail, ArrowRight, Sparkles, Trophy, Megaphone, ChevronRight, BookOpen } from "lucide-react";
 import * as motion from "framer-motion/client";
 import { Suspense } from "react";
@@ -35,7 +36,8 @@ async function HeroActions() {
 
   const isGuest = !userId;
   const isNewUser = userId && !user?.role;
-  const isAdminCoachOrSubAdmin = user?.role === "ADMIN" || user?.role === "FACULTY_COACH" || user?.role === "SUB_ADMIN";
+  const isAdminOrSubAdmin = user?.role === "ADMIN" || user?.role === "SUB_ADMIN";
+  const isFacultyCoach = user?.role === "FACULTY_COACH";
   const isParticipant = user?.role === "PARTICIPANT";
 
   const guidelinesUrl = await getSystemSetting("GENERAL_GUIDELINES_URL");
@@ -59,7 +61,7 @@ async function HeroActions() {
           Complete Profile
         </Link>
       )}
-      {isAdminCoachOrSubAdmin && (
+      {isAdminOrSubAdmin && (
         <>
           <Link 
             href="/participants/register" 
@@ -74,6 +76,9 @@ async function HeroActions() {
             Registration
           </Link>
         </>
+      )}
+      {isFacultyCoach && (
+        <CoachHeroButtons isApproved={user?.approved ?? false} />
       )}
       {isParticipant && (
         <>

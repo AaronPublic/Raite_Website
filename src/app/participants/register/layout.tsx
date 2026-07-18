@@ -1,9 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getUserByClerkId } from "@/lib/data/users";
-import WizardLayout from "./WizardLayout";
 
-export default async function RegisterLayout({
+export default async function ParticipantsRegisterLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -24,5 +23,5 @@ export default async function RegisterLayout({
     redirect("/");
   }
 
-  return <WizardLayout>{children}</WizardLayout>;
+  return <>{children}</>;
 }

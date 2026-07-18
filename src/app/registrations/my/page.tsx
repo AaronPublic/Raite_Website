@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { MyRegistrationsTable } from "@/components/registration/MyRegistrationsTable";
 import { Download, AlertCircle, Send, Users } from "lucide-react";
 import Link from "next/link";
+import DashboardRegisterButtons from "@/components/registration/DashboardRegisterButtons";
 
 export default async function MyRegistrationsPage() {
   const { userId } = await auth();
@@ -54,23 +55,7 @@ export default async function MyRegistrationsPage() {
           <p className="text-lg text-gray-500 font-medium">Manage and track your competition entries.</p>
         </div>
         <div className="flex gap-3">
-          {user.approved ? (
-            <Link
-              href="/registrations/competitors"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-900 dark:text-white rounded-2xl text-sm font-black transition-all shadow-sm active:scale-[0.98] shrink-0"
-            >
-              <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              Registered Competitors
-            </Link>
-          ) : (
-            <div
-              title="Your account must be approved by an Admin before you can access this."
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 rounded-2xl text-sm font-black cursor-not-allowed select-none shrink-0"
-            >
-              <Users className="w-4 h-4" />
-              Registered Competitors
-            </div>
-          )}
+          <DashboardRegisterButtons isApproved={user.role === "SUB_ADMIN" ? true : user.approved} />
         </div>
       </div>
 

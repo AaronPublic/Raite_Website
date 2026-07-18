@@ -219,6 +219,9 @@ export default function BulkRegisterPage() {
         toast.success(`Successfully registered ${result.count} competitors!`);
         setFile(null);
         setRecords([]);
+      } else if (result.error) {
+        setError(result.error);
+        toast.error("Registration failed");
       }
     } catch (err: any) {
       setError(err.message || "Failed to register competitors. Please try again.");

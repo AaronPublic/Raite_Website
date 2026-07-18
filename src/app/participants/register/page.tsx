@@ -215,7 +215,7 @@ export default function BulkRegisterPage() {
     try {
       const result = await bulkRegisterParticipants(validParticipants);
       if (result.success) {
-        setSuccess(result.count);
+        setSuccess(result.count ?? null);
         toast.success(`Successfully registered ${result.count} competitors!`);
         setFile(null);
         setRecords([]);

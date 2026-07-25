@@ -17,7 +17,7 @@ export default async function AdminViewRegistrationPage({ params }: { params: Pr
   const { id } = await params;
   const registration = await db.registration.findUnique({
     where: { id },
-    include: { event: true, user: true },
+    include: { event: true, user: true, coach: true },
   });
 
   if (!registration) redirect("/admin/registrations");
@@ -49,37 +49,35 @@ export default async function AdminViewRegistrationPage({ params }: { params: Pr
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <Button asChild variant="ghost" className="rounded-full">
-              <Link href="/admin/registrations">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
-              </Link>
+            <Link href="/admin/registrations">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Link>
           </Button>
           <div className="space-y-1">
-              <h1 className="text-4xl font-black tracking-tighter text-gray-900 dark:text-white leading-none">
+            <h1 className="text-4xl font-black tracking-tighter text-gray-900 dark:text-white">
               {registration.event.title}
-              </h1>
-              <p className="text-gray-500 font-medium">Registration Details</p>
+            </h1>
+            <p className="text-gray-500 font-medium">Registration Details</p>
           </div>
         </div>
-        <AdminRegistrationActions registrationId={registration.id} currentStatus={registration.status} />
+        <AdminRegistrationActions registrationId={registration.id} initialStatus={registration.status} />
       </div>
 
       {isOnlineRelevant && (
-        <Card className="p-6 rounded-[2rem] border-blue-100 dark:border-blue-900/30 bg-blue-50/50 dark:bg-blue-900/10 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/20">
-              <Globe className="w-6 h-6" />
+        <Card className="p-8 rounded-[2rem] border-gray-100 dark:border-gray-800 shadow-sm space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl">
+              <Globe className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">
-                {isPageant ? "Pageant Photo Submissions" : "Online Submission Link"}
-              </p>
-              <p className="text-xs text-blue-900/60 dark:text-blue-300/60 font-medium mt-0.5">
+              <h3 className="text-base font-black uppercase tracking-wider text-gray-900 dark:text-white">Submitted Link</h3>
+              <p className="text-xs text-gray-500 font-medium">
                 {isPageant ? "View and verify the submitted 3R photo links." : "Sub-admins and Admins can edit this if the coach submitted a wrong link."}
               </p>
             </div>
           </div>
-          <div className="flex-1 max-w-md bg-white dark:bg-gray-900 p-4 rounded-2xl border border-blue-100 dark:border-blue-800">
+          <div className="pt-4 border-t">
             {isPageant ? (
                <div className="flex flex-col gap-3">
                  {(() => {
@@ -120,13 +118,25 @@ export default async function AdminViewRegistrationPage({ params }: { params: Pr
           
           <div className="space-y-4">
             <div>
-              <p className="text-xs font-bold text-gray-500 uppercase">Coach</p>
+              <p className="text-xs font-bold text-gray-500 uppercase">Competitor / Team Leader</p>
               <p className="text-lg font-bold text-gray-900 dark:text-white">{registration.user.name}</p>
             </div>
             <div>
-              <p className="text-xs font-bold text-gray-500 uppercase">Email</p>
+              <p className="text-xs font-bold text-gray-500 uppercase">Competitor Email</p>
               <p className="text-lg font-bold text-gray-900 dark:text-white">{registration.user.email}</p>
             </div>
+            <div>
+              <p className="text-xs font-bold text-gray-500 uppercase">Faculty Coach</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">
+                {registration.coach?.name || registration.registeredBy || "N/A"}
+              </p>
+            </div>
+            {registration.coach?.email && (
+              <div>
+                <p className="text-xs font-bold text-gray-500 uppercase">Coach Email</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{registration.coach.email}</p>
+              </div>
+            )}
             <div>
               <p className="text-xs font-bold text-gray-500 uppercase">Team Name</p>
               <p className="text-lg font-bold text-gray-900 dark:text-white">{registration.teamName || "N/A"}</p>

@@ -8,7 +8,11 @@ import { Eye, Edit, Users, School, Trophy } from "lucide-react";
 import Link from "next/link";
 
 interface SubAdminCompetitionsTableProps {
-  events: (Event & { registeredSchools: string[], coaches: string[] })[];
+  events: (Event & { 
+    registeredSchools: string[]; 
+    coaches: string[]; 
+    registrations?: any[];
+  })[];
 }
 
 export default function SubAdminCompetitionsTable({ events }: SubAdminCompetitionsTableProps) {
@@ -33,6 +37,10 @@ export default function SubAdminCompetitionsTable({ events }: SubAdminCompetitio
                   </Badge>
                   <Badge variant={event.status === "UPCOMING" ? "default" : "secondary"} className="text-[9px] font-bold uppercase tracking-widest">
                     {event.status}
+                  </Badge>
+                  <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-widest text-green-600 bg-green-50 border-green-100 dark:bg-green-900/20 dark:border-green-800/50 flex items-center gap-1">
+                    <Users className="w-3 h-3 text-green-500" />
+                    {event.registrations?.length || 0} Registrations
                   </Badge>
                 </div>
               </div>

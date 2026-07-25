@@ -170,7 +170,7 @@ export default function ReviewStep() {
       )}
 
       <div className="flex justify-between pt-8 border-t">
-        <Button variant="ghost" onClick={() => router.push("/register/step-2")}>
+        <Button variant="ghost" onClick={() => router.push("/register/step-3")}>
           <ArrowLeft className="w-4 h-4 mr-2" /> Back
         </Button>
         <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-blue-600 text-white rounded-full px-8">

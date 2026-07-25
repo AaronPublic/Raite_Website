@@ -55,7 +55,7 @@ WEBSITE NAVIGATION & USAGE:
 EVENT OVERVIEW:
 - **Name:** Regional Assembly on Information Technology Education 2026 (RAITE 2026)
 - **Organizer:** PSITE Central Luzon (Region III)
-- **Date:** September 4, 2026
+- **Date:** September 11, 2026, 8:00 AM
 - **Venue:** Pampanga State University (PSU) Gymnasium, Bacolor, Pampanga
 - **Eligibility:** Institutional members. Students must be enrolled in ITE programs (BSIT, BSCS, IS, Multimedia Arts, Cybersecurity, Data Science, SHS, TESDA IT courses, etc.).
 

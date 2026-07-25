@@ -13,11 +13,12 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Download, FileText, Loader2 } from "lucide-react";
+import { Download, FileText, Loader2, Users } from "lucide-react";
 import Papa from "papaparse";
 import type { SelectRootChangeEventDetails } from "@base-ui/react/select";
 import { useEffect } from "react";
 import { generateRAITEReport } from "@/lib/pdf-reports";
+import { Badge } from "@/components/ui/badge";
 
 export default function CompetitionReport({ events }: { events: Event[] }) {
   const [mounted, setMounted] = useState(false);
@@ -86,19 +87,46 @@ export default function CompetitionReport({ events }: { events: Event[] }) {
   if (!mounted) return null;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row gap-4 items-end">
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* Registration Summary Counters */}
+      <div className="space-y-3">
+        <h3 className="text-xs font-black uppercase tracking-widest text-gray-400">Total Registrations per Competition</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {events.map((e: any) => (
+            <div 
+              key={e.id}
+              onClick={() => handleFetch(e.id, {} as any)}
+              className={cn(
+                "p-4 bg-white dark:bg-gray-900 border-2 rounded-2xl shadow-sm flex items-center justify-between cursor-pointer hover:border-blue-500 transition-all",
+                selectedEventId === e.id ? "border-blue-500 bg-blue-50/20 dark:bg-blue-900/10" : "border-gray-100 dark:border-gray-800"
+              )}
+            >
+              <span className="text-xs font-extrabold text-gray-900 dark:text-gray-100 truncate max-w-[180px]">{e.title}</span>
+              <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800/50 shrink-0">
+                {e._count?.registrations ?? 0} Regs
+              </Badge>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4 items-end pt-4 border-t border-gray-100 dark:border-gray-800">
         <div className="space-y-2 flex-1">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Select Competition</label>
           <Select value={selectedEventId || undefined} onValueChange={handleFetch}>
             <SelectTrigger className="dark:bg-gray-800 dark:border-gray-700" suppressHydrationWarning>
               <SelectValue placeholder="Choose a competition...">
-                {events.find(e => e.id === selectedEventId)?.title || "Choose a competition..."}
+                {events.find(e => e.id === selectedEventId) 
+                  ? `${events.find(e => e.id === selectedEventId)?.title} (${(events.find(e => e.id === selectedEventId) as any)._count?.registrations ?? 0} Registrations)`
+                  : "Choose a competition..."
+                }
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="dark:bg-gray-900 dark:border-gray-700">
-              {events.map(e => (
-                <SelectItem key={e.id} value={e.id}>{e.title}</SelectItem>
+              {events.map((e: any) => (
+                <SelectItem key={e.id} value={e.id}>
+                  {e.title} ({e._count?.registrations ?? 0})
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

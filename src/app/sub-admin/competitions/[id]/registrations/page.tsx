@@ -23,6 +23,7 @@ export default async function SubAdminEventRegistrationsPage({
         include: {
           user: true,
           event: true,
+          coach: true,
         },
         orderBy: { createdAt: "desc" },
       },

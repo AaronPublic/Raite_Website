@@ -15,6 +15,9 @@ export default async function SubAdminCompetitionsPage() {
         include: {
           user: {
             select: { school: true, name: true }
+          },
+          coach: {
+            select: { name: true }
           }
         }
       }
@@ -26,7 +29,7 @@ export default async function SubAdminCompetitionsPage() {
   const eventsWithData = assignedEvents.map(event => {
     const registrations = event.registrations;
     const schools = Array.from(new Set(registrations.map(r => r.user.school).filter(Boolean)));
-    const coaches = registrations.map(r => r.user.name).filter(Boolean);
+    const coaches = Array.from(new Set(registrations.map(r => r.coach?.name || r.registeredBy).filter(Boolean)));
     return {
       ...event,
       registeredSchools: schools,

@@ -65,6 +65,10 @@ interface Registration {
   requirementsVerified: boolean;
   createdAt: string;
   registeredBy: string | null;
+  coach: {
+    name: string | null;
+    email: string;
+  } | null;
   user: {
     name: string | null;
     email: string;
@@ -184,12 +188,32 @@ export default function RegistrationsTable({ initialData }: { initialData: Regis
       },
     },
     {
-      accessorKey: "user.name",
-      header: "Coach",
+      id: "competitor",
+      header: "Competitor / Team",
       cell: ({ row }) => (
         <div className="flex flex-col">
-          <span className="font-bold text-gray-900 dark:text-white">{row.original.user.name || "N/A"}</span>
-          <span className="text-[10px] font-medium text-gray-500 uppercase tracking-tight">{row.original.user.email}</span>
+          <span className="font-bold text-gray-900 dark:text-white">
+            {row.original.teamName || row.original.user.name || "N/A"}
+          </span>
+          <span className="text-[10px] font-medium text-gray-500 uppercase tracking-tight">
+            {row.original.user.email}
+          </span>
+        </div>
+      ),
+    },
+    {
+      id: "coach",
+      header: "Faculty Coach",
+      cell: ({ row }) => (
+        <div className="flex flex-col">
+          <span className="font-bold text-gray-900 dark:text-white">
+            {row.original.coach?.name || row.original.registeredBy || "N/A"}
+          </span>
+          {row.original.coach?.email && (
+            <span className="text-[10px] font-medium text-gray-500 uppercase tracking-tight">
+              {row.original.coach.email}
+            </span>
+          )}
         </div>
       ),
     },

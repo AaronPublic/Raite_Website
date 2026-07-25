@@ -34,6 +34,7 @@ export async function getFilteredRegistrations(filters: RegistrationFilters = {}
       include: {
         user: true,
         event: true,
+        coach: true,
       },
       orderBy: {
         createdAt: "desc",

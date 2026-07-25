@@ -56,6 +56,11 @@ interface Registration {
   entryUrl: string | null;
   createdAt: string;
   adminComment: string | null;
+  registeredBy: string | null;
+  coach?: {
+    name: string | null;
+    email: string;
+  } | null;
   user: {
     name: string | null;
     email: string;
@@ -303,11 +308,15 @@ function RegistrationDetailsModal({
                       <p className="text-[11px] font-black uppercase text-gray-400 tracking-wider mb-6">Faculty Liaison</p>
                       <div className="flex items-center gap-6">
                         <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-blue-600/20">
-                          {(details?.coach?.name || registration.user.name || "?").charAt(0)}
+                          {(details?.coach?.name || details?.registeredBy || "N/A").charAt(0)}
                         </div>
                         <div className="space-y-1">
-                          <p className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{details?.coach?.name || registration.user.name}</p>
-                          <p className="text-base text-gray-500 font-bold">{details?.coach?.email || registration.user.email}</p>
+                          <p className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+                            {details?.coach?.name || details?.registeredBy || "N/A"}
+                          </p>
+                          {details?.coach?.email && (
+                            <p className="text-base text-gray-500 font-bold">{details.coach.email}</p>
+                          )}
                         </div>
                       </div>
                     </div>

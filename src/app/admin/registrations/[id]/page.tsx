@@ -11,7 +11,7 @@ export default async function AdminManageRegistrationPage({ params }: { params: 
   const { id } = await params;
   const registration = await db.registration.findUnique({
     where: { id },
-    include: { event: true, user: true },
+    include: { event: true, user: true, coach: true },
   });
 
   if (!registration) redirect("/admin/registrations");
@@ -37,8 +37,9 @@ export default async function AdminManageRegistrationPage({ params }: { params: 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <Card className="p-6">
             <h2 className="text-lg font-bold mb-4">Registration Details</h2>
-            <p><strong>Coach:</strong> {registration.user.name}</p>
-            <p><strong>Status:</strong> {registration.status}</p>
+            <p className="mb-2"><strong>Competitor / Team:</strong> {registration.teamName || registration.user.name}</p>
+            <p className="mb-2"><strong>Faculty Coach:</strong> {registration.coach?.name || registration.registeredBy || "N/A"}</p>
+            <p className="mb-2"><strong>Status:</strong> {registration.status}</p>
             <p><strong>Created:</strong> {new Date(registration.createdAt).toLocaleDateString()}</p>
         </Card>
         

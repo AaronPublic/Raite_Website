@@ -61,7 +61,7 @@ export default async function AdminViewRegistrationPage({ params }: { params: Pr
             <p className="text-gray-500 font-medium">Registration Details</p>
           </div>
         </div>
-        <AdminRegistrationActions registrationId={registration.id} initialStatus={registration.status} />
+        <AdminRegistrationActions registrationId={registration.id} currentStatus={registration.status} />
       </div>
 
       {isOnlineRelevant && (

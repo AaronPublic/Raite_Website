@@ -18,6 +18,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+import { useUser } from "@clerk/nextjs";
+
 interface ParticipantInfo {
   name: string | null;
   uniqueId: string | null;
@@ -25,6 +27,7 @@ interface ParticipantInfo {
 }
 
 export default function ReviewStep() {
+  const { user } = useUser();
   const { data, isReady, clearData } = useWizard();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -120,6 +123,14 @@ export default function ReviewStep() {
           <div className="space-y-4">
             <p className="font-bold text-lg text-gray-900 dark:text-white">Team: {data.teamName || "N/A"}</p>
             
+            {/* Faculty Coach Info */}
+            <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-gray-100 dark:border-gray-800 space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Faculty Coach / Registrant</p>
+              <div className="space-y-1">
+                <p className="font-black text-gray-950 dark:text-white text-base">{user?.fullName || "N/A"}</p>
+                <p className="text-xs font-bold text-gray-500">{user?.primaryEmailAddress?.emailAddress}</p>
+              </div>
+            </div>
             {data.eventSubcategory === "ONSITE_PAGEANT" && (
               <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-800 space-y-2">
                 <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">School Representative</p>

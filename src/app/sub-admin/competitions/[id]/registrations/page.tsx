@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
@@ -45,7 +46,12 @@ export default async function SubAdminEventRegistrationsPage({
           Back to my competitions
         </Link>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Registrations for {event.title}</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-3">
+            Registrations for {event.title}
+            <Badge variant="outline" className="text-xs font-black uppercase tracking-widest text-green-600 bg-green-50 border-green-100 dark:bg-green-900/20 dark:border-green-800/50 shrink-0">
+              {event.registrations.length} Total
+            </Badge>
+          </h1>
           <p className="text-gray-500 text-sm">Review and manage participant registrations.</p>
         </div>
       </div>

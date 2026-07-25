@@ -19,6 +19,7 @@ import type { SelectRootChangeEventDetails } from "@base-ui/react/select";
 import { useEffect } from "react";
 import { generateRAITEReport } from "@/lib/pdf-reports";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export default function CompetitionReport({ events }: { events: Event[] }) {
   const [mounted, setMounted] = useState(false);

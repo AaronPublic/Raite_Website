@@ -55,7 +55,7 @@ export default function CompetitionReport({ events }: { events: Event[] }) {
     const exportData = data.map(r => ({
       "School": r.school,
       "Team Members (Name [ID])": r.fullTeamDetails,
-      "Faculty Coach": r.coachName,
+      "Coach": r.coachName,
       "Coach Email": r.coachEmail
     }));
 
@@ -80,7 +80,7 @@ export default function CompetitionReport({ events }: { events: Event[] }) {
       title: "Competition Registration Report",
       subtitle: `Event: ${event?.title}`,
       filename: fileName,
-      columns: ['School', 'Team Members (Name [ID])', 'Faculty Coach', 'Coach Email'],
+      columns: ['School', 'Team Members (Name [ID])', 'Coach', 'Coach Email'],
       data: data.map(r => [r.school, r.fullTeamDetails, r.coachName, r.coachEmail]),
     });
   };
@@ -114,7 +114,7 @@ export default function CompetitionReport({ events }: { events: Event[] }) {
       <div className="flex flex-col md:flex-row gap-4 items-end pt-4 border-t border-gray-100 dark:border-gray-800">
         <div className="space-y-2 flex-1">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Select Competition</label>
-          <Select value={selectedEventId || undefined} onValueChange={handleFetch}>
+          <Select value={selectedEventId} onValueChange={handleFetch}>
             <SelectTrigger className="dark:bg-gray-800 dark:border-gray-700" suppressHydrationWarning>
               <SelectValue placeholder="Choose a competition...">
                 {events.find(e => e.id === selectedEventId) 
@@ -166,7 +166,7 @@ export default function CompetitionReport({ events }: { events: Event[] }) {
                 <TableRow className="bg-gray-50/50 dark:bg-gray-800/30 border-b-2 border-gray-100 dark:border-gray-800 hover:bg-transparent">
                   <TableHead className="text-gray-400 font-black uppercase tracking-widest text-[10px] h-14 px-6">School</TableHead>
                   <TableHead className="text-gray-400 font-black uppercase tracking-widest text-[10px] h-14 px-6">Team Members</TableHead>
-                  <TableHead className="text-gray-400 font-black uppercase tracking-widest text-[10px] h-14 px-6">Faculty Coach Name</TableHead>
+                  <TableHead className="text-gray-400 font-black uppercase tracking-widest text-[10px] h-14 px-6">Coach</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

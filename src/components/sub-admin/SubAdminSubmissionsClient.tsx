@@ -115,7 +115,7 @@ export default function SubAdminSubmissionsClient({ events }: SubAdminSubmission
       <div className="flex flex-col md:flex-row gap-4 items-end bg-white dark:bg-gray-900 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-sm">
         <div className="space-y-2 flex-1 w-full">
           <label className="text-xs font-black uppercase text-gray-500 tracking-wider">Select Competition</label>
-          <Select value={selectedEventId || undefined} onValueChange={handleFetchSubmissions}>
+          <Select value={selectedEventId} onValueChange={handleFetchSubmissions}>
             <SelectTrigger className="dark:bg-gray-800 dark:border-gray-700 rounded-xl h-12" suppressHydrationWarning>
               <SelectValue placeholder="Choose a competition to view submissions...">
                 {events.find(e => e.id === selectedEventId)?.title || "Choose a competition to view submissions..."}

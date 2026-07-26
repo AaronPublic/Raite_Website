@@ -3,7 +3,6 @@ import SettingsForm from "@/components/admin/SettingsForm";
 import { Settings } from "lucide-react";
 import { getSchools } from "@/lib/data/schools";
 import SchoolManagement from "@/components/admin/SchoolManagement";
-import BillingManagement from "@/components/admin/BillingManagement";
 
 export default async function AdminSettingsPage() {
   const [missionStartDate, schools] = await Promise.all([
@@ -27,7 +26,6 @@ export default async function AdminSettingsPage() {
       <div className="grid grid-cols-1 gap-12">
         <SettingsForm initialMissionStartDate={missionStartDate} />
         <SchoolManagement schools={schools} />
-        <BillingManagement />
       </div>
     </div>
   );

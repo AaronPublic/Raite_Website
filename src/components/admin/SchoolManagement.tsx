@@ -70,7 +70,7 @@ export default function SchoolManagement({ schools }: { schools: School[] }) {
           </div>
           <div className="space-y-2">
             <Label>Category</Label>
-            <Select value={category} onValueChange={(val: "MEMBER" | "NON_MEMBER") => setCategory(val)}>
+            <Select value={category} onValueChange={(val) => { if (val) setCategory(val as any); }}>
               <SelectTrigger className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
                 <SelectValue placeholder="Select Category" />
               </SelectTrigger>
@@ -105,7 +105,7 @@ export default function SchoolManagement({ schools }: { schools: School[] }) {
                   <td className="p-2">
                     <Select
                       value={school.category}
-                      onValueChange={(val: "MEMBER" | "NON_MEMBER") => handleCategoryChange(school.id, val)}
+                      onValueChange={(val) => { if (val) handleCategoryChange(school.id, val as any); }}
                     >
                       <SelectTrigger className="w-[140px] h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
                         <SelectValue />

@@ -91,6 +91,7 @@ export async function bulkRegisterParticipants(participants: { name: string, ema
             course: p.course,
             school: schoolName,
             role: "PARTICIPANT",
+            approved: true,
           },
           create: {
             email: p.email,
@@ -99,6 +100,7 @@ export async function bulkRegisterParticipants(participants: { name: string, ema
             school: schoolName,
             role: "PARTICIPANT",
             clerkId: null,
+            approved: true,
           },
         });
 

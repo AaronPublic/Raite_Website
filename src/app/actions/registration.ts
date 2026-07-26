@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { sendBrevoEmail } from "@/lib/email";
+import { cookies } from "next/headers";
 
 const registrationSchema = z.object({
   id: z.string().optional(),
@@ -353,6 +354,8 @@ export async function submitRegistration(data: z.infer<typeof registrationSchema
     });
 
     revalidatePath("/register");
+    const cookieStore = await cookies();
+    cookieStore.delete("non_member_fee_acknowledged");
     return { success: true, id: result.id, status: result.status };
   } catch (err: any) {
     console.error("submitRegistration error:", err);

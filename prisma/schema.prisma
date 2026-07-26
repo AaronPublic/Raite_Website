@@ -7,12 +7,18 @@ datasource db {
   provider = "postgresql"
 }
 
+enum SchoolCategory {
+  MEMBER
+  NON_MEMBER
+}
+
 model School {
-  id           String   @id @default(cuid())
-  name         String   @unique
-  abbreviation String   @unique
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id           String         @id @default(cuid())
+  name         String         @unique
+  abbreviation String         @unique
+  category     SchoolCategory @default(MEMBER)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 }
 
 model User {

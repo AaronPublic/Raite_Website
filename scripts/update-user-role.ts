@@ -7,10 +7,12 @@ if (process.env.DIRECT_URL) {
 }
 (process.env as any).NODE_ENV = "production";
 
-import { db } from "../src/lib/db";
 import { Role } from "@prisma/client";
 
 async function main() {
+  // Dynamically import db to ensure the overridden environment variables are loaded first
+  const { db } = await import("../src/lib/db");
+
   const args = process.argv.slice(2);
   const email = args[0]?.trim()?.toLowerCase();
   const targetRole = args[1]?.trim()?.toUpperCase() as Role;
@@ -62,4 +64,7 @@ async function main() {
 
 main()
   .catch(console.error)
-  .finally(() => db.$disconnect());
+  .finally(async () => {
+    const { db } = await import("../src/lib/db");
+    await db.$disconnect();
+  });

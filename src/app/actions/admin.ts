@@ -38,6 +38,7 @@ export async function getDashboardData() {
 const schoolSchema = z.object({
   name: z.string().min(1, "School name is required"),
   abbreviation: z.string().min(1, "Abbreviation is required"),
+  category: z.enum(["MEMBER", "NON_MEMBER"]).default("MEMBER"),
 });
 
 export async function addSchool(data: z.infer<typeof schoolSchema>) {
@@ -58,6 +59,25 @@ export async function addSchool(data: z.infer<typeof schoolSchema>) {
     return { success: true };
   } catch (err) {
     return { error: "Failed to add school (name or abbreviation may already exist)" };
+  }
+}
+
+export async function updateSchoolCategory(id: string, category: "MEMBER" | "NON_MEMBER") {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const admin = await db.user.findUnique({ where: { clerkId: userId } });
+  if (!admin || admin.role !== "ADMIN") throw new Error("Forbidden");
+
+  try {
+    await db.school.update({
+      where: { id },
+      data: { category },
+    });
+    revalidatePath("/admin/settings");
+    return { success: true };
+  } catch (err) {
+    return { error: "Failed to update school category" };
   }
 }
 

@@ -5,7 +5,7 @@ dotenv.config();
 if (process.env.DIRECT_URL) {
   process.env.DATABASE_URL = process.env.DIRECT_URL;
 }
-process.env.NODE_ENV = "production";
+(process.env as any).NODE_ENV = "production";
 
 import { db } from "../src/lib/db";
 import { Role } from "@prisma/client";

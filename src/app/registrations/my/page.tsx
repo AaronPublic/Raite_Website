@@ -32,11 +32,15 @@ export default async function MyRegistrationsPage() {
   });
 
   let isNonMemberSchool = false;
+  let schoolId = null;
   if (user.school) {
     const schoolRecord = await db.school.findUnique({
       where: { name: user.school }
     });
-    isNonMemberSchool = schoolRecord?.category === "NON_MEMBER";
+    if (schoolRecord) {
+      isNonMemberSchool = schoolRecord.category === "NON_MEMBER";
+      schoolId = schoolRecord.id;
+    }
   }
 
   const participants = user.school 
@@ -63,7 +67,11 @@ export default async function MyRegistrationsPage() {
           <p className="text-lg text-gray-500 font-medium">Manage and track your competition entries.</p>
         </div>
         <div className="flex gap-3">
-          <DashboardRegisterButtons isApproved={user.role === "SUB_ADMIN" ? true : user.approved} isNonMember={isNonMemberSchool} />
+          <DashboardRegisterButtons 
+            isApproved={user.role === "SUB_ADMIN" ? true : user.approved} 
+            isNonMember={isNonMemberSchool} 
+            schoolId={schoolId}
+          />
         </div>
       </div>
 

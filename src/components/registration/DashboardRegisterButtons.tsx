@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Users, ShieldAlert, X } from "lucide-react";
+import { Users, ShieldAlert, X, FileText, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,19 +11,39 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { getSchoolBillingData } from "@/app/actions/billing";
+import { generateRAITEBillingPDF } from "@/lib/pdf-reports";
+import { toast } from "sonner";
 
 interface DashboardRegisterButtonsProps {
   isApproved: boolean;
   isNonMember?: boolean;
+  schoolId?: string | null;
 }
 
-export default function DashboardRegisterButtons({ isApproved, isNonMember }: DashboardRegisterButtonsProps) {
+export default function DashboardRegisterButtons({ isApproved, isNonMember, schoolId }: DashboardRegisterButtonsProps) {
   const [showModal, setShowModal] = useState(false);
+  const [isPdfLoading, setIsPdfLoading] = useState(false);
 
   const handleClick = (e: React.MouseEvent) => {
     if (!isApproved) {
       e.preventDefault();
       setShowModal(true);
+    }
+  };
+
+  const handleDownloadInvoice = async () => {
+    if (!schoolId) return;
+    setIsPdfLoading(true);
+    try {
+      const fullData = await getSchoolBillingData(schoolId);
+      generateRAITEBillingPDF(fullData);
+      toast.success("Billing Invoice generated successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to generate billing invoice PDF");
+    } finally {
+      setIsPdfLoading(false);
     }
   };
 
@@ -45,6 +65,24 @@ export default function DashboardRegisterButtons({ isApproved, isNonMember }: Da
           <Users className="w-4 h-4 text-gray-400 dark:text-gray-500" />
           Registered Competitors
         </button>
+      )}
+
+      {isApproved && schoolId && (
+        <Button
+          variant="outline"
+          onClick={handleDownloadInvoice}
+          disabled={isPdfLoading}
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-900 dark:text-white rounded-2xl text-sm font-black transition-all shadow-sm active:scale-[0.98] shrink-0 h-[unset] select-none"
+        >
+          {isPdfLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <>
+              <FileText className="w-4 h-4 text-red-600" />
+              Download Billing Invoice
+            </>
+          )}
+        </Button>
       )}
 
       <Dialog open={showModal} onOpenChange={setShowModal}>

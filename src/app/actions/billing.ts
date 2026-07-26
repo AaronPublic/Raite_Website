@@ -98,23 +98,36 @@ export async function getBillingDashboardData() {
   const admin = await db.user.findUnique({ where: { clerkId: userId } });
   if (!admin || admin.role !== "ADMIN") throw new Error("Forbidden");
 
+  // 1. Fetch all schools (1st query)
   const schools = await db.school.findMany({
     orderBy: { name: "asc" }
   });
 
-  const dashboardItems = [];
+  // 2. Fetch all participants globally in one batch (2nd query)
+  const allParticipants = await db.user.findMany({
+    where: {
+      role: "PARTICIPANT",
+      school: { not: null }
+    },
+    select: { school: true, createdAt: true }
+  });
 
-  for (const school of schools) {
-    const participants = await db.user.findMany({
-      where: {
-        school: school.name,
-        role: "PARTICIPANT"
-      },
-      select: { createdAt: true }
-    });
+  // 3. Group participants by school in-memory
+  const schoolParticipantsMap = new Map<string, { createdAt: Date }[]>();
+  allParticipants.forEach(p => {
+    if (p.school) {
+      const list = schoolParticipantsMap.get(p.school) || [];
+      list.push({ createdAt: p.createdAt });
+      schoolParticipantsMap.set(p.school, list);
+    }
+  });
+
+  // 4. Map schools to dashboard items
+  const dashboardItems = schools.map(school => {
+    const schoolParticipants = schoolParticipantsMap.get(school.name) || [];
 
     let actualBill = 0;
-    participants.forEach(p => {
+    schoolParticipants.forEach(p => {
       const regDate = new Date(p.createdAt);
       const month = regDate.getMonth();
       const date = regDate.getDate();
@@ -129,21 +142,21 @@ export async function getBillingDashboardData() {
     });
 
     const isNonMember = school.category === "NON_MEMBER";
-    const competitorAdditional = isNonMember ? (participants.length * 300) : 0;
+    const competitorAdditional = isNonMember ? (schoolParticipants.length * 300) : 0;
     const institutionalFee = isNonMember ? 3500 : 0;
     const grandTotal = (actualBill - school.discount) + competitorAdditional + institutionalFee;
 
-    dashboardItems.push({
+    return {
       id: school.id,
       name: school.name,
       abbreviation: school.abbreviation,
       category: school.category,
       discount: school.discount,
-      participantCount: participants.length,
+      participantCount: schoolParticipants.length,
       baseBill: actualBill,
       grandTotal
-    });
-  }
+    };
+  });
 
   return dashboardItems;
 }

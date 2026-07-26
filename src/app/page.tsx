@@ -5,6 +5,7 @@ import { buttonVariants } from "@/components/ui/button-variants";
 import { Card } from "@/components/ui/card";
 import { auth } from "@clerk/nextjs/server";
 import { getUserByClerkId } from "@/lib/data/users";
+import { db } from "@/lib/db";
 import { getRegistrationsByUserId } from "@/lib/data/registrations";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getLatestAnnouncements } from "@/lib/data/announcements";
@@ -25,12 +26,20 @@ async function HeroActions() {
   
   let user = null;
   let hasActiveRegistration = false;
+  let isNonMemberSchool = false;
   
   if (userId) {
     user = await getUserByClerkId(userId);
     if (user) {
       const registrations = await getRegistrationsByUserId(user.id);
       hasActiveRegistration = registrations.length > 0;
+      
+      if (user.school) {
+        const schoolRecord = await db.school.findUnique({
+          where: { name: user.school }
+        });
+        isNonMemberSchool = schoolRecord?.category === "NON_MEMBER";
+      }
     }
   }
 
@@ -78,7 +87,7 @@ async function HeroActions() {
         </>
       )}
       {isFacultyCoach && (
-        <CoachHeroButtons isApproved={user?.approved ?? false} />
+        <CoachHeroButtons isApproved={user?.approved ?? false} isNonMember={isNonMemberSchool} />
       )}
       {isParticipant && (
         <>

@@ -18,19 +18,11 @@ export async function getSchoolBillingData(schoolId: string) {
     throw new Error("Forbidden");
   }
 
-  const registrations = await db.registration.findMany({
-    where: { user: { school: school.name } }
-  });
-
-  const competitorEmails = new Set<string>();
-  registrations.forEach(r => {
-    if (Array.isArray(r.members)) {
-      (r.members as string[]).forEach(email => competitorEmails.add(email));
-    }
-  });
-
   const participants = await db.user.findMany({
-    where: { email: { in: Array.from(competitorEmails) } },
+    where: {
+      school: school.name,
+      role: "PARTICIPANT"
+    },
     select: { name: true, email: true, createdAt: true }
   });
 
@@ -113,19 +105,11 @@ export async function getBillingDashboardData() {
   const dashboardItems = [];
 
   for (const school of schools) {
-    const registrations = await db.registration.findMany({
-      where: { user: { school: school.name } }
-    });
-
-    const competitorEmails = new Set<string>();
-    registrations.forEach(r => {
-      if (Array.isArray(r.members)) {
-        (r.members as string[]).forEach(email => competitorEmails.add(email));
-      }
-    });
-
     const participants = await db.user.findMany({
-      where: { email: { in: Array.from(competitorEmails) } },
+      where: {
+        school: school.name,
+        role: "PARTICIPANT"
+      },
       select: { createdAt: true }
     });
 

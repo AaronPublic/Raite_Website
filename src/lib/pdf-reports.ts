@@ -196,12 +196,37 @@ export const generateRAITEBillingPDF = (billingData: {
 
   // Summary Box Calculation Layout
   const finalY = (doc as any).lastAutoTable.finalY + 10;
+  
+  // Gather summary items dynamically
+  const boxItems = [
+    { label: "Actual Bill:", value: `PHP ${billingData.summary.actualBill.toLocaleString("en-US", { minimumFractionDigits: 2 })}` },
+    { label: "Discount:", value: `-PHP ${billingData.summary.discount.toLocaleString("en-US", { minimumFractionDigits: 2 })}` },
+    { label: "Sub Total:", value: `PHP ${billingData.summary.subTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}` }
+  ];
+
+  if (billingData.category === "NON_MEMBER") {
+    boxItems.push(
+      { label: "Non-Member Add. (300/p):", value: `PHP ${billingData.summary.competitorAdditional.toLocaleString("en-US", { minimumFractionDigits: 2 })}` },
+      { label: "Inst. Membership Fee:", value: `PHP ${billingData.summary.institutionalFee.toLocaleString("en-US", { minimumFractionDigits: 2 })}` }
+    );
+  } else {
+    boxItems.push(
+      { label: "Additionals:", value: "N/A" }
+    );
+  }
+
+  // Calculate box height dynamically (7mm per row, 3mm padding, 8mm grand total, 3mm bottom padding)
+  const rowHeight = 7;
+  const dividerPadding = 3;
+  const grandTotalHeight = 8;
+  const paddingBottom = 3;
+  const boxHeight = (boxItems.length * rowHeight) + dividerPadding + grandTotalHeight + paddingBottom;
+
   const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
-  const summaryBoxHeight = billingData.category === "NON_MEMBER" ? 54 : 36;
-  const safetyMargin = 20; // 20mm safety margin above bottom edge
+  const safetyMargin = 20;
 
   let boxY = finalY;
-  if (boxY + summaryBoxHeight + safetyMargin > pageHeight) {
+  if (boxY + boxHeight + safetyMargin > pageHeight) {
     doc.addPage();
     boxY = 20; // Start at the top of the new page
   }
@@ -209,42 +234,31 @@ export const generateRAITEBillingPDF = (billingData: {
   // Draw Border Box for Summary
   doc.setDrawColor(220, 225, 230);
   doc.setFillColor(250, 251, 252);
-  doc.rect(115, boxY, 81, summaryBoxHeight, "FD");
+  doc.rect(115, boxY, 81, boxHeight, "FD");
 
+  // Draw Items
   doc.setFontSize(9);
   doc.setTextColor(50);
   
-  // Aligned lines inside the box
-  doc.text("Actual Bill:", 118, boxY + 7);
-  doc.text(`PHP ${billingData.summary.actualBill.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, boxY + 7, { align: "right" });
-
-  doc.text("Discount:", 118, boxY + 14);
-  doc.text(`-PHP ${billingData.summary.discount.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, boxY + 14, { align: "right" });
-
-  doc.text("Sub Total:", 118, boxY + 21);
-  doc.text(`PHP ${billingData.summary.subTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, boxY + 21, { align: "right" });
-
-  if (billingData.category === "NON_MEMBER") {
-    doc.text("Non-Member Add. (300/p):", 118, boxY + 28);
-    doc.text(`PHP ${billingData.summary.competitorAdditional.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, boxY + 28, { align: "right" });
-
-    doc.text("Inst. Membership Fee:", 118, boxY + 35);
-    doc.text(`PHP ${billingData.summary.institutionalFee.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, boxY + 35, { align: "right" });
-  } else {
-    doc.text("Additionals:", 118, boxY + 28);
-    doc.text("N/A", 193, boxY + 28, { align: "right" });
-  }
+  let currentY = boxY + 7;
+  boxItems.forEach(item => {
+    doc.text(item.label, 118, currentY);
+    doc.text(item.value, 193, currentY, { align: "right" });
+    currentY += rowHeight;
+  });
 
   // Grand Total Divider line
-  const totalLineY = boxY + (billingData.category === "NON_MEMBER" ? 40 : 30);
+  const dividerY = currentY - rowHeight + dividerPadding;
   doc.setDrawColor(200, 200, 200);
-  doc.line(116, totalLineY, 195, totalLineY);
+  doc.line(116, dividerY, 195, dividerY);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
   doc.setTextColor(0, 56, 168);
-  doc.text("Grand Total:", 118, totalLineY + 8);
-  doc.text(`PHP ${billingData.summary.grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, totalLineY + 8, { align: "right" });
+  
+  const grandTotalY = dividerY + 6;
+  doc.text("Grand Total:", 118, grandTotalY);
+  doc.text(`PHP ${billingData.summary.grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, grandTotalY, { align: "right" });
 
   doc.save(`RAITE_2026_BILLING_${billingData.abbreviation.toUpperCase()}.pdf`);
 };

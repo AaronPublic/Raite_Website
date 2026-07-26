@@ -104,6 +104,7 @@ export const generateRAITEBillingPDF = (billingData: {
     actualBill: number;
     discount: number;
     subTotal: number;
+    egamesPotMoney: number;
     competitorAdditional: number;
     institutionalFee: number;
     grandTotal: number;
@@ -203,6 +204,13 @@ export const generateRAITEBillingPDF = (billingData: {
     { label: "Discount:", value: `-PHP ${billingData.summary.discount.toLocaleString("en-US", { minimumFractionDigits: 2 })}` },
     { label: "Sub Total:", value: `PHP ${billingData.summary.subTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}` }
   ];
+
+  if (billingData.summary.egamesPotMoney > 0) {
+    boxItems.push({
+      label: "E-GAMES Pot Money (300/p):",
+      value: `PHP ${billingData.summary.egamesPotMoney.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+    });
+  }
 
   if (billingData.category === "NON_MEMBER") {
     boxItems.push(

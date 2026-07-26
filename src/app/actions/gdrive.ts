@@ -146,14 +146,8 @@ export async function uploadFileToDrive(formData: FormData) {
       }
     }
 
-    // Convert file to array buffer and then buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    // Create a readable stream from buffer
-    const mediaStream = new Readable();
-    mediaStream.push(buffer);
-    mediaStream.push(null);
+    // Create a Node readable stream directly from the file stream (prevents buffering the file in memory twice)
+    const mediaStream = Readable.fromWeb(file.stream() as any);
 
     const fileMetadata = {
       name: file.name,

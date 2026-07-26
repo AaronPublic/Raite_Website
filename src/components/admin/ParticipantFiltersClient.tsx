@@ -52,7 +52,7 @@ export default function ParticipantFiltersClient({ schools }: { schools: School[
         </div>
         <div className="flex gap-2">
           <Select
-            defaultValue={searchParams.get("school")?.toString() || "all"}
+            value={searchParams.get("school")?.toString() || "all"}
             onValueChange={(v) => updateFilters({ school: v === "all" ? null : v })}
           >
             <SelectTrigger className="w-[400px]">
@@ -68,7 +68,7 @@ export default function ParticipantFiltersClient({ schools }: { schools: School[
             </SelectContent>
           </Select>
           <Select
-            defaultValue={searchParams.get("course")?.toString() || "all"}
+            value={searchParams.get("course")?.toString() || "all"}
             onValueChange={(v) => updateFilters({ course: v === "all" ? null : v })}
           >
             <SelectTrigger className="w-[300px]">
@@ -84,7 +84,7 @@ export default function ParticipantFiltersClient({ schools }: { schools: School[
             </SelectContent>
           </Select>
           <Select
-            defaultValue={searchParams.get("role")?.toString() || "all"}
+            value={searchParams.get("role")?.toString() || "all"}
             onValueChange={(v) => updateFilters({ role: v === "all" ? null : v })}
           >
             <SelectTrigger className="w-[150px]">

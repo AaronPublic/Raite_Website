@@ -196,38 +196,47 @@ export const generateRAITEBillingPDF = (billingData: {
 
   // Summary Box Calculation Layout
   const finalY = (doc as any).lastAutoTable.finalY + 10;
+  const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+  const summaryBoxHeight = billingData.category === "NON_MEMBER" ? 54 : 36;
+  const safetyMargin = 20; // 20mm safety margin above bottom edge
+
+  let boxY = finalY;
+  if (boxY + summaryBoxHeight + safetyMargin > pageHeight) {
+    doc.addPage();
+    boxY = 20; // Start at the top of the new page
+  }
   
   // Draw Border Box for Summary
   doc.setDrawColor(220, 225, 230);
   doc.setFillColor(250, 251, 252);
-  doc.rect(115, finalY, 81, billingData.category === "NON_MEMBER" ? 54 : 36, "FD");
+  doc.rect(115, boxY, 81, summaryBoxHeight, "FD");
 
   doc.setFontSize(9);
   doc.setTextColor(50);
   
   // Aligned lines inside the box
-  doc.text("Actual Bill:", 118, finalY + 7);
-  doc.text(`PHP ${billingData.summary.actualBill.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, finalY + 7, { align: "right" });
+  doc.text("Actual Bill:", 118, boxY + 7);
+  doc.text(`PHP ${billingData.summary.actualBill.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, boxY + 7, { align: "right" });
 
-  doc.text("Discount:", 118, finalY + 14);
-  doc.text(`-PHP ${billingData.summary.discount.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, finalY + 14, { align: "right" });
+  doc.text("Discount:", 118, boxY + 14);
+  doc.text(`-PHP ${billingData.summary.discount.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, boxY + 14, { align: "right" });
 
-  doc.text("Sub Total:", 118, finalY + 21);
-  doc.text(`PHP ${billingData.summary.subTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, finalY + 21, { align: "right" });
+  doc.text("Sub Total:", 118, boxY + 21);
+  doc.text(`PHP ${billingData.summary.subTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, boxY + 21, { align: "right" });
 
   if (billingData.category === "NON_MEMBER") {
-    doc.text("Non-Member Add. (300/p):", 118, finalY + 28);
-    doc.text(`PHP ${billingData.summary.competitorAdditional.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, finalY + 28, { align: "right" });
+    doc.text("Non-Member Add. (300/p):", 118, boxY + 28);
+    doc.text(`PHP ${billingData.summary.competitorAdditional.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, boxY + 28, { align: "right" });
 
-    doc.text("Inst. Membership Fee:", 118, finalY + 35);
-    doc.text(`PHP ${billingData.summary.institutionalFee.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, finalY + 35, { align: "right" });
+    doc.text("Inst. Membership Fee:", 118, boxY + 35);
+    doc.text(`PHP ${billingData.summary.institutionalFee.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, boxY + 35, { align: "right" });
   } else {
-    doc.text("Additionals:", 118, finalY + 28);
-    doc.text("N/A", 193, finalY + 28, { align: "right" });
+    doc.text("Additionals:", 118, boxY + 28);
+    doc.text("N/A", 193, boxY + 28, { align: "right" });
   }
 
   // Grand Total Divider line
-  const totalLineY = finalY + (billingData.category === "NON_MEMBER" ? 40 : 30);
+  const totalLineY = boxY + (billingData.category === "NON_MEMBER" ? 40 : 30);
   doc.setDrawColor(200, 200, 200);
   doc.line(116, totalLineY, 195, totalLineY);
 

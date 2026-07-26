@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { getAllParticipantsForExport, ParticipantFilters } from "@/lib/data/participants";
 import { revalidatePath } from "next/cache";
 import Papa from "papaparse";
+import { cookies } from "next/headers";
 import { getSchoolByName } from "@/lib/data/schools";
 import { deleteSupabaseFile } from "@/lib/supabase";
 
@@ -113,6 +114,8 @@ export async function bulkRegisterParticipants(participants: { name: string, ema
     }, { timeout: 600000 });
 
     revalidatePath("/admin/users");
+    const cookieStore = await cookies();
+    cookieStore.delete("non_member_fee_acknowledged");
     return { success: true, count: results.length };
   } catch (error: any) {
     console.error("Bulk registration failed:", error);

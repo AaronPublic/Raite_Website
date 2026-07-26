@@ -18,23 +18,24 @@ export async function getSchoolBillingData(schoolId: string) {
     throw new Error("Forbidden");
   }
 
-  const participants = await db.user.findMany({
-    where: {
-      school: school.name,
-      role: "PARTICIPANT"
-    },
-    select: { name: true, email: true, createdAt: true }
-  });
-
-  // Fetch all registrations for this school to check competition dates and categories
-  const registrations = await db.registration.findMany({
-    where: { user: { school: school.name } },
-    select: { 
-      createdAt: true, 
-      members: true,
-      event: { select: { category: true } }
-    }
-  });
+  // Fetch participants and registrations concurrently to cut query time in half
+  const [participants, registrations] = await Promise.all([
+    db.user.findMany({
+      where: {
+        school: school.name,
+        role: "PARTICIPANT"
+      },
+      select: { name: true, email: true, createdAt: true }
+    }),
+    db.registration.findMany({
+      where: { user: { school: school.name } },
+      select: { 
+        createdAt: true, 
+        members: true,
+        event: { select: { category: true } }
+      }
+    })
+  ]);
 
   // Build a map of email -> earliest registration date and E-GAMES email set
   const emailToEarliestRegDate = new Map<string, Date>();
@@ -161,29 +162,27 @@ export async function getBillingDashboardData() {
   const admin = await db.user.findUnique({ where: { clerkId: userId } });
   if (!admin || admin.role !== "ADMIN") throw new Error("Forbidden");
 
-  // 1. Fetch all schools (1st query)
-  const schools = await db.school.findMany({
-    orderBy: { name: "asc" }
-  });
-
-  // 2. Fetch all participants globally in one batch (2nd query)
-  const allParticipants = await db.user.findMany({
-    where: {
-      role: "PARTICIPANT",
-      school: { not: null }
-    },
-    select: { school: true, email: true, createdAt: true }
-  });
-
-  // 3. Fetch all registrations globally in one batch to trace competition dates and categories (3rd query)
-  const allRegistrations = await db.registration.findMany({
-    select: { 
-      createdAt: true, 
-      members: true, 
-      user: { select: { school: true } },
-      event: { select: { category: true } }
-    }
-  });
+  // Fetch schools, participants, and registrations concurrently to minimize network latency and database block times
+  const [schools, allParticipants, allRegistrations] = await Promise.all([
+    db.school.findMany({
+      orderBy: { name: "asc" }
+    }),
+    db.user.findMany({
+      where: {
+        role: "PARTICIPANT",
+        school: { not: null }
+      },
+      select: { school: true, email: true, createdAt: true }
+    }),
+    db.registration.findMany({
+      select: { 
+        createdAt: true, 
+        members: true, 
+        user: { select: { school: true } },
+        event: { select: { category: true } }
+      }
+    })
+  ]);
 
   // 4. Build school-specific email -> earliest registration date map and E-GAMES participant sets
   const schoolEmailToEarliestRegDate = new Map<string, Map<string, Date>>();

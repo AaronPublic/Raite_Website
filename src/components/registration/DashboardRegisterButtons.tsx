@@ -14,9 +14,10 @@ import {
 
 interface DashboardRegisterButtonsProps {
   isApproved: boolean;
+  isNonMember?: boolean;
 }
 
-export default function DashboardRegisterButtons({ isApproved }: DashboardRegisterButtonsProps) {
+export default function DashboardRegisterButtons({ isApproved, isNonMember }: DashboardRegisterButtonsProps) {
   const [showModal, setShowModal] = useState(false);
 
   const handleClick = (e: React.MouseEvent) => {

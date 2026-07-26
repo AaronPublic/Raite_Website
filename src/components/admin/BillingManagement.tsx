@@ -174,7 +174,7 @@ export default function BillingManagement() {
                           type="number"
                           value={discounts[item.id] || "0"}
                           onChange={(e) => setDiscounts(prev => ({ ...prev, [item.id]: e.target.value }))}
-                          className="h-8 text-center rounded-lg"
+                          className="h-8 text-center rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
                         <Button
                           size="icon"

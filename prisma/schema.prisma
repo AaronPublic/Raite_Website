@@ -18,6 +18,7 @@ model School {
   abbreviation String         @unique
   category     SchoolCategory @default(MEMBER)
   discount     Float          @default(0)
+  billingPaid  Boolean        @default(false)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 }

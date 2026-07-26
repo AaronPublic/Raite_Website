@@ -104,9 +104,33 @@ export async function updateSchoolDiscount(schoolId: string, discount: number) {
       data: { discount },
     });
     revalidatePath("/admin/settings");
+    revalidatePath("/admin/billing");
     return { success: true };
   } catch (err) {
     return { error: "Failed to update discount" };
+  }
+}
+
+export async function toggleSchoolPaymentStatus(schoolId: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const admin = await db.user.findUnique({ where: { clerkId: userId } });
+  if (!admin || admin.role !== "ADMIN") throw new Error("Forbidden");
+
+  try {
+    const school = await db.school.findUnique({ where: { id: schoolId } });
+    if (!school) return { error: "School not found" };
+
+    const updated = await db.school.update({
+      where: { id: schoolId },
+      data: { billingPaid: !school.billingPaid },
+    });
+
+    revalidatePath("/admin/billing");
+    return { success: true, billingPaid: updated.billingPaid };
+  } catch (err) {
+    return { error: "Failed to toggle payment status" };
   }
 }
 
@@ -196,6 +220,7 @@ export async function getBillingDashboardData() {
       abbreviation: school.abbreviation,
       category: school.category,
       discount: school.discount,
+      billingPaid: school.billingPaid,
       participantCount: schoolParticipants.length,
       baseBill: actualBill,
       grandTotal

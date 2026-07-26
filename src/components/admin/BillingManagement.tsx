@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getBillingDashboardData, updateSchoolDiscount, getSchoolBillingData } from "@/app/actions/billing";
+import { getBillingDashboardData, updateSchoolDiscount, getSchoolBillingData, toggleSchoolPaymentStatus } from "@/app/actions/billing";
 import { generateRAITEBillingPDF } from "@/lib/pdf-reports";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FileText, Save, Loader2, Search } from "lucide-react";
+import { FileText, Save, Loader2, Search, Check, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 interface BillingItem {
@@ -15,6 +15,7 @@ interface BillingItem {
   abbreviation: string;
   category: string;
   discount: number;
+  billingPaid: boolean;
   participantCount: number;
   baseBill: number;
   grandTotal: number;
@@ -25,6 +26,7 @@ export default function BillingManagement() {
   const [discounts, setDiscounts] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
+  const [payLoading, setPayLoading] = useState<Record<string, boolean>>({});
   const [pdfLoading, setPdfLoading] = useState<Record<string, boolean>>({});
 
   // Search & Pagination State
@@ -76,6 +78,19 @@ export default function BillingManagement() {
     }
   };
 
+  const handleTogglePayment = async (id: string) => {
+    setPayLoading(prev => ({ ...prev, [id]: true }));
+    const res = await toggleSchoolPaymentStatus(id);
+    setPayLoading(prev => ({ ...prev, [id]: false }));
+
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success("Payment status updated successfully");
+      loadData();
+    }
+  };
+
   const handleDownloadPDF = async (item: BillingItem) => {
     setPdfLoading(prev => ({ ...prev, [item.id]: true }));
     try {
@@ -102,6 +117,11 @@ export default function BillingManagement() {
     currentPage * itemsPerPage
   );
 
+  // Calculate Total Confirmed Paid
+  const totalPaid = items
+    .filter(item => item.billingPaid)
+    .reduce((sum, item) => sum + item.grandTotal, 0);
+
   if (isLoading) {
     return (
       <Card>
@@ -115,8 +135,18 @@ export default function BillingManagement() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>School Billing Dashboard</CardTitle>
-        <CardDescription>Monitor competition finances, manage institutional discounts, and generate billing reports.</CardDescription>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-1">
+            <CardTitle>School Billing Dashboard</CardTitle>
+            <CardDescription>Monitor competition finances, manage institutional discounts, and generate billing reports.</CardDescription>
+          </div>
+          <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800/50 p-4 rounded-2xl flex flex-col justify-center items-end sm:min-w-[200px] shrink-0">
+            <span className="text-[10px] font-black uppercase tracking-wider text-green-700 dark:text-green-400">Total Confirmed Paid</span>
+            <span className="text-2xl font-black text-green-700 dark:text-green-400 font-mono mt-0.5">
+              ₱{totalPaid.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+            </span>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         {/* Search Bar */}
@@ -132,7 +162,7 @@ export default function BillingManagement() {
 
         {/* Responsive Table Wrapper */}
         <div className="overflow-x-auto w-full border rounded-xl">
-          <table className="w-full text-sm min-w-[900px]">
+          <table className="w-full text-sm min-w-[950px]">
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="p-3 text-left">School</th>
@@ -141,13 +171,14 @@ export default function BillingManagement() {
                 <th className="p-3 text-right">Base Bill</th>
                 <th className="p-3 text-center">Discount (PHP)</th>
                 <th className="p-3 text-right">Grand Total</th>
+                <th className="p-3 text-center">Status</th>
                 <th className="p-3 text-center">Invoice</th>
               </tr>
             </thead>
             <tbody>
               {paginatedItems.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-gray-400 font-medium">
+                  <td colSpan={8} className="p-8 text-center text-gray-400 font-medium">
                     No schools found matching your search.
                   </td>
                 </tr>
@@ -189,6 +220,30 @@ export default function BillingManagement() {
                     </td>
                     <td className="p-3 text-right font-mono font-black text-blue-600 dark:text-blue-400">
                       ₱{item.grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="p-3 text-center">
+                      <Button
+                        size="sm"
+                        onClick={() => handleTogglePayment(item.id)}
+                        disabled={payLoading[item.id]}
+                        className={`rounded-xl font-bold h-9 w-24 border ${
+                          item.billingPaid
+                            ? "bg-green-100 hover:bg-green-200 text-green-800 border-green-200"
+                            : "bg-red-50 hover:bg-red-100 text-red-700 border-red-100 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/50"
+                        }`}
+                      >
+                        {payLoading[item.id] ? (
+                          <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                        ) : item.billingPaid ? (
+                          <span className="flex items-center justify-center gap-1">
+                            <Check className="w-4 h-4 text-green-700" /> Paid
+                          </span>
+                        ) : (
+                          <span className="flex items-center justify-center gap-1">
+                            <AlertCircle className="w-4 h-4" /> Unpaid
+                          </span>
+                        )}
+                      </Button>
                     </td>
                     <td className="p-3 text-center">
                       <Button

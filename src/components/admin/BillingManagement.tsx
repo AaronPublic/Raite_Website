@@ -6,7 +6,7 @@ import { generateRAITEBillingPDF } from "@/lib/pdf-reports";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FileText, Save, Loader2, Search, Check, AlertCircle } from "lucide-react";
+import { FileText, Save, Loader2, Search, Check, AlertCircle, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 
 interface BillingItem {
@@ -133,22 +133,33 @@ export default function BillingManagement() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="space-y-1">
-            <CardTitle>School Billing Dashboard</CardTitle>
-            <CardDescription>Monitor competition finances, manage institutional discounts, and generate billing reports.</CardDescription>
+    <div className="space-y-12">
+      {/* Dynamic Upper Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3 text-blue-600">
+            <CreditCard className="w-5 h-5" />
+            <span className="text-xs font-black uppercase tracking-[0.3em]">Financial Center</span>
           </div>
-          <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800/50 p-4 rounded-2xl flex flex-col justify-center items-end sm:min-w-[200px] shrink-0">
-            <span className="text-[10px] font-black uppercase tracking-wider text-green-700 dark:text-green-400">Total Confirmed Paid</span>
-            <span className="text-2xl font-black text-green-700 dark:text-green-400 font-mono mt-0.5">
-              ₱{totalPaid.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-            </span>
-          </div>
+          <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-gray-900 dark:text-white uppercase leading-none">
+            School <span className="text-blue-600">Billing</span>
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 font-medium text-lg mt-2">Manage institutional invoices, membership status, and discounts.</p>
         </div>
-      </CardHeader>
-      <CardContent>
+        <div className="bg-gradient-to-br from-green-500 to-emerald-600 dark:from-green-600 dark:to-emerald-700 text-white p-6 rounded-[2rem] flex flex-col justify-center items-end min-w-[260px] shadow-xl shadow-green-500/20 dark:shadow-none shrink-0 transition-all duration-300 hover:scale-[1.02]">
+          <span className="text-xs font-black uppercase tracking-[0.15em] text-green-100">Total Confirmed Paid</span>
+          <span className="text-3xl md:text-4xl font-black font-mono mt-1 text-white">
+            ₱{totalPaid.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+          </span>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Billing Registry</CardTitle>
+          <CardDescription>Monitor competition finances, manage institutional discounts, and generate billing reports.</CardDescription>
+        </CardHeader>
+        <CardContent>
         {/* Search Bar */}
         <div className="flex items-center gap-2 mb-4 relative max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -301,5 +312,6 @@ export default function BillingManagement() {
         </div>
       </CardContent>
     </Card>
+  </div>
   );
 }

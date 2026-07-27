@@ -1,22 +1,86 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { User } from "@prisma/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, FileDown, UserCheck, School } from "lucide-react";
+import { Search, FileDown, UserCheck, School, Loader2 } from "lucide-react";
 import { generateRAITEReport } from "@/lib/pdf-reports";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { updateCoachCategory } from "@/app/actions/coaches";
+import { toast } from "sonner";
 
 interface CoachesManagementProps {
   initialCoaches: User[];
 }
 
+function CategorySelect({ 
+  coachId, 
+  initialCategory, 
+  onChange 
+}: { 
+  coachId: string; 
+  initialCategory: "MEMBER" | "NON_MEMBER" | null; 
+  onChange: (newCategory: "MEMBER" | "NON_MEMBER" | null) => void;
+}) {
+  const [category, setCategory] = useState<string>(initialCategory || "UNCLASSIFIED");
+  const [isPending, startTransition] = useTransition();
+
+  const handleChange = (val: string) => {
+    const dbValue = val === "UNCLASSIFIED" ? null : (val as "MEMBER" | "NON_MEMBER");
+    startTransition(async () => {
+      try {
+        const res = await updateCoachCategory(coachId, dbValue);
+        if (res.success) {
+          setCategory(val);
+          onChange(dbValue);
+          toast.success("Coach classification updated.");
+        } else {
+          toast.error("Failed to update classification.");
+        }
+      } catch (err: any) {
+        toast.error(err.message || "Failed to update classification.");
+      }
+    });
+  };
+
+  return (
+    <div className="w-[160px]">
+      <Select value={category} onValueChange={handleChange} disabled={isPending}>
+        <SelectTrigger className={cn(
+          "h-9 rounded-xl font-bold text-xs px-3 border transition-all shrink-0",
+          category === "MEMBER" 
+            ? "bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800"
+            : category === "NON_MEMBER"
+              ? "bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-850"
+              : "border-gray-200 text-gray-500 dark:text-gray-400 dark:border-gray-800"
+        )}>
+          {isPending ? (
+            <div className="flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Updating...</div>
+          ) : (
+            <SelectValue />
+          )}
+        </SelectTrigger>
+        <SelectContent className="rounded-xl border-gray-150 dark:border-gray-800">
+          <SelectItem value="UNCLASSIFIED" className="text-xs font-bold text-gray-500">Unclassified</SelectItem>
+          <SelectItem value="MEMBER" className="text-xs font-bold text-blue-600 dark:text-blue-400">Member</SelectItem>
+          <SelectItem value="NON_MEMBER" className="text-xs font-bold text-orange-600 dark:text-orange-400">Non-Member</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
 export default function CoachesManagement({ initialCoaches }: CoachesManagementProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [coaches, setCoaches] = useState<User[]>(initialCoaches);
+
+  const handleCategoryChange = (coachId: string, newCategory: "MEMBER" | "NON_MEMBER" | null) => {
+    setCoaches(prev => prev.map(c => c.id === coachId ? { ...c, category: newCategory } : c));
+  };
 
   // Filter coaches based on query
   const filteredCoaches = coaches.filter(
@@ -126,22 +190,11 @@ export default function CoachesManagement({ initialCoaches }: CoachesManagementP
                         </span>
                       </TableCell>
                       <TableCell className="px-8">
-                        {coach.category ? (
-                          <span
-                            className={cn(
-                              "text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border",
-                              coach.category === "MEMBER"
-                                ? "bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800"
-                                : "bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-850"
-                            )}
-                          >
-                            {coach.category === "MEMBER" ? "Member" : "Non-Member"}
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-bold text-gray-300 dark:text-gray-600 uppercase tracking-widest">
-                            Unclassified
-                          </span>
-                        )}
+                        <CategorySelect 
+                          coachId={coach.id} 
+                          initialCategory={coach.category} 
+                          onChange={(newCat) => handleCategoryChange(coach.id, newCat)}
+                        />
                       </TableCell>
                     </TableRow>
                   ))

@@ -26,3 +26,16 @@ export async function getFacultyCoaches() {
     ]
   });
 }
+
+export async function updateCoachCategory(id: string, category: "MEMBER" | "NON_MEMBER" | null) {
+  await checkAdmin();
+
+  const updated = await db.user.update({
+    where: { id },
+    data: { category }
+  });
+
+  revalidatePath("/admin/coaches");
+  revalidatePath("/admin/users");
+  return { success: true, category: updated.category };
+}

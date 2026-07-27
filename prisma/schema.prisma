@@ -34,6 +34,8 @@ model User {
   course             String?
   uniqueId           String?        @unique
   coachCertificateUrl String?
+  schoolIdUrl        String?
+  category           SchoolCategory?
   approved            Boolean        @default(false)
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt

@@ -23,51 +23,111 @@ import { toggleUserApproval } from "@/app/actions/participants";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
-function ApprovalCell({ userId, initialApproved }: { userId: string; initialApproved: boolean }) {
+function ApprovalCell({ userId, initialApproved, role }: { userId: string; initialApproved: boolean; role: string }) {
   const [isPending, startTransition] = useTransition();
   const [approved, setApproved] = useState(initialApproved);
+  const [showModal, setShowModal] = useState(false);
+  const router = useRouter();
 
-  const handleToggle = () => {
+  const handleToggle = (category?: "MEMBER" | "NON_MEMBER") => {
     startTransition(async () => {
       try {
-        const res = await toggleUserApproval(userId);
+        const res = await toggleUserApproval(userId, category);
         if (res.success) {
           setApproved(res.approved);
           toast.success("User approval status updated.");
+          router.refresh();
         } else {
           toast.error("Failed to update user approval.");
         }
       } catch (err: any) {
         toast.error(err.message || "Failed to update user approval.");
+      } finally {
+        setShowModal(false);
       }
     });
   };
 
+  const handleClick = () => {
+    if (role === "FACULTY_COACH" && !approved) {
+      setShowModal(true);
+    } else {
+      handleToggle();
+    }
+  };
+
   return (
-    <Button
-      variant={approved ? "default" : "outline"}
-      size="sm"
-      onClick={handleToggle}
-      disabled={isPending}
-      className={cn(
-        "rounded-xl font-bold h-9 px-3 transition-all text-xs",
-        approved
-          ? "bg-green-600 hover:bg-green-700 text-white border-none shadow-md shadow-green-600/20"
-          : "border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:bg-green-50 dark:hover:bg-green-950/20"
-      )}
-    >
-      {isPending ? (
-        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-      ) : approved ? (
-        <span className="flex items-center gap-1"><Check className="w-3.5 h-3.5" /> Approved</span>
-      ) : (
-        <span className="flex items-center gap-1"><X className="w-3.5 h-3.5" /> Unapproved</span>
-      )}
-    </Button>
+    <>
+      <Button
+        variant={approved ? "default" : "outline"}
+        size="sm"
+        onClick={handleClick}
+        disabled={isPending}
+        className={cn(
+          "rounded-xl font-bold h-9 px-3 transition-all text-xs",
+          approved
+            ? "bg-green-600 hover:bg-green-700 text-white border-none shadow-md shadow-green-600/20"
+            : "border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:bg-green-50 dark:hover:bg-green-950/20"
+        )}
+      >
+        {isPending ? (
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        ) : approved ? (
+          <span className="flex items-center gap-1"><Check className="w-3.5 h-3.5" /> Approved</span>
+        ) : (
+          <span className="flex items-center gap-1"><X className="w-3.5 h-3.5" /> Unapproved</span>
+        )}
+      </Button>
+
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md rounded-[2rem] border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 p-6 shadow-2xl space-y-6">
+          <div className="space-y-2">
+            <DialogTitle className="text-xl font-black text-gray-900 dark:text-white leading-tight uppercase tracking-tight">
+              Select Coach Category
+            </DialogTitle>
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              Please classify this Faculty Coach before approval. This category determines their billing calculations.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              variant="default"
+              onClick={() => handleToggle("MEMBER")}
+              disabled={isPending}
+              className="h-16 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-blue-600/10 flex flex-col items-center justify-center gap-1"
+            >
+              <span>Member</span>
+              <span className="text-[9px] font-medium text-blue-100 normal-case">Participating Institution</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleToggle("NON_MEMBER")}
+              disabled={isPending}
+              className="h-16 rounded-2xl border-2 border-gray-200 dark:border-gray-850 hover:bg-orange-50 dark:hover:bg-orange-950/10 hover:border-orange-500 text-gray-800 dark:text-gray-200 hover:text-orange-600 font-black text-sm uppercase tracking-wider flex flex-col items-center justify-center gap-1"
+            >
+              <span>Non-Member</span>
+              <span className="text-[9px] font-medium text-gray-400 dark:text-gray-500 normal-case">Non-Member Institution</span>
+            </Button>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <Button
+              variant="ghost"
+              onClick={() => setShowModal(false)}
+              disabled={isPending}
+              className="rounded-xl font-bold text-gray-400 hover:text-gray-700 dark:hover:text-white"
+            >
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
-function CertificateModal({ url, coachName }: { url: string; coachName: string | null }) {
+function CertificateModal({ url, coachName, title = "Membership Certificate" }: { url: string; coachName: string | null; title?: string }) {
   const [open, setOpen] = useState(false);
   const isImage = /\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?.*)?$/i.test(url);
   const isPdf = /\.pdf(\?.*)?$/i.test(url);
@@ -81,7 +141,7 @@ function CertificateModal({ url, coachName }: { url: string; coachName: string |
         className="rounded-xl font-bold h-9 px-3 text-xs border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-all gap-1.5"
       >
         <FileText className="w-3.5 h-3.5" />
-        View
+        View {title.includes("ID") ? "ID" : "Cert"}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -97,7 +157,7 @@ function CertificateModal({ url, coachName }: { url: string; coachName: string |
               </div>
               <div>
                 <DialogTitle className="text-sm font-black text-gray-900 dark:text-white leading-tight">
-                  Membership Certificate
+                  {title}
                 </DialogTitle>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest truncate max-w-[200px] sm:max-w-xs">
                   {coachName || "Faculty Coach"}
@@ -221,14 +281,15 @@ export default function ParticipantsTable({
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">School</TableHead>
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Course</TableHead>
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Role</TableHead>
-                <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Certificate</TableHead>
+                <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Category</TableHead>
+                <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Documents</TableHead>
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Joined</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {participants.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-32 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">
+                  <TableCell colSpan={9} className="h-32 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">
                     No users found.
                   </TableCell>
                 </TableRow>
@@ -236,7 +297,7 @@ export default function ParticipantsTable({
                 participants.map((user) => (
                   <TableRow key={user.id} className="h-20 transition-all border-b border-gray-100 dark:border-gray-800/50 hover:bg-gray-50/50 dark:hover:bg-gray-800/20 group">
                     <TableCell className="px-6">
-                      <ApprovalCell userId={user.id} initialApproved={(user as any).approved} />
+                      <ApprovalCell userId={user.id} initialApproved={(user as any).approved} role={user.role} />
                     </TableCell>
                     <TableCell className="px-6 font-bold text-gray-900 dark:text-white">{user.name || "N/A"}</TableCell>
                     <TableCell className="px-6 text-sm font-medium text-gray-500">{user.email}</TableCell>
@@ -248,16 +309,48 @@ export default function ParticipantsTable({
                       </span>
                     </TableCell>
                     <TableCell className="px-6">
-                      {user.role === "FACULTY_COACH" && (user as any).coachCertificateUrl ? (
-                        <CertificateModal
-                          url={(user as any).coachCertificateUrl}
-                          coachName={user.name}
-                        />
+                      {user.role === "FACULTY_COACH" && (user as any).category ? (
+                        <span className={cn(
+                          "text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border",
+                          (user as any).category === "MEMBER" 
+                            ? "bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800"
+                            : "bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-850"
+                        )}>
+                          {(user as any).category === "MEMBER" ? "Member" : "Non-Member"}
+                        </span>
                       ) : (
                         <span className="text-[10px] font-bold text-gray-300 dark:text-gray-600 uppercase tracking-widest">
                           —
                         </span>
                       )}
+                    </TableCell>
+                    <TableCell className="px-6">
+                      <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-2">
+                        {user.role === "FACULTY_COACH" && (user as any).coachCertificateUrl && (
+                          <CertificateModal
+                            url={(user as any).coachCertificateUrl}
+                            coachName={user.name}
+                            title="Membership Certificate"
+                          />
+                        )}
+                        {user.role === "FACULTY_COACH" && (user as any).schoolIdUrl && (
+                          <CertificateModal
+                            url={(user as any).schoolIdUrl}
+                            coachName={user.name}
+                            title="School ID"
+                          />
+                        )}
+                        {user.role !== "FACULTY_COACH" && (
+                          <span className="text-[10px] font-bold text-gray-300 dark:text-gray-600 uppercase tracking-widest">
+                            —
+                          </span>
+                        )}
+                        {user.role === "FACULTY_COACH" && !(user as any).coachCertificateUrl && !(user as any).schoolIdUrl && (
+                          <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest">
+                            No files
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="px-6 text-xs font-bold text-gray-400">
                       {new Date(user.createdAt).toLocaleDateString()}

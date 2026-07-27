@@ -249,17 +249,28 @@ export async function deleteParticipant(id: string) {
   return { success: true };
 }
 
-export async function toggleUserApproval(id: string) {
+export async function toggleUserApproval(id: string, category?: "MEMBER" | "NON_MEMBER") {
   await checkAdmin();
 
   const user = await db.user.findUnique({ where: { id } });
   if (!user) throw new Error("User not found");
 
+  const isApproving = !user.approved;
+  const dataToUpdate: any = { approved: isApproving };
+
+  if (user.role === "FACULTY_COACH" && isApproving) {
+    if (!category) {
+      throw new Error("Category is required when approving a faculty coach.");
+    }
+    dataToUpdate.category = category;
+  }
+
   const updated = await db.user.update({
     where: { id },
-    data: { approved: !user.approved },
+    data: dataToUpdate,
   });
 
   revalidatePath("/admin/users");
-  return { success: true, approved: updated.approved };
+  revalidatePath("/admin/coaches");
+  return { success: true, approved: updated.approved, category: updated.category };
 }

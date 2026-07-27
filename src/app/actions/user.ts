@@ -10,7 +10,11 @@ const profileSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   school: z.string().min(2, "School name is required"),
-  coachCertificateUrl: z.string().min(1, "Coach Membership Certificate is required"),
+  coachCertificateUrl: z.string().optional().nullable(),
+  schoolIdUrl: z.string().optional().nullable(),
+}).refine(data => data.coachCertificateUrl || data.schoolIdUrl, {
+  message: "You must upload either a Coach Certification of Membership or a School ID.",
+  path: ["coachCertificateUrl"]
 });
 
 export async function completeProfile(formData: z.infer<typeof profileSchema>) {
@@ -19,9 +23,9 @@ export async function completeProfile(formData: z.infer<typeof profileSchema>) {
     if (!user) throw new Error("Unauthorized");
 
     const validatedFields = profileSchema.safeParse(formData);
-    if (!validatedFields.success) return { error: "Invalid fields" };
+    if (!validatedFields.success) return { error: "You must upload either a Coach Certification of Membership or a School ID." };
 
-    const { firstName, lastName, school, coachCertificateUrl } = validatedFields.data;
+    const { firstName, lastName, school, coachCertificateUrl, schoolIdUrl } = validatedFields.data;
     const email = user.emailAddresses[0]?.emailAddress;
     
     if (!email) throw new Error("No email found for user");
@@ -43,7 +47,9 @@ export async function completeProfile(formData: z.infer<typeof profileSchema>) {
                 school,
                 role,
                 name: name || null,
-                coachCertificateUrl,
+                coachCertificateUrl: coachCertificateUrl || null,
+                schoolIdUrl: schoolIdUrl || null,
+                approved: false,
             },
         });
     } else {
@@ -53,7 +59,9 @@ export async function completeProfile(formData: z.infer<typeof profileSchema>) {
                 school,
                 role,
                 name: name || null,
-                coachCertificateUrl,
+                coachCertificateUrl: coachCertificateUrl || null,
+                schoolIdUrl: schoolIdUrl || null,
+                approved: false,
             },
             create: {
                 clerkId: user.id,
@@ -61,7 +69,9 @@ export async function completeProfile(formData: z.infer<typeof profileSchema>) {
                 name: name || null,
                 school,
                 role,
-                coachCertificateUrl,
+                coachCertificateUrl: coachCertificateUrl || null,
+                schoolIdUrl: schoolIdUrl || null,
+                approved: false,
             },
         });
     }

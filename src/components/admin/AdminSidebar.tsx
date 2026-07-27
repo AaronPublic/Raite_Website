@@ -13,7 +13,9 @@ import {
   ShieldAlert,
   Settings,
   FileText,
-  CreditCard
+  CreditCard,
+  School,
+  UserCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SafeUserButton } from "@/components/SafeUserButton";
@@ -25,6 +27,8 @@ export function AdminSidebar({ user }: { user: { name: string | null; role: stri
     { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/competitions", label: "Competitions", icon: Trophy },
     { href: "/admin/users", label: "Users", icon: Users },
+    { href: "/admin/schools", label: "Manage Schools", icon: School },
+    { href: "/admin/coaches", label: "Faculty Coaches", icon: UserCheck },
     { href: "/admin/registrations", label: "Registrations", icon: ClipboardList },
     { href: "/admin/submissions", label: "Submissions", icon: FileText },
     { href: "/admin/announcements", label: "Announcements", icon: Megaphone },

@@ -1,14 +1,9 @@
 import { getSystemSetting } from "@/lib/data/settings";
 import SettingsForm from "@/components/admin/SettingsForm";
 import { Settings } from "lucide-react";
-import { getSchools } from "@/lib/data/schools";
-import SchoolManagement from "@/components/admin/SchoolManagement";
 
 export default async function AdminSettingsPage() {
-  const [missionStartDate, schools] = await Promise.all([
-    getSystemSetting("MISSION_START_DATE"),
-    getSchools(),
-  ]);
+  const missionStartDate = await getSystemSetting("MISSION_START_DATE");
 
   return (
     <div className="space-y-12">
@@ -25,7 +20,6 @@ export default async function AdminSettingsPage() {
 
       <div className="grid grid-cols-1 gap-12">
         <SettingsForm initialMissionStartDate={missionStartDate} />
-        <SchoolManagement schools={schools} />
       </div>
     </div>
   );

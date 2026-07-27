@@ -19,6 +19,7 @@ interface Event {
   category: string | null;
   subcategory: string | null;
   maxParticipantsPerRegistration: number;
+  minParticipantsPerRegistration?: number | null;
   isRegistered?: boolean;
 }
 
@@ -39,7 +40,7 @@ export default function EventList({ events }: { events: Event[] }) {
           eventCategory: selectedEvent.category || undefined,
           eventSubcategory: selectedEvent.subcategory || undefined,
           maxParticipantsPerRegistration: selectedEvent.maxParticipantsPerRegistration,
-          minParticipantsPerRegistration: selectedEvent.minParticipantsPerRegistration
+          minParticipantsPerRegistration: selectedEvent.minParticipantsPerRegistration ?? undefined
         });
       }
     }
@@ -62,7 +63,7 @@ export default function EventList({ events }: { events: Event[] }) {
       eventCategory: event.category || undefined,
       eventSubcategory: event.subcategory || undefined,
       maxParticipantsPerRegistration: event.maxParticipantsPerRegistration,
-      minParticipantsPerRegistration: event.minParticipantsPerRegistration
+      minParticipantsPerRegistration: event.minParticipantsPerRegistration ?? undefined
     });
   };
 

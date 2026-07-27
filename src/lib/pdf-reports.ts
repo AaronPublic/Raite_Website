@@ -207,66 +207,68 @@ export const generateRAITEBillingPDF = (billingData: {
   // Summary Box Calculation Layout
   const finalY = (doc as any).lastAutoTable.finalY + 10;
   
-  // Gather summary items dynamically
-  const boxItems = [
-    { label: "Actual Bill:", value: `PHP ${billingData.summary.actualBill.toLocaleString("en-US", { minimumFractionDigits: 2 })}` },
+  // Calculate participant count
+  const participantCount = billingData.participants.filter(p => p.role === "PARTICIPANT").length;
+  
+  // Table 1 data
+  const boxItems1 = [
+    { label: "Registration Fees:", value: `PHP ${billingData.summary.actualBill.toLocaleString("en-US", { minimumFractionDigits: 2 })}` },
     { label: "Discount:", value: `-PHP ${billingData.summary.discount.toLocaleString("en-US", { minimumFractionDigits: 2 })}` },
-    { label: "Sub Total:", value: `PHP ${billingData.summary.subTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}` }
+    { label: "E-GAMES Pot Money (300 PHP/player):", value: `PHP ${billingData.summary.egamesPotMoney.toLocaleString("en-US", { minimumFractionDigits: 2 })}` },
+    { label: "Sub Total:", value: `PHP ${(billingData.summary.subTotal + billingData.summary.egamesPotMoney).toLocaleString("en-US", { minimumFractionDigits: 2 })}` }
   ];
 
-  if (billingData.summary.egamesPotMoney > 0) {
-    boxItems.push({
-      label: "E-GAMES Pot Money (300/p):",
-      value: `PHP ${billingData.summary.egamesPotMoney.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
-    });
-  }
+  // Table 2 data
+  const boxItems2: { label: string; value: string }[] = [];
+  const isNonMemberSchool = billingData.category !== "MEMBER";
+  
+  // 2.1 Non Member Additional (300 PHP/participant)
+  const competitorAddValue = isNonMemberSchool ? (participantCount * 300) : 0;
+  boxItems2.push({
+    label: `Non-Member Add. (300 PHP x ${participantCount}):`,
+    value: `PHP ${competitorAddValue.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+  });
 
-  let hasAdditionals = false;
-  if (billingData.summary.competitorAdditional > 0) {
-    boxItems.push({
-      label: "Non-Member Add. (300/p):",
-      value: `PHP ${billingData.summary.competitorAdditional.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
-    });
-    hasAdditionals = true;
-  }
+  // 2.2 Non Member Faculty Coach (500 PHP/coach)
   const nonMemberCoaches = billingData.participants.filter(
     p => p.role === "FACULTY_COACH" && p.category === "NON_MEMBER"
   );
-
   if (nonMemberCoaches.length > 0) {
     nonMemberCoaches.forEach(coach => {
-      // Truncate name to 11 characters if it exceeds 14 characters to prevent PDF overlap
-      const displayName = coach.name.length > 14
-        ? coach.name.substring(0, 11) + "..."
-        : coach.name;
-      boxItems.push({
-        label: `Non-Member Coach (${displayName}):`,
+      boxItems2.push({
+        label: `${coach.name} - Individual Membership:`,
         value: `PHP 500.00`
       });
     });
-    hasAdditionals = true;
-  }
-  if (billingData.summary.institutionalFee > 0) {
-    boxItems.push({
-      label: "Inst. Membership Fee:",
-      value: `PHP ${billingData.summary.institutionalFee.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
-    });
-    hasAdditionals = true;
-  }
-
-  if (!hasAdditionals) {
-    boxItems.push({
-      label: "Additionals:",
-      value: "N/A"
+  } else {
+    boxItems2.push({
+      label: "Coach Individual Membership:",
+      value: `PHP 0.00`
     });
   }
 
-  // Calculate box height dynamically (7mm per row, 3mm padding, 8mm grand total, 3mm bottom padding)
+  // 2.3 Inst. Membership Fee: 3500PHP
+  const instFee = isNonMemberSchool ? 3500 : 0;
+  boxItems2.push({
+    label: "Inst. Membership Fee (3500 PHP):",
+    value: `PHP ${instFee.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+  });
+
+  // 2.4 Table 2 Sub Total (Membership and Other Charges Sub Total)
+  const otherChargesSubTotal = competitorAddValue + (nonMemberCoaches.length > 0 ? (nonMemberCoaches.length * 500) : 0) + instFee;
+  boxItems2.push({
+    label: "Sub Total:",
+    value: `PHP ${otherChargesSubTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+  });
+
+  // Calculate box height dynamically (1 header + maxLines items + divider + grand total + paddings)
+  const maxLines = Math.max(boxItems1.length, boxItems2.length);
   const rowHeight = 7;
+  const headerHeight = 8;
   const dividerPadding = 3;
   const grandTotalHeight = 8;
-  const paddingBottom = 3;
-  const boxHeight = (boxItems.length * rowHeight) + dividerPadding + grandTotalHeight + paddingBottom;
+  const paddingBottom = 4;
+  const boxHeight = headerHeight + (maxLines * rowHeight) + dividerPadding + grandTotalHeight + paddingBottom;
 
   const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
   const safetyMargin = 12;
@@ -277,34 +279,101 @@ export const generateRAITEBillingPDF = (billingData: {
     boxY = 15; // Start at the top of the new page
   }
   
-  // Draw Border Box for Summary (widen to 91mm, starts at 105)
+  // ==================== DRAW TABLE 1 (Left Box) ====================
   doc.setDrawColor(220, 225, 230);
   doc.setFillColor(250, 251, 252);
-  doc.rect(105, boxY, 91, boxHeight, "FD");
+  doc.rect(14, boxY, 75, boxHeight, "FD");
 
-  // Draw Items (font size slightly reduced to 8.5)
+  // Header 1
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(8.5);
-  doc.setTextColor(50);
+  doc.setTextColor(0, 56, 168); // Blue
+  doc.text("Registration Fees", 17, boxY + 6);
   
-  let currentY = boxY + 7;
-  boxItems.forEach(item => {
-    doc.text(item.label, 108, currentY); // starts at 108
-    doc.text(item.value, 193, currentY, { align: "right" });
-    currentY += rowHeight;
+  // Header 1 Divider line
+  doc.setDrawColor(220, 225, 230);
+  doc.line(15, boxY + 8, 88, boxY + 8);
+
+  // Items 1
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(50);
+  let currentY1 = boxY + 14;
+  boxItems1.forEach((item, index) => {
+    const isSubTotal = index === boxItems1.length - 1;
+    if (isSubTotal) {
+      // Draw a thin divider line before the Sub Total
+      doc.setDrawColor(220, 225, 230);
+      doc.line(15, currentY1 - 4, 88, currentY1 - 4);
+      doc.setFont("helvetica", "bold");
+    } else {
+      doc.setFont("helvetica", "normal");
+    }
+    doc.text(item.label, 17, currentY1);
+    doc.text(item.value, 86, currentY1, { align: "right" });
+    currentY1 += rowHeight;
   });
 
-  // Grand Total Divider line
-  const dividerY = currentY - rowHeight + dividerPadding;
-  doc.setDrawColor(200, 200, 200);
-  doc.line(106, dividerY, 195, dividerY); // starts at 106
+  // ==================== DRAW TABLE 2 (Right Box) ====================
+  doc.setDrawColor(220, 225, 230);
+  doc.setFillColor(250, 251, 252);
+  doc.rect(95, boxY, 101, boxHeight, "FD");
 
+  // Header 2
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.setTextColor(0, 56, 168);
+  doc.setFontSize(8.5);
+  doc.setTextColor(0, 56, 168); // Blue
+  doc.text("Membership and Other Charges", 98, boxY + 6);
   
+  // Header 2 Divider line
+  doc.setDrawColor(220, 225, 230);
+  doc.line(96, boxY + 8, 195, boxY + 8);
+
+  // Items 2
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(50);
+  let currentY2 = boxY + 14;
+  boxItems2.forEach((item, index) => {
+    const isSubTotal = index === boxItems2.length - 1;
+    
+    // Dynamic Font Scaling to prevent overlapping without truncation
+    doc.setFont("helvetica", isSubTotal ? "bold" : "normal");
+    doc.setFontSize(8);
+    const maxLabelWidth = 72; // available space for label in mm (from x=98 to x=170)
+    const textWidth = doc.getTextWidth(item.label);
+    if (textWidth > maxLabelWidth) {
+      const scaledSize = Math.max(6.5, 8 * (maxLabelWidth / textWidth));
+      doc.setFontSize(scaledSize);
+    }
+    
+    if (isSubTotal) {
+      // Draw a thin divider line before the Sub Total
+      doc.setDrawColor(220, 225, 230);
+      doc.line(96, currentY2 - 4, 195, currentY2 - 4);
+    }
+    
+    doc.text(item.label, 98, currentY2);
+    
+    // Draw value
+    doc.setFont("helvetica", isSubTotal ? "bold" : "normal");
+    doc.setFontSize(8);
+    doc.text(item.value, 192, currentY2, { align: "right" });
+    
+    currentY2 += rowHeight;
+  });
+
+  // Grand Total Divider line in Table 2
+  const dividerY = boxY + boxHeight - grandTotalHeight - paddingBottom - 1;
+  doc.setDrawColor(200, 200, 200);
+  doc.line(96, dividerY, 195, dividerY);
+
+  // Grand Total
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9.5);
+  doc.setTextColor(128, 0, 0);
   const grandTotalY = dividerY + 6;
-  doc.text("Grand Total:", 108, grandTotalY); // starts at 108
-  doc.text(`PHP ${billingData.summary.grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, grandTotalY, { align: "right" });
+  doc.text("Grand Total:", 98, grandTotalY);
+  doc.text(`PHP ${billingData.summary.grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 192, grandTotalY, { align: "right" });
 
   doc.save(`RAITE_2026_BILLING_${billingData.abbreviation.toUpperCase()}.pdf`);
 };

@@ -61,14 +61,24 @@ export default async function CompetitionsPage({
           </div>
         ) : (
           <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-            {filteredEvents.map((event, index) => (
-              <CompetitionCard 
-                key={event.id} 
-                event={event} 
-                index={index} 
-                isAssigned={isSubAdmin}
-              />
-            ))}
+            {filteredEvents.map((event, index) => {
+              // Serialize Date objects to strings to prevent Next.js client component serialization crashes
+              const serializedEvent = {
+                ...event,
+                startDate: event.startDate.toISOString(),
+                endDate: event.endDate.toISOString(),
+                createdAt: event.createdAt.toISOString(),
+                updatedAt: event.updatedAt.toISOString(),
+              };
+              return (
+                <CompetitionCard 
+                  key={event.id} 
+                  event={serializedEvent as any} 
+                  index={index} 
+                  isAssigned={isSubAdmin}
+                />
+              );
+            })}
           </div>
         )}
       </div>

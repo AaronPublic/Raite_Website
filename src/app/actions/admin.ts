@@ -55,7 +55,8 @@ export async function addSchool(data: z.infer<typeof schoolSchema>) {
     await db.school.create({
       data: validated.data,
     });
-    revalidatePath("/admin/settings"); // Or wherever you place the school management
+    revalidatePath("/admin/schools");
+    revalidatePath("/admin/billing");
     return { success: true };
   } catch (err) {
     return { error: "Failed to add school (name or abbreviation may already exist)" };
@@ -74,7 +75,8 @@ export async function updateSchoolCategory(id: string, category: "MEMBER" | "NON
       where: { id },
       data: { category },
     });
-    revalidatePath("/admin/settings");
+    revalidatePath("/admin/schools");
+    revalidatePath("/admin/billing");
     return { success: true };
   } catch (err) {
     return { error: "Failed to update school category" };
@@ -92,7 +94,8 @@ export async function deleteSchool(id: string) {
     await db.school.delete({
       where: { id },
     });
-    revalidatePath("/admin/settings");
+    revalidatePath("/admin/schools");
+    revalidatePath("/admin/billing");
     return { success: true };
   } catch (err) {
     return { error: "Failed to delete school" };

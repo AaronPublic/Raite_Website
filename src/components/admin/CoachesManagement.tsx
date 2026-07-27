@@ -102,7 +102,7 @@ export default function CoachesManagement({ initialCoaches }: CoachesManagementP
     generateRAITEReport({
       title: "RAITE 2026 - Faculty Coaches Registry",
       subtitle: "List of registered institutional faculty coaches and category classifications.",
-      filename: "faculty_coaches_report",
+      filename: "RAITE2026_FACULTY_COACHES",
       columns,
       data
     });

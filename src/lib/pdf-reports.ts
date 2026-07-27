@@ -99,7 +99,7 @@ export const generateRAITEBillingPDF = (billingData: {
   abbreviation: string;
   category: string;
   discount: number;
-  participants: { name: string; email: string; dateRegistered: string; baseFee: number }[];
+  participants: { name: string; email: string; role: string; dateRegistered: string; baseFee: number }[];
   summary: {
     actualBill: number;
     discount: number;
@@ -172,11 +172,12 @@ export const generateRAITEBillingPDF = (billingData: {
   doc.text(dateStr, 38, 90);
 
   // Render Table
-  const tableColumns = ["#", "Participant Name", "Email Address", "Reg Date", "Base Fee"];
+  const tableColumns = ["#", "Name", "Email Address", "Role", "Reg Date", "Base Fee"];
   const tableData = billingData.participants.map((p, idx) => [
     idx + 1,
     p.name,
     p.email,
+    p.role === "FACULTY_COACH" ? "Faculty Coach" : "Participant",
     p.dateRegistered,
     `PHP ${p.baseFee.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
   ]);

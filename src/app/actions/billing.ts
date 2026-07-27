@@ -18,14 +18,14 @@ export async function getSchoolBillingData(schoolId: string) {
     throw new Error("Forbidden");
   }
 
-  // Fetch participants and registrations concurrently to cut query time in half
+  // Fetch participants (students and coaches) and registrations concurrently to cut query time in half
   const [participants, registrations] = await Promise.all([
     db.user.findMany({
       where: {
         school: school.name,
-        role: "PARTICIPANT"
+        role: { in: ["PARTICIPANT", "FACULTY_COACH"] }
       },
-      select: { name: true, email: true, createdAt: true }
+      select: { name: true, email: true, createdAt: true, role: true, category: true }
     }),
     db.registration.findMany({
       where: { user: { school: school.name } },
@@ -63,23 +63,35 @@ export async function getSchoolBillingData(schoolId: string) {
 
   const participantDetails = participants.map(p => {
     const cleanEmail = p.email.trim().toLowerCase();
-    const regDate = emailToEarliestRegDate.get(cleanEmail) || p.createdAt;
-    const month = regDate.getMonth();
-    const date = regDate.getDate();
+    
+    let baseFee = 0;
+    let dateRegistered = "N/A";
+    let isEgames = false;
 
-    let baseFee = 1700;
-    if (month === 6 && date <= 15) {
-      baseFee = 1500;
-    } else if (month < 6) {
-      baseFee = 1500;
+    if (p.role === "FACULTY_COACH") {
+      baseFee = p.category === "NON_MEMBER" ? 500 : 0;
+    } else {
+      const regDate = emailToEarliestRegDate.get(cleanEmail) || p.createdAt;
+      const month = regDate.getMonth();
+      const date = regDate.getDate();
+
+      baseFee = 1700;
+      if (month === 6 && date <= 15) {
+        baseFee = 1500;
+      } else if (month < 6) {
+        baseFee = 1500;
+      }
+      dateRegistered = regDate.toLocaleDateString();
+      isEgames = egamesEmails.has(cleanEmail);
     }
 
     return {
-      name: p.name || "Pending Registration",
+      name: p.name || (p.role === "FACULTY_COACH" ? "Pending Coach" : "Pending Registration"),
       email: p.email,
-      dateRegistered: regDate.toLocaleDateString(),
+      role: p.role,
+      dateRegistered,
       baseFee,
-      isEgames: egamesEmails.has(cleanEmail)
+      isEgames
     };
   });
 
@@ -87,10 +99,10 @@ export async function getSchoolBillingData(schoolId: string) {
   const discount = school.discount;
   const subTotal = actualBill - discount;
 
-  const egamesPotMoney = participantDetails.filter(p => p.isEgames).length * 300;
+  const egamesPotMoney = participantDetails.filter(p => p.role === "PARTICIPANT" && p.isEgames).length * 300;
 
   const isNonMember = school.category === "NON_MEMBER";
-  const competitorAdditional = isNonMember ? (participantDetails.length * 300) : 0;
+  const competitorAdditional = isNonMember ? (participantDetails.filter(p => p.role === "PARTICIPANT").length * 300) : 0;
   const institutionalFee = isNonMember ? 3500 : 0;
   const grandTotal = subTotal + egamesPotMoney + competitorAdditional + institutionalFee;
 
@@ -163,16 +175,16 @@ export async function getBillingDashboardData() {
   if (!admin || admin.role !== "ADMIN") throw new Error("Forbidden");
 
   // Fetch schools, participants, and registrations concurrently to minimize network latency and database block times
-  const [schools, allParticipants, allRegistrations] = await Promise.all([
+  const [schools, allUsers, allRegistrations] = await Promise.all([
     db.school.findMany({
       orderBy: { name: "asc" }
     }),
     db.user.findMany({
       where: {
-        role: "PARTICIPANT",
+        role: { in: ["PARTICIPANT", "FACULTY_COACH"] },
         school: { not: null }
       },
-      select: { school: true, email: true, createdAt: true }
+      select: { school: true, email: true, createdAt: true, role: true, category: true }
     }),
     db.registration.findMany({
       select: { 
@@ -219,46 +231,53 @@ export async function getBillingDashboardData() {
     }
   });
 
-  // 5. Group participants by school in-memory
-  const schoolParticipantsMap = new Map<string, typeof allParticipants>();
-  allParticipants.forEach(p => {
+  // 5. Group users by school in-memory
+  const schoolUsersMap = new Map<string, typeof allUsers>();
+  allUsers.forEach(p => {
     if (p.school) {
-      const list = schoolParticipantsMap.get(p.school) || [];
+      const list = schoolUsersMap.get(p.school) || [];
       list.push(p);
-      schoolParticipantsMap.set(p.school, list);
+      schoolUsersMap.set(p.school, list);
     }
   });
 
   // 6. Map schools to dashboard items
   const dashboardItems = schools.map(school => {
-    const schoolParticipants = schoolParticipantsMap.get(school.name) || [];
+    const schoolUsers = schoolUsersMap.get(school.name) || [];
     const emailMap = schoolEmailToEarliestRegDate.get(school.name);
     const egamesSet = schoolEgamesEmails.get(school.name);
 
     let actualBill = 0;
     let egamesCount = 0;
+    let participantCount = 0;
 
-    schoolParticipants.forEach(p => {
-      const cleanEmail = p.email.trim().toLowerCase();
-      const regDate = (emailMap && emailMap.get(cleanEmail)) || p.createdAt;
-      const month = regDate.getMonth();
-      const date = regDate.getDate();
+    schoolUsers.forEach(p => {
+      if (p.role === "FACULTY_COACH") {
+        const baseFee = p.category === "NON_MEMBER" ? 500 : 0;
+        actualBill += baseFee;
+      } else {
+        participantCount++;
+        const cleanEmail = p.email.trim().toLowerCase();
+        const regDate = (emailMap && emailMap.get(cleanEmail)) || p.createdAt;
+        const month = regDate.getMonth();
+        const date = regDate.getDate();
 
-      let baseFee = 1700;
-      if (month === 6 && date <= 15) {
-        baseFee = 1500;
-      } else if (month < 6) {
-        baseFee = 1500;
-      }
-      actualBill += baseFee;
+        let baseFee = 1700;
+        if (month === 6 && date <= 15) {
+          baseFee = 1500;
+        } else if (month < 6) {
+          baseFee = 1500;
+        }
+        actualBill += baseFee;
 
-      if (egamesSet && egamesSet.has(cleanEmail)) {
-        egamesCount++;
+        if (egamesSet && egamesSet.has(cleanEmail)) {
+          egamesCount++;
+        }
       }
     });
 
     const isNonMember = school.category === "NON_MEMBER";
-    const competitorAdditional = isNonMember ? (schoolParticipants.length * 300) : 0;
+    const competitorAdditional = isNonMember ? (participantCount * 300) : 0;
     const institutionalFee = isNonMember ? 3500 : 0;
     
     const egamesPotMoney = egamesCount * 300;
@@ -272,7 +291,7 @@ export async function getBillingDashboardData() {
       category: school.category,
       discount: school.discount,
       billingPaid: school.billingPaid,
-      participantCount: schoolParticipants.length,
+      participantCount: participantCount,
       baseBill: actualBill,
       grandTotal
     };

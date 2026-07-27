@@ -82,6 +82,7 @@ export async function getSchoolBillingData(schoolId: string) {
       name: p.name || (p.role === "FACULTY_COACH" ? "Pending Coach" : "Pending Registration"),
       email: p.email,
       role: p.role,
+      category: p.category,
       dateRegistered,
       baseFee,
       isEgames
@@ -96,8 +97,8 @@ export async function getSchoolBillingData(schoolId: string) {
 
   const isNonMember = school.category === "NON_MEMBER";
   const competitorAdditional = isNonMember ? (participantDetails.filter(p => p.role === "PARTICIPANT").length * 300) : 0;
-  const coachCount = participantDetails.filter(p => p.role === "FACULTY_COACH").length;
-  const nonMemberCoachFee = isNonMember ? (coachCount * 500) : 0;
+  const nonMemberCoachCount = participantDetails.filter(p => p.role === "FACULTY_COACH" && p.category === "NON_MEMBER").length;
+  const nonMemberCoachFee = nonMemberCoachCount * 500;
   const institutionalFee = isNonMember ? 3500 : 0;
   const grandTotal = subTotal + egamesPotMoney + competitorAdditional + institutionalFee + nonMemberCoachFee;
 
@@ -246,7 +247,7 @@ export async function getBillingDashboardData() {
     let actualBill = 0;
     let egamesCount = 0;
     let participantCount = 0;
-    let coachCount = 0;
+    let nonMemberCoachCount = 0;
 
     schoolUsers.forEach(p => {
       const cleanEmail = p.email.trim().toLowerCase();
@@ -263,7 +264,9 @@ export async function getBillingDashboardData() {
       actualBill += baseFee;
 
       if (p.role === "FACULTY_COACH") {
-        coachCount++;
+        if (p.category === "NON_MEMBER") {
+          nonMemberCoachCount++;
+        }
       } else {
         participantCount++;
         if (egamesSet && egamesSet.has(cleanEmail)) {
@@ -274,7 +277,7 @@ export async function getBillingDashboardData() {
 
     const isNonMember = school.category === "NON_MEMBER";
     const competitorAdditional = isNonMember ? (participantCount * 300) : 0;
-    const nonMemberCoachFee = isNonMember ? (coachCount * 500) : 0;
+    const nonMemberCoachFee = nonMemberCoachCount * 500;
     const institutionalFee = isNonMember ? 3500 : 0;
     
     const egamesPotMoney = egamesCount * 300;

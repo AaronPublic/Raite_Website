@@ -214,16 +214,34 @@ export const generateRAITEBillingPDF = (billingData: {
     });
   }
 
-  if (billingData.category === "NON_MEMBER") {
-    boxItems.push(
-      { label: "Non-Member Add. (300/p):", value: `PHP ${billingData.summary.competitorAdditional.toLocaleString("en-US", { minimumFractionDigits: 2 })}` },
-      { label: "Non-Member Coach Add. (500/c):", value: `PHP ${billingData.summary.nonMemberCoachFee.toLocaleString("en-US", { minimumFractionDigits: 2 })}` },
-      { label: "Inst. Membership Fee:", value: `PHP ${billingData.summary.institutionalFee.toLocaleString("en-US", { minimumFractionDigits: 2 })}` }
-    );
-  } else {
-    boxItems.push(
-      { label: "Additionals:", value: "N/A" }
-    );
+  let hasAdditionals = false;
+  if (billingData.summary.competitorAdditional > 0) {
+    boxItems.push({
+      label: "Non-Member Add. (300/p):",
+      value: `PHP ${billingData.summary.competitorAdditional.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+    });
+    hasAdditionals = true;
+  }
+  if (billingData.summary.nonMemberCoachFee > 0) {
+    boxItems.push({
+      label: "Non-Member Coach Add. (500/c):",
+      value: `PHP ${billingData.summary.nonMemberCoachFee.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+    });
+    hasAdditionals = true;
+  }
+  if (billingData.summary.institutionalFee > 0) {
+    boxItems.push({
+      label: "Inst. Membership Fee:",
+      value: `PHP ${billingData.summary.institutionalFee.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+    });
+    hasAdditionals = true;
+  }
+
+  if (!hasAdditionals) {
+    boxItems.push({
+      label: "Additionals:",
+      value: "N/A"
+    });
   }
 
   // Calculate box height dynamically (7mm per row, 3mm padding, 8mm grand total, 3mm bottom padding)

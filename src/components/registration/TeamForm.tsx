@@ -55,12 +55,11 @@ interface TeamFormInnerProps {
 function TeamFormInner({ data, updateData }: TeamFormInnerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [validating, setValidating] = useState<Record<number, boolean>>({});
   const [memberErrors, setMemberErrors] = useState<Record<number, string>>({});
   const [eligibleParticipants, setEligibleParticipants] = useState<EligibleParticipant[]>([]);
   const [coachDetails, setCoachDetails] = useState<CoachDetails | null>(null);
   const [loadingEligible, setLoadingEligible] = useState(true);
-  const [popoversOpen, setPopoversOpen] = useState<Record<string, boolean>>({});
+  const [repPopoverOpen, setRepPopoverOpen] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [isCheckingLimits, setIsCheckingLimits] = useState(false);
 
@@ -127,53 +126,11 @@ function TeamFormInner({ data, updateData }: TeamFormInnerProps) {
     name: "members" as any,
   });
 
-  if (loadingEligible) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-        <p className="text-gray-500 font-bold">Preparing registration form...</p>
-      </div>
-    );
-  }
-
-  const validateMember = async (index: number, email: string) => {
-    if (!email || !z.string().email().safeParse(email).success || !data.eventId) {
-      setMemberErrors(prev => ({ ...prev, [index]: "" }));
-      return;
-    }
-
-    // Check for duplicates within the current form
-    const isDuplicateInForm = memberValues.some((val, i) => val === email && i !== index);
-    if (isDuplicateInForm) {
-      setMemberErrors(prev => ({ ...prev, [index]: "This participant is already added to your team." }));
-      return;
-    }
-
-    // Check if the email is in the eligible list
-    const participant = eligibleParticipants.find(p => p.email === email);
-    if (!participant) {
-      setMemberErrors(prev => ({ ...prev, [index]: "This participant is not pre-registered in the system. Please register them first." }));
-      return;
-    }
-
-    if (!participant.approved) {
-      setMemberErrors(prev => ({ ...prev, [index]: "This competitor is not yet approved by an Admin. They must be approved before they can be registered." }));
-      return;
-    }
-
-    setValidating(prev => ({ ...prev, [index]: true }));
-    try {
-      const isDuplicateInDB = await isUserInOtherTeam(data.eventId, email);
-      if (isDuplicateInDB) {
-        setMemberErrors(prev => ({ ...prev, [index]: "This participant is already registered for another team in this competition." }));
-      } else {
-        setMemberErrors(prev => ({ ...prev, [index]: "" }));
-      }
-    } catch (err) {
-      console.error("Validation error:", err);
-    } finally {
-      setValidating(prev => ({ ...prev, [index]: false }));
-    }
+  const handleValidationError = (index: number, error: string) => {
+    setMemberErrors(prev => {
+      if (prev[index] === error) return prev;
+      return { ...prev, [index]: error };
+    });
   };
 
   const onSubmit = async (values: TeamFormValues) => {
@@ -230,9 +187,14 @@ function TeamFormInner({ data, updateData }: TeamFormInnerProps) {
     }
   };
 
-  const setPopover = (key: string, open: boolean) => {
-    setPopoversOpen(prev => ({ ...prev, [key]: open }));
-  };
+  if (loadingEligible) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+        <p className="text-gray-500 font-bold">Preparing registration form...</p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-2xl mx-auto">
@@ -279,182 +241,19 @@ function TeamFormInner({ data, updateData }: TeamFormInnerProps) {
           <div className="space-y-4">
             <AnimatePresence mode="popLayout">
               {fields.map((field, index) => (
-                <motion.div 
-                key={field.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="group relative"
-                >
-                  <div className="flex gap-3 items-start">
-                    <div className="flex-1 space-y-2">
-                      <Popover 
-                        open={!!popoversOpen[`member-${field.id}`]} 
-                        onOpenChange={(open) => setPopover(`member-${field.id}`, open)}
-                      >
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={!!popoversOpen[`member-${field.id}`]}
-                            className={cn(
-                              "w-full h-16 rounded-2xl bg-gray-100/50 dark:bg-gray-800/50 border-2 border-gray-100 dark:border-gray-800 justify-between px-4 transition-all text-left overflow-hidden hover:border-blue-500/50 hover:shadow-md group",
-                              (memberErrors[index] || errors.members?.[index]) ? "border-red-500 ring-4 ring-red-500/10" : "focus:ring-4 focus:ring-blue-500/10",
-                              !memberValues[index] && "text-gray-400"
-                            )}
-                          >
-                            <div className="flex items-center gap-4 truncate">
-                              <div className={cn(
-                                "p-2.5 rounded-xl shadow-sm transition-all group-hover:scale-110",
-                                memberValues[index] ? "bg-blue-600 text-white" : "bg-gray-50 dark:bg-gray-900 text-blue-600"
-                              )}>
-                                <UserPlus className="w-6 h-6 shrink-0" />
-                              </div>
-                              <div className="flex flex-col min-w-0">
-                                <span className={cn("truncate font-black text-lg tracking-tight leading-tight", memberValues[index] ? "text-gray-900 dark:text-white" : "text-gray-400")}>
-                                  {memberValues[index] 
-                                    ? eligibleParticipants.find(p => p.email === memberValues[index])?.name || memberValues[index]
-                                    : `Add member ${index + 1}`}
-                                </span>
-                                {memberValues[index] ? (
-                                  <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
-                                    <Badge variant="secondary" className="h-4 px-1.5 text-[8px] font-black bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border-0">
-                                       SELECTED
-                                    </Badge>
-                                    ID: {eligibleParticipants.find(p => p.email === memberValues[index])?.uniqueId}
-                                  </span>
-                                ) : (
-                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
-                                     Required for registration
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="bg-gray-50 dark:bg-gray-900 p-1.5 rounded-lg group-hover:bg-blue-50 transition-colors">
-                              <ChevronDown className="h-4 w-4 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" />
-                            </div>
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[95vw] md:w-[450px] p-0 rounded-[2rem] shadow-2xl border-gray-100 dark:border-gray-800 overflow-hidden" align="start">
-
-                          <Command className="rounded-[2rem] border-0 shadow-none">
-                            <div className="p-4 bg-gray-50/50 dark:bg-gray-900/50 border-b">
-                              <div className="flex items-center gap-3 px-3 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 focus-within:border-blue-500 transition-all">
-                                <SearchIcon className="h-5 w-5 text-gray-400 shrink-0" />
-                                <CommandInput 
-                                  placeholder="Search for a student..." 
-                                  className="h-14 border-0 bg-transparent focus:ring-0 text-lg font-medium" 
-                                />
-                              </div>
-                            </div>
-                            <CommandList className="max-h-[400px] p-3 no-scrollbar">
-                              <CommandEmpty className="py-12 flex flex-col items-center gap-4">
-                                <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-                                   <UserPlus className="w-8 h-8 text-gray-400" />
-                                </div>
-                                <div className="text-center px-6">
-                                  <p className="text-gray-900 dark:text-white font-black text-xl">No matches found</p>
-                                  <p className="text-gray-500 text-sm mt-1">We couldn't find any pre-registered students matching your search.</p>
-                                </div>
-                              </CommandEmpty>
-                              <CommandGroup heading="Pre-registered Participants" className="px-1 pb-2 pt-4 **:[[cmdk-group-heading]]:font-black **:[[cmdk-group-heading]]:text-[10px] **:[[cmdk-group-heading]]:tracking-[0.2em] **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:mb-3 **:[[cmdk-group-heading]]:px-2">
-                                {eligibleParticipants
-                                  .filter(p => !memberValues.includes(p.email) || memberValues[index] === p.email)
-                                  .map((participant) => (
-                                    <CommandItem
-                                      key={participant.id}
-                                      value={`${participant.name} ${participant.email} ${participant.uniqueId} ${participant.course}`}
-                                      onSelect={() => {
-                                        setValue(`members.${index}`, participant.email, { shouldValidate: true });
-                                        validateMember(index, participant.email);
-                                        setPopover(`member-${index}`, false);
-                                      }}
-                                      className="p-3 rounded-2xl mb-2 bg-gray-100/50 dark:bg-gray-800/50 border-2 border-transparent data-selected:bg-blue-50/50 dark:data-selected:bg-blue-900/20 data-selected:border-blue-100 dark:data-selected:border-blue-800/50 data-selected:shadow-sm cursor-pointer transition-all group/item"
-                                    >
-                                    <div className="flex items-center gap-4 w-full">
-                                      <div className={cn(
-                                        "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 font-black text-lg transition-all shadow-sm",
-                                        memberValues[index] === participant.email 
-                                          ? "bg-blue-600 text-white shadow-md" 
-                                          : "bg-white dark:bg-gray-900 text-gray-500 group-data-selected/item:text-blue-600"
-                                      )}>
-                                        {participant.name?.charAt(0) || "?"}
-                                      </div>
-                                      <div className="flex flex-col flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                          <span className={cn(
-                                            "font-black text-lg tracking-tight leading-tight truncate",
-                                            memberValues[index] === participant.email ? "text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-200 group-data-selected/item:text-blue-700"
-                                          )}>
-                                            {participant.name}
-                                          </span>
-                                          <Badge variant="outline" className={cn(
-                                            "h-5 px-1.5 text-[9px] font-black transition-colors",
-                                            memberValues[index] === participant.email ? "bg-blue-600 text-white border-transparent" : "text-blue-600 border-blue-200 bg-blue-50/50"
-                                          )}>
-                                            {participant.uniqueId}
-                                          </Badge>
-                                        </div>
-                                        <span className={cn(
-                                          "text-sm font-medium truncate opacity-70 mt-0.5",
-                                          memberValues[index] === participant.email ? "text-gray-500" : "text-gray-500 group-data-selected/item:text-blue-600/70"
-                                        )}>
-                                          {participant.email}
-                                        </span>
-                                        <div className={cn(
-                                          "text-[10px] uppercase tracking-[0.1em] font-black mt-1 flex items-center gap-2",
-                                          memberValues[index] === participant.email ? "text-blue-600" : "text-gray-400 group-data-selected/item:text-blue-500"
-                                        )}>
-                                          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-40" />
-                                          {participant.course}
-                                        </div>
-                                      </div>
-                                      {memberValues[index] === participant.email && (
-                                        <div className="bg-blue-600 p-1.5 rounded-full shadow-lg shadow-blue-600/20">
-                                          <Check className="h-4 w-4 text-white" />
-                                        </div>
-                                      )}
-                                    </div>
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                      
-                      <div className="flex items-center gap-2 min-h-[1.5rem]">
-                        {validating[index] && (
-                          <div className="flex items-center gap-2 text-xs text-blue-500 font-bold">
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                            Validating eligibility...
-                          </div>
-                        )}
-                        
-                        {(errors.members?.[index] || memberErrors[index]) && (
-                          <p className="text-xs text-red-500 font-bold flex items-center gap-1.5 p-2 bg-red-50 dark:bg-red-900/10 rounded-lg w-full">
-                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                            {errors.members?.[index]?.message || memberErrors[index]}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    {fields.length > (data.minParticipantsPerRegistration || 1) && !isFixedSize && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="text-red-500 hover:bg-red-50 hover:text-red-700 mt-3"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          remove(index);
-                        }}
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </Button>
-                    )}
-                  </div>
-                </motion.div>
+                <MemberInput
+                  key={field.id}
+                  index={index}
+                  fieldId={field.id}
+                  remove={remove}
+                  showRemoveButton={fields.length > (data.minParticipantsPerRegistration || 1) && !isFixedSize}
+                  eligibleParticipants={eligibleParticipants}
+                  eventId={data.eventId!}
+                  setValue={setValue}
+                  watch={watch}
+                  errors={errors}
+                  onValidationError={handleValidationError}
+                />
               ))}
             </AnimatePresence>
             
@@ -484,14 +283,14 @@ function TeamFormInner({ data, updateData }: TeamFormInnerProps) {
 
               <div className="space-y-4">
                 <Popover 
-                  open={!!popoversOpen['rep']} 
-                  onOpenChange={(open) => setPopover('rep', open)}
+                  open={repPopoverOpen} 
+                  onOpenChange={setRepPopoverOpen}
                 >
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       role="combobox"
-                      aria-expanded={!!popoversOpen['rep']}
+                      aria-expanded={repPopoverOpen}
                       className={cn(
                         "w-full h-20 rounded-[2rem] bg-blue-50/30 dark:bg-blue-900/10 border-2 border-blue-100 dark:border-blue-800/50 justify-between px-6 transition-all text-left overflow-hidden hover:border-blue-500/50 hover:shadow-lg group",
                         !repSelectedEmail && "text-gray-400"
@@ -548,7 +347,7 @@ function TeamFormInner({ data, updateData }: TeamFormInnerProps) {
                              <CommandItem
                                onSelect={() => {
                                  setValue('repSelectedEmail', '', { shouldValidate: true });
-                                 setPopover('rep', false);
+                                 setRepPopoverOpen(false);
                                }}
                                className="p-3 rounded-2xl mb-2 text-red-600 font-bold hover:bg-red-50 cursor-pointer transition-all"
                              >
@@ -562,7 +361,7 @@ function TeamFormInner({ data, updateData }: TeamFormInnerProps) {
                                 value={`${participant.name} ${participant.email} ${participant.uniqueId} ${participant.school}`}
                                 onSelect={() => {
                                   setValue(`repSelectedEmail`, participant.email, { shouldValidate: true });
-                                  setPopover('rep', false);
+                                  setRepPopoverOpen(false);
                                 }}
                                 className="p-3 rounded-2xl mb-2 bg-gray-100/50 dark:bg-gray-800/50 border-2 border-transparent data-selected:bg-blue-50/50 dark:data-selected:bg-blue-900/20 data-selected:border-blue-100 dark:data-selected:border-blue-800/50 data-selected:shadow-sm cursor-pointer transition-all group/item"
                               >
@@ -657,7 +456,7 @@ function TeamFormInner({ data, updateData }: TeamFormInnerProps) {
           <Button 
             type="submit"
             className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white rounded-full px-8 h-12 shadow-xl shadow-blue-600/20 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2 font-bold"
-            disabled={Object.values(validating).some(v => v) || Object.values(memberErrors).some(err => !!err) || isCheckingLimits}
+            disabled={Object.values(memberErrors).some(err => !!err) || isCheckingLimits}
           >
             {isCheckingLimits ? (
               <>
@@ -677,6 +476,258 @@ function TeamFormInner({ data, updateData }: TeamFormInnerProps) {
         </div>
       </div>
     </form>
+  );
+}
+
+interface MemberInputProps {
+  index: number;
+  fieldId: string;
+  remove: (index: number) => void;
+  showRemoveButton: boolean;
+  eligibleParticipants: EligibleParticipant[];
+  eventId: string;
+  setValue: any;
+  watch: any;
+  errors: any;
+  onValidationError: (index: number, error: string) => void;
+}
+
+function MemberInput({
+  index,
+  fieldId,
+  remove,
+  showRemoveButton,
+  eligibleParticipants,
+  eventId,
+  setValue,
+  watch,
+  errors,
+  onValidationError,
+}: MemberInputProps) {
+  const [open, setOpen] = useState(false);
+  const [validating, setValidating] = useState(false);
+  const [memberError, setMemberError] = useState("");
+
+  const memberValue = watch(`members.${index}`);
+
+  const validateMember = async (email: string) => {
+    if (!email || !z.string().email().safeParse(email).success || !eventId) {
+      setMemberError("");
+      return;
+    }
+
+    const allMembers = watch("members") as string[];
+    const isDuplicateInForm = allMembers.some((val, i) => val === email && i !== index);
+    if (isDuplicateInForm) {
+      setMemberError("This participant is already added to your team.");
+      return;
+    }
+
+    const participant = eligibleParticipants.find(p => p.email === email);
+    if (!participant) {
+      setMemberError("This participant is not pre-registered in the system. Please register them first.");
+      return;
+    }
+
+    if (!participant.approved) {
+      setMemberError("This competitor is not yet approved by an Admin. They must be approved before they can be registered.");
+      return;
+    }
+
+    setValidating(true);
+    try {
+      const isDuplicateInDB = await isUserInOtherTeam(eventId, email);
+      if (isDuplicateInDB) {
+        setMemberError("This participant is already registered for another team in this competition.");
+      } else {
+        setMemberError("");
+      }
+    } catch (err) {
+      console.error("Validation error:", err);
+    } finally {
+      setValidating(false);
+    }
+  };
+
+  useEffect(() => {
+    onValidationError(index, memberError);
+  }, [memberError, index]);
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="group relative"
+    >
+      <div className="flex gap-3 items-start">
+        <div className="flex-1 space-y-2">
+          <Popover 
+            open={open} 
+            onOpenChange={setOpen}
+          >
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={open}
+                className={cn(
+                  "w-full h-16 rounded-2xl bg-gray-100/50 dark:bg-gray-800/50 border-2 border-gray-100 dark:border-gray-800 justify-between px-4 transition-all text-left overflow-hidden hover:border-blue-500/50 hover:shadow-md group",
+                  (memberError || errors.members?.[index]) ? "border-red-500 ring-4 ring-red-500/10" : "focus:ring-4 focus:ring-blue-500/10",
+                  !memberValue && "text-gray-400"
+                )}
+              >
+                <div className="flex items-center gap-4 truncate">
+                  <div className={cn(
+                    "p-2.5 rounded-xl shadow-sm transition-all group-hover:scale-110",
+                    memberValue ? "bg-blue-600 text-white" : "bg-gray-50 dark:bg-gray-900 text-blue-600"
+                  )}>
+                    <UserPlus className="w-6 h-6 shrink-0" />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className={cn("truncate font-black text-lg tracking-tight leading-tight", memberValue ? "text-gray-900 dark:text-white" : "text-gray-400")}>
+                      {memberValue 
+                        ? eligibleParticipants.find(p => p.email === memberValue)?.name || memberValue
+                        : `Add member ${index + 1}`}
+                    </span>
+                    {memberValue ? (
+                      <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
+                        <Badge variant="secondary" className="h-4 px-1.5 text-[8px] font-black bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border-0">
+                           SELECTED
+                        </Badge>
+                        ID: {eligibleParticipants.find(p => p.email === memberValue)?.uniqueId}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                         Required for registration
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-900 p-1.5 rounded-lg group-hover:bg-blue-50 transition-colors">
+                  <ChevronDown className="h-4 w-4 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[95vw] md:w-[450px] p-0 rounded-[2rem] shadow-2xl border-gray-100 dark:border-gray-800 overflow-hidden" align="start">
+              <Command className="rounded-[2rem] border-0 shadow-none">
+                <div className="p-4 bg-gray-50/50 dark:bg-gray-900/50 border-b">
+                  <div className="flex items-center gap-3 px-3 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-100 dark:border-gray-700 focus-within:border-blue-500 transition-all">
+                    <SearchIcon className="h-5 w-5 text-gray-400 shrink-0" />
+                    <CommandInput 
+                      placeholder="Search for a student..." 
+                      className="h-14 border-0 bg-transparent focus:ring-0 text-lg font-medium" 
+                    />
+                  </div>
+                </div>
+                <CommandList className="max-h-[400px] p-3 no-scrollbar">
+                  <CommandEmpty className="py-12 flex flex-col items-center gap-4">
+                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                       <UserPlus className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <div className="text-center px-6">
+                      <p className="text-gray-900 dark:text-white font-black text-xl">No matches found</p>
+                      <p className="text-gray-500 text-sm mt-1">We couldn't find any pre-registered students matching your search.</p>
+                    </div>
+                  </CommandEmpty>
+                  <CommandGroup heading="Pre-registered Participants" className="px-1 pb-2 pt-4 **:[[cmdk-group-heading]]:font-black **:[[cmdk-group-heading]]:text-[10px] **:[[cmdk-group-heading]]:tracking-[0.2em] **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:mb-3 **:[[cmdk-group-heading]]:px-2">
+                    {eligibleParticipants
+                      .filter(p => !watch("members").includes(p.email) || memberValue === p.email)
+                      .map((participant) => (
+                        <CommandItem
+                          key={participant.id}
+                          value={`${participant.name} ${participant.email} ${participant.uniqueId} ${participant.course}`}
+                          onSelect={() => {
+                            setValue(`members.${index}`, participant.email, { shouldValidate: true });
+                            validateMember(participant.email);
+                            setOpen(false);
+                          }}
+                          className="p-3 rounded-2xl mb-2 bg-gray-100/50 dark:bg-gray-800/50 border-2 border-transparent data-selected:bg-blue-50/50 dark:data-selected:bg-blue-900/20 data-selected:border-blue-100 dark:data-selected:border-blue-800/50 data-selected:shadow-sm cursor-pointer transition-all group/item"
+                        >
+                          <div className="flex items-center gap-4 w-full">
+                            <div className={cn(
+                              "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 font-black text-lg transition-all shadow-sm",
+                              memberValue === participant.email 
+                                ? "bg-blue-600 text-white shadow-md" 
+                                : "bg-white dark:bg-gray-900 text-gray-500 group-data-selected/item:text-blue-600"
+                            )}>
+                              {participant.name?.charAt(0) || "?"}
+                            </div>
+                            <div className="flex flex-col flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className={cn(
+                                  "font-black text-lg tracking-tight leading-tight truncate",
+                                  memberValue === participant.email ? "text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-200 group-data-selected/item:text-blue-700"
+                                )}>
+                                  {participant.name}
+                                </span>
+                                <Badge variant="outline" className={cn(
+                                  "h-5 px-1.5 text-[9px] font-black transition-colors",
+                                  memberValue === participant.email ? "bg-blue-600 text-white border-transparent" : "text-blue-600 border-blue-200 bg-blue-50/50"
+                                )}>
+                                  {participant.uniqueId}
+                                </Badge>
+                              </div>
+                              <span className={cn(
+                                "text-sm font-medium truncate opacity-70 mt-0.5",
+                                memberValue === participant.email ? "text-gray-500" : "text-gray-500 group-data-selected/item:text-blue-600/70"
+                              )}>
+                                {participant.email}
+                              </span>
+                              <div className={cn(
+                                "text-[10px] uppercase tracking-[0.1em] font-black mt-1 flex items-center gap-2",
+                                memberValue === participant.email ? "text-blue-600" : "text-gray-400 group-data-selected/item:text-blue-500"
+                              )}>
+                                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-40" />
+                                {participant.course}
+                              </div>
+                            </div>
+                            {memberValue === participant.email && (
+                              <div className="bg-blue-600 p-1.5 rounded-full shadow-lg shadow-blue-600/20">
+                                <Check className="h-4 w-4 text-white" />
+                              </div>
+                            )}
+                          </div>
+                        </CommandItem>
+                      ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          
+          <div className="flex items-center gap-2 min-h-[1.5rem]">
+            {validating && (
+              <div className="flex items-center gap-2 text-xs text-blue-500 font-bold">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Validating eligibility...
+              </div>
+            )}
+            
+            {(errors.members?.[index] || memberError) && (
+              <p className="text-xs text-red-500 font-bold flex items-center gap-1.5 p-2 bg-red-50 dark:bg-red-900/10 rounded-lg w-full">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                {errors.members?.[index]?.message || memberError}
+              </p>
+            )}
+          </div>
+        </div>
+        {showRemoveButton && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-red-500 hover:bg-red-50 hover:text-red-700 mt-3"
+            onClick={(e) => {
+              e.preventDefault();
+              remove(index);
+            }}
+          >
+            <Trash2 className="w-5 h-5" />
+          </Button>
+        )}
+      </div>
+    </motion.div>
   );
 }
 

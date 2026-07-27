@@ -90,9 +90,9 @@ function TeamFormInner({ data, updateData }: TeamFormInnerProps) {
     resolver: zodResolver(teamSchema),
     defaultValues: {
       teamName: data.teamName || "",
-      members: data.members && data.members.length === maxPart 
+      members: data.members && data.members.length >= minPart && data.members.length <= maxPart
         ? data.members 
-        : Array(maxPart).fill(""),
+        : Array(minPart).fill(""),
       repSelectedEmail: data.repEmail || "",
       repName: data.repName || "",
       repEmail: data.repEmail || "",
@@ -779,5 +779,5 @@ export default function TeamForm() {
     );
   }
 
-  return <TeamFormInner data={data} updateData={updateData} />;
+  return <TeamFormInner key={data.eventId || "empty"} data={data} updateData={updateData} />;
 }

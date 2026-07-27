@@ -38,7 +38,8 @@ export default function EventList({ events }: { events: Event[] }) {
           eventTitle: selectedEvent.title,
           eventCategory: selectedEvent.category || undefined,
           eventSubcategory: selectedEvent.subcategory || undefined,
-          maxParticipantsPerRegistration: selectedEvent.maxParticipantsPerRegistration
+          maxParticipantsPerRegistration: selectedEvent.maxParticipantsPerRegistration,
+          minParticipantsPerRegistration: selectedEvent.minParticipantsPerRegistration
         });
       }
     }
@@ -60,7 +61,8 @@ export default function EventList({ events }: { events: Event[] }) {
       eventTitle: event.title,
       eventCategory: event.category || undefined,
       eventSubcategory: event.subcategory || undefined,
-      maxParticipantsPerRegistration: event.maxParticipantsPerRegistration
+      maxParticipantsPerRegistration: event.maxParticipantsPerRegistration,
+      minParticipantsPerRegistration: event.minParticipantsPerRegistration
     });
   };
 

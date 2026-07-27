@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -99,6 +99,13 @@ function TeamFormInner({ data, updateData }: TeamFormInnerProps) {
     },
   });
 
+  const [memberCount, setMemberCount] = useState<number>(() => {
+    if (data.members && data.members.length >= minPart && data.members.length <= maxPart) {
+      return data.members.length;
+    }
+    return minPart;
+  });
+
   const memberValues = watch("members");
   const repSelectedEmail = watch("repSelectedEmail");
 
@@ -121,16 +128,34 @@ function TeamFormInner({ data, updateData }: TeamFormInnerProps) {
     load();
   }, []);
 
-  const { fields, append, remove } = useFieldArray({
-    control: control as any,
-    name: "members" as any,
-  });
-
   const handleValidationError = (index: number, error: string) => {
     setMemberErrors(prev => {
       if (prev[index] === error) return prev;
       return { ...prev, [index]: error };
     });
+  };
+
+  const addMember = () => {
+    if (memberCount >= maxPart) return;
+    const current = watch("members") as string[];
+    setValue("members", [...current, ""]);
+    setMemberCount((c: number) => c + 1);
+  };
+
+  const removeMember = (index: number) => {
+    const current = watch("members") as string[];
+    const updated = current.filter((_, i) => i !== index);
+    setValue("members", updated);
+    setMemberErrors(prev => {
+      const next: Record<number, string> = {};
+      Object.entries(prev).forEach(([k, v]) => {
+        const ki = Number(k);
+        if (ki < index) next[ki] = v;
+        else if (ki > index) next[ki - 1] = v;
+      });
+      return next;
+    });
+    setMemberCount((c: number) => c - 1);
   };
 
   const onSubmit = async (values: TeamFormValues) => {
@@ -240,13 +265,13 @@ function TeamFormInner({ data, updateData }: TeamFormInnerProps) {
           
           <div className="space-y-4">
             <AnimatePresence mode="popLayout">
-              {fields.map((field, index) => (
+              {Array.from({ length: memberCount }).map((_, index) => (
                 <MemberInput
-                  key={field.id}
+                  key={index}
                   index={index}
-                  fieldId={field.id}
-                  remove={remove}
-                  showRemoveButton={fields.length > (data.minParticipantsPerRegistration || 1) && !isFixedSize}
+                  fieldId={String(index)}
+                  remove={removeMember}
+                  showRemoveButton={memberCount > minPart && !isFixedSize}
                   eligibleParticipants={eligibleParticipants}
                   eventId={data.eventId!}
                   setValue={setValue}
@@ -257,12 +282,12 @@ function TeamFormInner({ data, updateData }: TeamFormInnerProps) {
               ))}
             </AnimatePresence>
             
-            {fields.length < (data.maxParticipantsPerRegistration || 1) && !isFixedSize && (
+            {memberCount < maxPart && !isFixedSize && (
               <Button
                 type="button"
                 variant="outline"
                 className="w-full h-16 rounded-2xl border-2 border-dashed border-gray-200 text-gray-500 hover:border-blue-500 hover:text-blue-600 transition-all flex items-center justify-center gap-2 font-bold"
-                onClick={() => append("")}
+                onClick={addMember}
               >
                 <Plus className="w-5 h-5" />
                 Add another member

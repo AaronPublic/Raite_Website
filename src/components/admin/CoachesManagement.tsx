@@ -29,7 +29,8 @@ function CategorySelect({
   const [category, setCategory] = useState<string>(initialCategory || "UNCLASSIFIED");
   const [isPending, startTransition] = useTransition();
 
-  const handleChange = (val: string) => {
+  const handleChange = (val: string | null) => {
+    if (!val) return;
     const dbValue = val === "UNCLASSIFIED" ? null : (val as "MEMBER" | "NON_MEMBER");
     startTransition(async () => {
       try {

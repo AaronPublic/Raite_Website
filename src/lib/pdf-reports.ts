@@ -106,6 +106,7 @@ export const generateRAITEBillingPDF = (billingData: {
     subTotal: number;
     egamesPotMoney: number;
     competitorAdditional: number;
+    nonMemberCoachFee: number;
     institutionalFee: number;
     grandTotal: number;
   };
@@ -216,6 +217,7 @@ export const generateRAITEBillingPDF = (billingData: {
   if (billingData.category === "NON_MEMBER") {
     boxItems.push(
       { label: "Non-Member Add. (300/p):", value: `PHP ${billingData.summary.competitorAdditional.toLocaleString("en-US", { minimumFractionDigits: 2 })}` },
+      { label: "Non-Member Coach Add. (500/c):", value: `PHP ${billingData.summary.nonMemberCoachFee.toLocaleString("en-US", { minimumFractionDigits: 2 })}` },
       { label: "Inst. Membership Fee:", value: `PHP ${billingData.summary.institutionalFee.toLocaleString("en-US", { minimumFractionDigits: 2 })}` }
     );
   } else {

@@ -64,26 +64,19 @@ export async function getSchoolBillingData(schoolId: string) {
   const participantDetails = participants.map(p => {
     const cleanEmail = p.email.trim().toLowerCase();
     
-    let baseFee = 0;
-    let dateRegistered = "N/A";
-    let isEgames = false;
+    const regDate = emailToEarliestRegDate.get(cleanEmail) || p.createdAt;
+    const month = regDate.getMonth();
+    const date = regDate.getDate();
 
-    if (p.role === "FACULTY_COACH") {
-      baseFee = p.category === "NON_MEMBER" ? 500 : 0;
-    } else {
-      const regDate = emailToEarliestRegDate.get(cleanEmail) || p.createdAt;
-      const month = regDate.getMonth();
-      const date = regDate.getDate();
-
-      baseFee = 1700;
-      if (month === 6 && date <= 15) {
-        baseFee = 1500;
-      } else if (month < 6) {
-        baseFee = 1500;
-      }
-      dateRegistered = regDate.toLocaleDateString();
-      isEgames = egamesEmails.has(cleanEmail);
+    let baseFee = 1700;
+    if (month === 6 && date <= 15) {
+      baseFee = 1500;
+    } else if (month < 6) {
+      baseFee = 1500;
     }
+
+    const dateRegistered = p.role === "FACULTY_COACH" ? "N/A" : regDate.toLocaleDateString();
+    const isEgames = p.role === "PARTICIPANT" && egamesEmails.has(cleanEmail);
 
     return {
       name: p.name || (p.role === "FACULTY_COACH" ? "Pending Coach" : "Pending Registration"),
@@ -103,8 +96,10 @@ export async function getSchoolBillingData(schoolId: string) {
 
   const isNonMember = school.category === "NON_MEMBER";
   const competitorAdditional = isNonMember ? (participantDetails.filter(p => p.role === "PARTICIPANT").length * 300) : 0;
+  const coachCount = participantDetails.filter(p => p.role === "FACULTY_COACH").length;
+  const nonMemberCoachFee = isNonMember ? (coachCount * 500) : 0;
   const institutionalFee = isNonMember ? 3500 : 0;
-  const grandTotal = subTotal + egamesPotMoney + competitorAdditional + institutionalFee;
+  const grandTotal = subTotal + egamesPotMoney + competitorAdditional + institutionalFee + nonMemberCoachFee;
 
   return {
     schoolName: school.name,
@@ -118,6 +113,7 @@ export async function getSchoolBillingData(schoolId: string) {
       subTotal,
       egamesPotMoney,
       competitorAdditional,
+      nonMemberCoachFee,
       institutionalFee,
       grandTotal
     }
@@ -250,26 +246,26 @@ export async function getBillingDashboardData() {
     let actualBill = 0;
     let egamesCount = 0;
     let participantCount = 0;
+    let coachCount = 0;
 
     schoolUsers.forEach(p => {
+      const cleanEmail = p.email.trim().toLowerCase();
+      const regDate = (emailMap && emailMap.get(cleanEmail)) || p.createdAt;
+      const month = regDate.getMonth();
+      const date = regDate.getDate();
+
+      let baseFee = 1700;
+      if (month === 6 && date <= 15) {
+        baseFee = 1500;
+      } else if (month < 6) {
+        baseFee = 1500;
+      }
+      actualBill += baseFee;
+
       if (p.role === "FACULTY_COACH") {
-        const baseFee = p.category === "NON_MEMBER" ? 500 : 0;
-        actualBill += baseFee;
+        coachCount++;
       } else {
         participantCount++;
-        const cleanEmail = p.email.trim().toLowerCase();
-        const regDate = (emailMap && emailMap.get(cleanEmail)) || p.createdAt;
-        const month = regDate.getMonth();
-        const date = regDate.getDate();
-
-        let baseFee = 1700;
-        if (month === 6 && date <= 15) {
-          baseFee = 1500;
-        } else if (month < 6) {
-          baseFee = 1500;
-        }
-        actualBill += baseFee;
-
         if (egamesSet && egamesSet.has(cleanEmail)) {
           egamesCount++;
         }
@@ -278,11 +274,12 @@ export async function getBillingDashboardData() {
 
     const isNonMember = school.category === "NON_MEMBER";
     const competitorAdditional = isNonMember ? (participantCount * 300) : 0;
+    const nonMemberCoachFee = isNonMember ? (coachCount * 500) : 0;
     const institutionalFee = isNonMember ? 3500 : 0;
     
     const egamesPotMoney = egamesCount * 300;
     
-    const grandTotal = (actualBill - school.discount) + egamesPotMoney + competitorAdditional + institutionalFee;
+    const grandTotal = (actualBill - school.discount) + egamesPotMoney + competitorAdditional + institutionalFee + nonMemberCoachFee;
 
     return {
       id: school.id,

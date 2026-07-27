@@ -243,18 +243,18 @@ export default function ProfileCompleteForm({ schools }: { schools: SchoolType[]
             <AlertCircle className="w-4 h-4 shrink-0 text-blue-600" />
             Verification Document Notice
           </div>
-          <p className="font-medium text-gray-600 dark:text-gray-400">
+          <p className="font-semibold text-gray-700 dark:text-gray-400">
             Coaches must upload a verification document to unlock the platform:
           </p>
           <ul className="list-disc pl-4 space-y-0.5 font-bold text-gray-700 dark:text-gray-300">
-            <li>If your school is a <span className="text-blue-600 dark:text-blue-400 underline decoration-dashed">MEMBER</span> institution, upload your <strong>Coach Certification of Membership</strong>.</li>
-            <li>If your school is a <span className="text-blue-600 dark:text-blue-400 underline decoration-dashed">NON-MEMBER</span> institution, upload your official <strong>School ID</strong>.</li>
+            <li>If your school is a <span className="text-blue-600 dark:text-blue-400 font-black">MEMBER</span> institution, upload your <span className="font-black text-blue-900 dark:text-blue-200">Coach Certification of Membership</span>.</li>
+            <li>If your school is a <span className="text-blue-600 dark:text-blue-400 font-black">NON-MEMBER</span> institution, upload your official <span className="font-black text-blue-900 dark:text-blue-200">School ID</span>.</li>
           </ul>
         </div>
 
         {/* 1. Coach Certification of Membership Upload */}
         <div className="space-y-2">
-          <Label htmlFor="certificate-upload" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
+          <Label htmlFor="certificate-upload" className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-300 ml-1">
             Coach Certification of Membership (.pdf, .png, .jpg, .jpeg)
           </Label>
           <div className="relative group">
@@ -273,19 +273,19 @@ export default function ProfileCompleteForm({ schools }: { schools: SchoolType[]
               {isUploadingCert ? (
                 <div className="flex flex-col items-center justify-center text-gray-400">
                   <Loader2 className="w-8 h-8 animate-spin mb-2 text-blue-500" />
-                  <span className="font-bold text-xs">Uploading certificate...</span>
+                  <span className="font-black text-xs">Uploading certificate...</span>
                 </div>
               ) : uploadedCertName ? (
                 <div className="flex flex-col items-center justify-center text-green-600 dark:text-green-400">
                   <CheckCircle2 className="w-8 h-8 mb-2" />
-                  <span className="font-bold text-xs text-center break-all px-4">{uploadedCertName}</span>
-                  <span className="text-[10px] text-gray-400 mt-1 font-bold uppercase tracking-wider">Click to replace file</span>
+                  <span className="font-black text-xs text-center break-all px-4">{uploadedCertName}</span>
+                  <span className="text-[10px] text-gray-400 mt-1 font-black uppercase tracking-wider">Click to replace file</span>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center text-gray-400 group-hover:text-blue-500 transition-colors">
                   <FileUp className="w-8 h-8 mb-2" />
-                  <span className="font-bold text-xs">Choose certificate or drag here</span>
-                  <span className="text-[10px] text-gray-400 mt-1 font-bold">PDF, PNG, or JPG up to 5MB</span>
+                  <span className="font-black text-xs text-gray-600 dark:text-gray-300">Choose certificate or drag here</span>
+                  <span className="text-[10px] text-gray-400 mt-1 font-black">PDF, PNG, or JPG up to 5MB</span>
                 </div>
               )}
             </label>
@@ -294,7 +294,7 @@ export default function ProfileCompleteForm({ schools }: { schools: SchoolType[]
 
         {/* 2. School ID Upload */}
         <div className="space-y-2">
-          <Label htmlFor="school-id-upload" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
+          <Label htmlFor="school-id-upload" className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-300 ml-1">
             School ID (.pdf, .png, .jpg, .jpeg)
           </Label>
           <div className="relative group">
@@ -313,19 +313,19 @@ export default function ProfileCompleteForm({ schools }: { schools: SchoolType[]
               {isUploadingSchoolId ? (
                 <div className="flex flex-col items-center justify-center text-gray-400">
                   <Loader2 className="w-8 h-8 animate-spin mb-2 text-blue-500" />
-                  <span className="font-bold text-xs">Uploading School ID...</span>
+                  <span className="font-black text-xs">Uploading School ID...</span>
                 </div>
               ) : uploadedSchoolIdName ? (
                 <div className="flex flex-col items-center justify-center text-green-600 dark:text-green-400">
                   <CheckCircle2 className="w-8 h-8 mb-2" />
-                  <span className="font-bold text-xs text-center break-all px-4">{uploadedSchoolIdName}</span>
-                  <span className="text-[10px] text-gray-400 mt-1 font-bold uppercase tracking-wider">Click to replace file</span>
+                  <span className="font-black text-xs text-center break-all px-4">{uploadedSchoolIdName}</span>
+                  <span className="text-[10px] text-gray-400 mt-1 font-black uppercase tracking-wider">Click to replace file</span>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center text-gray-400 group-hover:text-blue-500 transition-colors">
                   <FileUp className="w-8 h-8 mb-2" />
-                  <span className="font-bold text-xs">Choose School ID or drag here</span>
-                  <span className="text-[10px] text-gray-400 mt-1 font-bold">PDF, PNG, or JPG up to 5MB</span>
+                  <span className="font-black text-xs text-gray-600 dark:text-gray-300">Choose School ID or drag here</span>
+                  <span className="text-[10px] text-gray-400 mt-1 font-black">PDF, PNG, or JPG up to 5MB</span>
                 </div>
               )}
             </label>

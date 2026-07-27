@@ -8,6 +8,8 @@ import Papa from "papaparse";
 import { cookies } from "next/headers";
 import { getSchoolByName } from "@/lib/data/schools";
 import { deleteSupabaseFile } from "@/lib/supabase";
+import { sendBrevoEmail } from "@/lib/email";
+import { env } from "@/env";
 
 async function checkAdmin() {
   const { userId } = await auth();
@@ -269,6 +271,39 @@ export async function toggleUserApproval(id: string, category?: "MEMBER" | "NON_
     where: { id },
     data: dataToUpdate,
   });
+
+  if (user.role === "FACULTY_COACH" && isApproving) {
+    try {
+      await sendBrevoEmail({
+        subject: "RAITE 2026 - Faculty Coach Account Approved",
+        to: [{ email: user.email }],
+        htmlContent: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <h2 style="color: #0038a8; margin: 0; font-size: 24px; font-weight: 800;">RAITE 2026</h2>
+              <p style="color: #6b7280; margin: 5px 0 0 0; font-size: 14px; font-weight: 600;">PSITE Region III</p>
+            </div>
+            <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+            <h3 style="color: #111827; font-size: 18px; font-weight: 700; margin-top: 0;">Account Approved!</h3>
+            <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Hello <strong>${user.name || "Faculty Coach"}</strong>,</p>
+            <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">We are pleased to inform you that your registration as a <strong>Faculty Coach</strong> representing <strong>${user.school || "your school"}</strong> has been officially approved.</p>
+            <div style="margin: 20px 0; padding: 15px; background-color: #f3f4f6; border-radius: 8px;">
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #4b5563;"><strong>Verification Status:</strong> Approved</p>
+              <p style="margin: 0; font-size: 13px; color: #4b5563;"><strong>Classification:</strong> ${category === "MEMBER" ? "MEMBER" : "NON-MEMBER"}</p>
+            </div>
+            <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">You can now log in to the portal to start registering your competitors and accessing dashboard resources.</p>
+            <div style="text-align: center; margin-top: 30px;">
+              <a href="${env.NEXT_PUBLIC_APP_URL || "http://localhost:3000/"}" style="display: inline-block; padding: 12px 24px; background-color: #0038a8; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">Go to Dashboard</a>
+            </div>
+            <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 30px 0 20px 0;" />
+            <p style="color: #9ca3af; font-size: 11px; text-align: center; margin: 0;">This is an automated notification. Please do not reply directly to this email.</p>
+          </div>
+        `
+      });
+    } catch (emailErr) {
+      console.error("Failed to send coach approval email:", emailErr);
+    }
+  }
 
   revalidatePath("/admin/users");
   revalidatePath("/admin/coaches");

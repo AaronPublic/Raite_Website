@@ -23,7 +23,7 @@ const profileSchema = z.object({
   coachCertificateUrl: z.string().optional().nullable(),
   schoolIdUrl: z.string().optional().nullable(),
 }).refine(data => data.coachCertificateUrl || data.schoolIdUrl, {
-  message: "You must upload either a Coach Certification of Membership or a School ID.",
+  message: "You must upload either a Certificate of Membership or an official school ID.",
   path: ["coachCertificateUrl"]
 });
 
@@ -238,24 +238,24 @@ export default function ProfileCompleteForm({ schools }: { schools: SchoolType[]
         </div>
 
         {/* Notice Box for Verification Document */}
-        <div className="p-4 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 text-blue-800 dark:text-blue-300 text-xs leading-relaxed space-y-1">
+        <div className="p-4 rounded-xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 text-blue-800 dark:text-blue-300 text-xs leading-relaxed space-y-1.5">
           <div className="font-black uppercase tracking-wider flex items-center gap-1.5 text-blue-900 dark:text-blue-200">
             <AlertCircle className="w-4 h-4 shrink-0 text-blue-600" />
             Verification Document Notice
           </div>
-          <p className="font-semibold text-gray-700 dark:text-gray-400">
-            Coaches must upload a verification document to unlock the platform:
-          </p>
-          <ul className="list-disc pl-4 space-y-0.5 font-bold text-gray-700 dark:text-gray-300">
-            <li>If your school is a <span className="text-blue-600 dark:text-blue-400 font-black">MEMBER</span> institution, upload your <span className="font-black text-blue-900 dark:text-blue-200">Coach Certification of Membership</span>.</li>
-            <li>If your school is a <span className="text-blue-600 dark:text-blue-400 font-black">NON-MEMBER</span> institution, upload your official <span className="font-black text-blue-900 dark:text-blue-200">School ID</span>.</li>
+          <ul className="list-disc pl-4 space-y-1 font-bold text-gray-700 dark:text-gray-300">
+            <li>If you are a current <span className="text-blue-600 dark:text-blue-400 font-black">PSITE MEMBER</span>, upload your <span className="font-black text-blue-900 dark:text-blue-200">Certificate of Membership</span>.</li>
+            <li>If you are a <span className="text-blue-600 dark:text-blue-400 font-black">non-PSITE MEMBER</span>, upload your official <span className="font-black text-blue-900 dark:text-blue-200">school ID</span>.</li>
           </ul>
+          <p className="font-bold text-red-500 dark:text-red-400 ml-1">
+            Note: No need to provide both.
+          </p>
         </div>
 
         {/* 1. Coach Certification of Membership Upload */}
         <div className="space-y-2">
           <Label htmlFor="certificate-upload" className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-300 ml-1">
-            Coach Certification of Membership (.pdf, .png, .jpg, .jpeg)
+            Certificate of Membership (.pdf, .png, .jpg, .jpeg)
           </Label>
           <div className="relative group">
             <input 
@@ -295,7 +295,7 @@ export default function ProfileCompleteForm({ schools }: { schools: SchoolType[]
         {/* 2. School ID Upload */}
         <div className="space-y-2">
           <Label htmlFor="school-id-upload" className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-300 ml-1">
-            School ID (.pdf, .png, .jpg, .jpeg)
+            Official School ID (.pdf, .png, .jpg, .jpeg)
           </Label>
           <div className="relative group">
             <input 

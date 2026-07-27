@@ -4,7 +4,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, X } from "lucide-react";
-import { useTransition } from "react";
+import { useTransition, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { School } from "@prisma/client";
 import { COURSES } from "@/lib/constants";
@@ -14,6 +14,24 @@ export default function ParticipantFiltersClient({ schools }: { schools: School[
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const [searchValue, setSearchValue] = useState(searchParams.get("search")?.toString() || "");
+
+  // Sync search input state if the search params change externally (e.g. clear filters)
+  useEffect(() => {
+    setSearchValue(searchParams.get("search")?.toString() || "");
+  }, [searchParams]);
+
+  // Debounce search input to avoid triggering database queries on every single keystroke
+  useEffect(() => {
+    const currentParam = searchParams.get("search") || "";
+    if (searchValue === currentParam) return;
+
+    const delayDebounceFn = setTimeout(() => {
+      updateFilters({ search: searchValue || null });
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchValue]);
 
   const updateFilters = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams);
@@ -46,8 +64,8 @@ export default function ParticipantFiltersClient({ schools }: { schools: School[
           <Input
             placeholder="Search by name or school..."
             className="pl-10"
-            defaultValue={searchParams.get("search")?.toString()}
-            onChange={(e) => updateFilters({ search: e.target.value })}
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
           />
         </div>
         <div className="flex gap-2">

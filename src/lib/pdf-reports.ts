@@ -99,7 +99,14 @@ export const generateRAITEBillingPDF = (billingData: {
   abbreviation: string;
   category: string;
   discount: number;
-  participants: { name: string; email: string; role: string; dateRegistered: string; baseFee: number }[];
+  participants: { 
+    name: string; 
+    email: string; 
+    role: string; 
+    dateRegistered: string; 
+    baseFee: number; 
+    category?: string | null;
+  }[];
   summary: {
     actualBill: number;
     discount: number;
@@ -222,10 +229,20 @@ export const generateRAITEBillingPDF = (billingData: {
     });
     hasAdditionals = true;
   }
-  if (billingData.summary.nonMemberCoachFee > 0) {
-    boxItems.push({
-      label: "Non-Member Coach Add. (500/c):",
-      value: `PHP ${billingData.summary.nonMemberCoachFee.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
+  const nonMemberCoaches = billingData.participants.filter(
+    p => p.role === "FACULTY_COACH" && p.category === "NON_MEMBER"
+  );
+
+  if (nonMemberCoaches.length > 0) {
+    nonMemberCoaches.forEach(coach => {
+      // Truncate name to 11 characters if it exceeds 14 characters to prevent PDF overlap
+      const displayName = coach.name.length > 14
+        ? coach.name.substring(0, 11) + "..."
+        : coach.name;
+      boxItems.push({
+        label: `Non-Member Coach (${displayName}):`,
+        value: `PHP 500.00`
+      });
     });
     hasAdditionals = true;
   }
@@ -260,18 +277,18 @@ export const generateRAITEBillingPDF = (billingData: {
     boxY = 15; // Start at the top of the new page
   }
   
-  // Draw Border Box for Summary
+  // Draw Border Box for Summary (widen to 91mm, starts at 105)
   doc.setDrawColor(220, 225, 230);
   doc.setFillColor(250, 251, 252);
-  doc.rect(115, boxY, 81, boxHeight, "FD");
+  doc.rect(105, boxY, 91, boxHeight, "FD");
 
-  // Draw Items
-  doc.setFontSize(9);
+  // Draw Items (font size slightly reduced to 8.5)
+  doc.setFontSize(8.5);
   doc.setTextColor(50);
   
   let currentY = boxY + 7;
   boxItems.forEach(item => {
-    doc.text(item.label, 118, currentY);
+    doc.text(item.label, 108, currentY); // starts at 108
     doc.text(item.value, 193, currentY, { align: "right" });
     currentY += rowHeight;
   });
@@ -279,14 +296,14 @@ export const generateRAITEBillingPDF = (billingData: {
   // Grand Total Divider line
   const dividerY = currentY - rowHeight + dividerPadding;
   doc.setDrawColor(200, 200, 200);
-  doc.line(116, dividerY, 195, dividerY);
+  doc.line(106, dividerY, 195, dividerY); // starts at 106
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
   doc.setTextColor(0, 56, 168);
   
   const grandTotalY = dividerY + 6;
-  doc.text("Grand Total:", 118, grandTotalY);
+  doc.text("Grand Total:", 108, grandTotalY); // starts at 108
   doc.text(`PHP ${billingData.summary.grandTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, 193, grandTotalY, { align: "right" });
 
   doc.save(`RAITE_2026_BILLING_${billingData.abbreviation.toUpperCase()}.pdf`);

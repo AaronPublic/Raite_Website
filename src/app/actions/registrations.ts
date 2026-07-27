@@ -7,6 +7,8 @@ import { z } from "zod";
 import { RegistrationStatus } from "@prisma/client";
 import { getFilteredRegistrations, RegistrationFilters } from "@/lib/data/registrations";
 import Papa from "papaparse";
+import { sendBrevoEmail } from "@/lib/email";
+import { env } from "@/env";
 
 const updateStatusSchema = z.object({
   id: z.string(),
@@ -25,8 +27,11 @@ export async function batchUpdateRegistrationStatus(data: z.infer<typeof batchUp
   await checkAccess(undefined, ids);
 
   try {
-    // Note: Prisma updateMany doesn't support relation filters or conditional logic,
-    // but updating status and comment on all matched registrations is supported.
+    const registrations = await db.registration.findMany({
+      where: { id: { in: ids } },
+      include: { event: true, user: true }
+    });
+
     await db.registration.updateMany({
       where: { id: { in: ids } },
       data: { 
@@ -35,6 +40,75 @@ export async function batchUpdateRegistrationStatus(data: z.infer<typeof batchUp
         requirementsVerified: status === "APPROVED" ? true : undefined
       },
     });
+
+    // Send emails
+    for (const reg of registrations) {
+      if (status === "APPROVED") {
+        try {
+          await sendBrevoEmail({
+            subject: `RAITE 2026 - Registration Approved: ${reg.event.title}`,
+            to: [{ email: reg.user.email }],
+            htmlContent: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                  <h2 style="color: #0038a8; margin: 0; font-size: 24px; font-weight: 800;">RAITE 2026</h2>
+                  <p style="color: #6b7280; margin: 5px 0 0 0; font-size: 14px; font-weight: 600;">PSITE Region III</p>
+                </div>
+                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+                <h3 style="color: #16a34a; font-size: 18px; font-weight: 700; margin-top: 0;">Registration Approved</h3>
+                <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Hello <strong>${reg.user.name || "Faculty Coach"}</strong>,</p>
+                <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Your registration for the event/competition <strong>${reg.event.title}</strong> has been officially <strong>approved</strong> by the administrator.</p>
+                <div style="margin: 20px 0; padding: 15px; background-color: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
+                  <p style="margin: 0 0 8px 0; font-size: 13px; color: #166534;"><strong>Event:</strong> ${reg.event.title}</p>
+                  <p style="margin: 0; font-size: 13px; color: #166534;"><strong>Status:</strong> Approved</p>
+                </div>
+                <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">You can check the details of this registration on the RAITE portal.</p>
+                <div style="text-align: center; margin-top: 30px;">
+                  <a href="${env.NEXT_PUBLIC_APP_URL || "http://localhost:3000/"}" style="display: inline-block; padding: 12px 24px; background-color: #0038a8; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">View Dashboard</a>
+                </div>
+                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 30px 0 20px 0;" />
+                <p style="color: #9ca3af; font-size: 11px; text-align: center; margin: 0;">This is an automated notification. Please do not reply directly to this email.</p>
+              </div>
+            `
+          });
+        } catch (err) {
+          console.error("Failed to send batch approval email:", err);
+        }
+      } else if (status === "WAITLISTED") {
+        try {
+          await sendBrevoEmail({
+            subject: `RAITE 2026 - Action Required: Registration Review for ${reg.event.title}`,
+            to: [{ email: reg.user.email }],
+            htmlContent: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                  <h2 style="color: #0038a8; margin: 0; font-size: 24px; font-weight: 800;">RAITE 2026</h2>
+                  <p style="color: #6b7280; margin: 5px 0 0 0; font-size: 14px; font-weight: 600;">PSITE Region III</p>
+                </div>
+                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+                <h3 style="color: #ea580c; font-size: 18px; font-weight: 700; margin-top: 0;">Action Required: Registration Under Review</h3>
+                <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Hello <strong>${reg.user.name || "Faculty Coach"}</strong>,</p>
+                <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Your registration for the event/competition <strong>${reg.event.title}</strong> has been flagged for review.</p>
+                <div style="margin: 20px 0; padding: 15px; background-color: #fff7ed; border-radius: 8px; border: 1px solid #ffedd5;">
+                  <p style="margin: 0 0 8px 0; font-size: 13px; color: #9a3412;"><strong>Event:</strong> ${reg.event.title}</p>
+                  <p style="margin: 0 0 8px 0; font-size: 13px; color: #c2410c;"><strong>Feedback from Admin:</strong></p>
+                  <p style="margin: 5px 0 0 0; font-size: 13px; color: #431407; font-style: italic; background-color: #ffffff; padding: 8px; border-radius: 4px; border-left: 3px solid #ea580c;">${comment || "No comments provided."}</p>
+                </div>
+                <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Please log in to the portal to view and resolve this request so we can complete your registration.</p>
+                <div style="text-align: center; margin-top: 30px;">
+                  <a href="${env.NEXT_PUBLIC_APP_URL || "http://localhost:3000/"}" style="display: inline-block; padding: 12px 24px; background-color: #ea580c; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">Review Registration</a>
+                </div>
+                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 30px 0 20px 0;" />
+                <p style="color: #9ca3af; font-size: 11px; text-align: center; margin: 0;">This is an automated notification. Please do not reply directly to this email.</p>
+              </div>
+            `
+          });
+        } catch (err) {
+          console.error("Failed to send batch review email:", err);
+        }
+      }
+    }
+
     revalidatePath("/admin/registrations");
     revalidatePath("/sub-admin/competitions");
     return { success: true };
@@ -83,6 +157,13 @@ export async function updateRegistrationStatus(data: z.infer<typeof updateStatus
   await checkAccess(id);
 
   try {
+    const registration = await db.registration.findUnique({
+      where: { id },
+      include: { event: true, user: true }
+    });
+
+    if (!registration) throw new Error("Registration not found");
+
     await db.registration.update({
       where: { id },
       data: { 
@@ -91,6 +172,72 @@ export async function updateRegistrationStatus(data: z.infer<typeof updateStatus
         requirementsVerified: status === "APPROVED" ? true : undefined
       },
     });
+
+    if (status === "APPROVED") {
+      try {
+        await sendBrevoEmail({
+          subject: `RAITE 2026 - Registration Approved: ${registration.event.title}`,
+          to: [{ email: registration.user.email }],
+          htmlContent: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: #0038a8; margin: 0; font-size: 24px; font-weight: 800;">RAITE 2026</h2>
+                <p style="color: #6b7280; margin: 5px 0 0 0; font-size: 14px; font-weight: 600;">PSITE Region III</p>
+              </div>
+              <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+              <h3 style="color: #16a34a; font-size: 18px; font-weight: 700; margin-top: 0;">Registration Approved</h3>
+              <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Hello <strong>${registration.user.name || "Faculty Coach"}</strong>,</p>
+              <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Your registration for the event/competition <strong>${registration.event.title}</strong> has been officially <strong>approved</strong> by the administrator.</p>
+              <div style="margin: 20px 0; padding: 15px; background-color: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
+                <p style="margin: 0 0 8px 0; font-size: 13px; color: #166534;"><strong>Event:</strong> ${registration.event.title}</p>
+                <p style="margin: 0; font-size: 13px; color: #166534;"><strong>Status:</strong> Approved</p>
+              </div>
+              <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">You can check the details of this registration on the RAITE portal.</p>
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="${env.NEXT_PUBLIC_APP_URL || "http://localhost:3000/"}" style="display: inline-block; padding: 12px 24px; background-color: #0038a8; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">View Dashboard</a>
+              </div>
+              <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 30px 0 20px 0;" />
+              <p style="color: #9ca3af; font-size: 11px; text-align: center; margin: 0;">This is an automated notification. Please do not reply directly to this email.</p>
+            </div>
+          `
+        });
+      } catch (err) {
+        console.error("Failed to send approval email:", err);
+      }
+    } else if (status === "WAITLISTED") {
+      try {
+        await sendBrevoEmail({
+          subject: `RAITE 2026 - Action Required: Registration Review for ${registration.event.title}`,
+          to: [{ email: registration.user.email }],
+          htmlContent: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: #0038a8; margin: 0; font-size: 24px; font-weight: 800;">RAITE 2026</h2>
+                <p style="color: #6b7280; margin: 5px 0 0 0; font-size: 14px; font-weight: 600;">PSITE Region III</p>
+              </div>
+              <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+              <h3 style="color: #ea580c; font-size: 18px; font-weight: 700; margin-top: 0;">Action Required: Registration Under Review</h3>
+              <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Hello <strong>${registration.user.name || "Faculty Coach"}</strong>,</p>
+              <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Your registration for the event/competition <strong>${registration.event.title}</strong> has been flagged for review.</p>
+              <div style="margin: 20px 0; padding: 15px; background-color: #fff7ed; border-radius: 8px; border: 1px solid #ffedd5;">
+                <p style="margin: 0 0 8px 0; font-size: 13px; color: #9a3412;"><strong>Event:</strong> ${registration.event.title}</p>
+                <p style="margin: 0 0 8px 0; font-size: 13px; color: #c2410c;"><strong>Feedback from Admin:</strong></p>
+                <p style="margin: 5px 0 0 0; font-size: 13px; color: #431407; font-style: italic; background-color: #ffffff; padding: 8px; border-radius: 4px; border-left: 3px solid #ea580c;">${comment || "No comments provided."}</p>
+              </div>
+              <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Please log in to the portal to view and resolve this request so we can complete your registration.</p>
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="${env.NEXT_PUBLIC_APP_URL || "http://localhost:3000/"}" style="display: inline-block; padding: 12px 24px; background-color: #ea580c; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">Review Registration</a>
+              </div>
+              <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 30px 0 20px 0;" />
+              <p style="color: #9ca3af; font-size: 11px; text-align: center; margin: 0;">This is an automated notification. Please do not reply directly to this email.</p>
+            </div>
+          `
+        });
+      } catch (err) {
+        console.error("Failed to send review email:", err);
+      }
+    }
+
     revalidatePath("/admin/registrations");
     revalidatePath("/sub-admin/competitions");
     return { success: true };
@@ -129,6 +276,13 @@ export async function submitRevisionRequest(data: z.infer<typeof revisionSchema>
   await checkAccess(id);
 
   try {
+    const registration = await db.registration.findUnique({
+      where: { id },
+      include: { event: true, user: true }
+    });
+
+    if (!registration) throw new Error("Registration not found");
+
     await db.registration.update({
       where: { id },
       data: { 
@@ -136,6 +290,40 @@ export async function submitRevisionRequest(data: z.infer<typeof revisionSchema>
         adminComment: comment 
       },
     });
+
+    // Send email that it is flagged for review with comments
+    try {
+      await sendBrevoEmail({
+        subject: `RAITE 2026 - Action Required: Revision Requested for ${registration.event.title}`,
+        to: [{ email: registration.user.email }],
+        htmlContent: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <h2 style="color: #0038a8; margin: 0; font-size: 24px; font-weight: 800;">RAITE 2026</h2>
+              <p style="color: #6b7280; margin: 5px 0 0 0; font-size: 14px; font-weight: 600;">PSITE Region III</p>
+            </div>
+            <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+            <h3 style="color: #ea580c; font-size: 18px; font-weight: 700; margin-top: 0;">Action Required: Revision Requested</h3>
+            <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Hello <strong>${registration.user.name || "Faculty Coach"}</strong>,</p>
+            <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Your registration for the event/competition <strong>${registration.event.title}</strong> has been flagged for review. A revision is required before this registration can be approved.</p>
+            <div style="margin: 20px 0; padding: 15px; background-color: #fff7ed; border-radius: 8px; border: 1px solid #ffedd5;">
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #9a3412;"><strong>Event:</strong> ${registration.event.title}</p>
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #c2410c;"><strong>Feedback from Admin:</strong></p>
+              <p style="margin: 5px 0 0 0; font-size: 13px; color: #431407; font-style: italic; background-color: #ffffff; padding: 8px; border-radius: 4px; border-left: 3px solid #ea580c;">${comment || "No comments provided."}</p>
+            </div>
+            <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Please log in to the portal to resolve this request so we can complete your registration.</p>
+            <div style="text-align: center; margin-top: 30px;">
+              <a href="${env.NEXT_PUBLIC_APP_URL || "http://localhost:3000/"}" style="display: inline-block; padding: 12px 24px; background-color: #ea580c; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">Review Registration</a>
+            </div>
+            <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 30px 0 20px 0;" />
+            <p style="color: #9ca3af; font-size: 11px; text-align: center; margin: 0;">This is an automated notification. Please do not reply directly to this email.</p>
+          </div>
+        `
+      });
+    } catch (err) {
+      console.error("Failed to send revision request email:", err);
+    }
+
     revalidatePath("/admin/registrations");
     revalidatePath("/sub-admin/competitions");
     return { success: true };

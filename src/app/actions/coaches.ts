@@ -19,7 +19,9 @@ export async function getFacultyCoaches() {
 
   return await db.user.findMany({
     where: {
-      role: "FACULTY_COACH"
+      role: {
+        in: ["FACULTY_COACH", "SUB_ADMIN"]
+      }
     },
     orderBy: [
       { school: "asc" },

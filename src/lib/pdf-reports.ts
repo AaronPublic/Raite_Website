@@ -79,7 +79,7 @@ export const generateRAITEReport = ({
       fontStyle: 'bold'
     },
     alternateRowStyles: { fillColor: [245, 247, 250] },
-    margin: { top: 60 },
+    margin: { top: 15 },
     didDrawPage: (data) => {
       // Footer
       const str = `Page ${data.pageNumber}`;
@@ -194,7 +194,7 @@ export const generateRAITEBillingPDF = (billingData: {
       fontStyle: 'bold'
     },
     alternateRowStyles: { fillColor: [245, 247, 250] },
-    margin: { top: 60 },
+    margin: { top: 15 },
   });
 
   // Summary Box Calculation Layout
@@ -252,12 +252,12 @@ export const generateRAITEBillingPDF = (billingData: {
   const boxHeight = (boxItems.length * rowHeight) + dividerPadding + grandTotalHeight + paddingBottom;
 
   const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
-  const safetyMargin = 20;
+  const safetyMargin = 12;
 
   let boxY = finalY;
   if (boxY + boxHeight + safetyMargin > pageHeight) {
     doc.addPage();
-    boxY = 20; // Start at the top of the new page
+    boxY = 15; // Start at the top of the new page
   }
   
   // Draw Border Box for Summary

@@ -42,6 +42,9 @@ model User {
   assignedEvents     Event[]        @relation("SubAdminEvents")
   coachRegistrations Registration[] @relation("CoachRegistrations")
   registrations      Registration[]
+
+  @@index([role])
+  @@index([school])
 }
 
 model Event {

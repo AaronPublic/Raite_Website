@@ -62,13 +62,15 @@ function CategorySelect({
           {isPending ? (
             <div className="flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Updating...</div>
           ) : (
-            <SelectValue />
+            <SelectValue>
+              {category === "NON_MEMBER" ? "NON-MEMBER" : category === "MEMBER" ? "MEMBER" : "UNCLASSIFIED"}
+            </SelectValue>
           )}
         </SelectTrigger>
         <SelectContent className="rounded-xl border-gray-150 dark:border-gray-800">
-          <SelectItem value="UNCLASSIFIED" className="text-xs font-bold text-gray-500">Unclassified</SelectItem>
-          <SelectItem value="MEMBER" className="text-xs font-bold text-blue-600 dark:text-blue-400">Member</SelectItem>
-          <SelectItem value="NON_MEMBER" className="text-xs font-bold text-orange-600 dark:text-orange-400">Non-Member</SelectItem>
+          <SelectItem value="UNCLASSIFIED" className="text-xs font-bold text-gray-500">UNCLASSIFIED</SelectItem>
+          <SelectItem value="MEMBER" className="text-xs font-bold text-blue-600 dark:text-blue-400">MEMBER</SelectItem>
+          <SelectItem value="NON_MEMBER" className="text-xs font-bold text-orange-600 dark:text-orange-400">NON-MEMBER</SelectItem>
         </SelectContent>
       </Select>
     </div>
@@ -92,12 +94,13 @@ export default function CoachesManagement({ initialCoaches }: CoachesManagementP
   );
 
   const handleExportPDF = () => {
-    const columns = ["Name", "Email Address", "Educational Institution", "Classification"];
+    const columns = ["Classification", "Name", "Email Address", "Role", "Educational Institution"];
     const data = filteredCoaches.map((c) => [
+      c.category === "MEMBER" ? "MEMBER" : c.category === "NON_MEMBER" ? "NON-MEMBER" : "UNCLASSIFIED",
       c.name || "N/A",
       c.email,
-      c.school || "N/A",
-      c.category === "MEMBER" ? "Member" : c.category === "NON_MEMBER" ? "Non-Member" : "Unclassified"
+      c.role === "SUB_ADMIN" ? "Sub-Admin" : "Faculty Coach",
+      c.school || "N/A"
     ]);
 
     generateRAITEReport({
@@ -159,17 +162,18 @@ export default function CoachesManagement({ initialCoaches }: CoachesManagementP
             <Table className="min-w-[800px]">
               <TableHeader>
                 <TableRow className="bg-gray-50/50 dark:bg-gray-800/30 border-b-2 border-gray-100 dark:border-gray-800 hover:bg-transparent">
-                  <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-8">Coach Name</TableHead>
-                  <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Email Address</TableHead>
-                  <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">School Affiliation</TableHead>
                   <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-8">Category Status</TableHead>
+                  <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-8">Name</TableHead>
+                  <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Email Address</TableHead>
+                  <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Role</TableHead>
+                  <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">School Affiliation</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredCoaches.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="h-32 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">
-                      No faculty coaches found.
+                    <TableCell colSpan={5} className="h-32 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">
+                      No faculty coaches or sub-admins found.
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -178,24 +182,34 @@ export default function CoachesManagement({ initialCoaches }: CoachesManagementP
                       key={coach.id}
                       className="h-20 transition-all border-b border-gray-100 dark:border-gray-800/50 hover:bg-gray-50/50 dark:hover:bg-gray-800/20"
                     >
-                      <TableCell className="px-8 font-bold text-gray-900 dark:text-white">
-                        {coach.name || "N/A"}
-                      </TableCell>
-                      <TableCell className="px-6 text-sm font-medium text-gray-500">
-                        {coach.email}
-                      </TableCell>
-                      <TableCell className="px-6 text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-tight">
-                        <span className="inline-flex items-center gap-2">
-                          <School className="w-4 h-4 text-gray-400 shrink-0" />
-                          {coach.school || "Unassigned"}
-                        </span>
-                      </TableCell>
                       <TableCell className="px-8">
                         <CategorySelect 
                           coachId={coach.id} 
                           initialCategory={coach.category} 
                           onChange={(newCat) => handleCategoryChange(coach.id, newCat)}
                         />
+                      </TableCell>
+                      <TableCell className="px-8 font-bold text-gray-900 dark:text-white">
+                        {coach.name || "N/A"}
+                      </TableCell>
+                      <TableCell className="px-6 text-sm font-medium text-gray-500">
+                        {coach.email}
+                      </TableCell>
+                      <TableCell className="px-6 text-sm font-medium">
+                        <span className={cn(
+                          "inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider",
+                          coach.role === "SUB_ADMIN"
+                            ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+                            : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                        )}>
+                          {coach.role === "SUB_ADMIN" ? "Sub-Admin" : "Faculty Coach"}
+                        </span>
+                      </TableCell>
+                      <TableCell className="px-6 text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-tight">
+                        <span className="inline-flex items-center gap-2">
+                          <School className="w-4 h-4 text-gray-400 shrink-0" />
+                          {coach.school || "Unassigned"}
+                        </span>
                       </TableCell>
                     </TableRow>
                   ))

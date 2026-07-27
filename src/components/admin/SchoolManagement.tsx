@@ -72,11 +72,13 @@ export default function SchoolManagement({ schools }: { schools: School[] }) {
             <Label>Category</Label>
             <Select value={category} onValueChange={(val) => { if (val) setCategory(val as any); }}>
               <SelectTrigger className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-                <SelectValue placeholder="Select Category" />
+                <SelectValue>
+                  {category === "NON_MEMBER" ? "NON-MEMBER" : "MEMBER"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-                <SelectItem value="MEMBER">Member</SelectItem>
-                <SelectItem value="NON_MEMBER">Non-Member</SelectItem>
+                <SelectItem value="MEMBER">MEMBER</SelectItem>
+                <SelectItem value="NON_MEMBER">NON-MEMBER</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -108,11 +110,13 @@ export default function SchoolManagement({ schools }: { schools: School[] }) {
                       onValueChange={(val) => { if (val) handleCategoryChange(school.id, val as any); }}
                     >
                       <SelectTrigger className="w-[140px] h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-                        <SelectValue />
+                        <SelectValue>
+                          {school.category === "NON_MEMBER" ? "NON-MEMBER" : "MEMBER"}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-                        <SelectItem value="MEMBER">Member</SelectItem>
-                        <SelectItem value="NON_MEMBER">Non-Member</SelectItem>
+                        <SelectItem value="MEMBER">MEMBER</SelectItem>
+                        <SelectItem value="NON_MEMBER">NON-MEMBER</SelectItem>
                       </SelectContent>
                     </Select>
                   </td>

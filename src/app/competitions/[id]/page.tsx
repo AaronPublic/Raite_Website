@@ -8,6 +8,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { cn } from "@/lib/utils";
 import { getSystemSetting } from "@/lib/data/settings";
+import RegisterTeamButton from "@/components/registration/RegisterTeamButton";
 
 export default async function CompetitionDetailPage({
   params,
@@ -26,11 +27,20 @@ export default async function CompetitionDetailPage({
   const generalGuidelinesUrl = await getSystemSetting("GENERAL_GUIDELINES_URL");
   const rulesUrl = event.rulesPdfUrl || generalGuidelinesUrl || "/assets/mechanics-and-rules.pdf";
 
-  // Fetch user role from DB
+  // Fetch user role and school category from DB
   let userRole = "PARTICIPANT";
+  let isNonMember = false;
   if (user) {
     const dbUser = await db.user.findUnique({ where: { clerkId: user.id } });
-    if (dbUser) userRole = dbUser.role;
+    if (dbUser) {
+      userRole = dbUser.role;
+      if (dbUser.school) {
+        const schoolRecord = await db.school.findUnique({ where: { name: dbUser.school } });
+        if (schoolRecord?.category === "NON_MEMBER") {
+          isNonMember = true;
+        }
+      }
+    }
   }
 
   const isOpen = event.status === "UPCOMING";
@@ -187,12 +197,10 @@ export default async function CompetitionDetailPage({
               {isOpen ? (
                 user ? (
                   canRegister ? (
-                    <Link 
-                      href={`/register/step-2?eventId=${event.id}`}
-                      className={cn(buttonVariants(), "w-full h-12 text-lg font-bold flex items-center justify-center")}
-                    >
-                      Register Team
-                    </Link>
+                    <RegisterTeamButton 
+                      eventId={event.id}
+                      isNonMember={isNonMember}
+                    />
                   ) : (
                     <div className="p-4 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 rounded-xl text-sm font-semibold">
                       Registration is only allowed for Faculty Coaches. Please contact your coach.

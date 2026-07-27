@@ -2,6 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 
 async function checkAdmin() {
   const { userId } = await auth();

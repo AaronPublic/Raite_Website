@@ -47,8 +47,12 @@ interface CoachDetails {
   school: string | null;
 }
 
-export default function TeamForm() {
-  const { data, isReady, updateData } = useWizard();
+interface TeamFormInnerProps {
+  data: any;
+  updateData: (newData: Partial<any>) => void;
+}
+
+function TeamFormInner({ data, updateData }: TeamFormInnerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [validating, setValidating] = useState<Record<number, boolean>>({});
@@ -59,35 +63,6 @@ export default function TeamForm() {
   const [popoversOpen, setPopoversOpen] = useState<Record<string, boolean>>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [isCheckingLimits, setIsCheckingLimits] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true);
-
-  // Handle eventId from URL if not in wizard
-  useEffect(() => {
-    async function init() {
-      if (isReady) {
-        const eventIdParam = searchParams.get("eventId");
-        if (eventIdParam && data.eventId !== eventIdParam) {
-          try {
-            const event = await getEventDetailsForRegistration(eventIdParam);
-            if (event && event.status === "UPCOMING") {
-              updateData({
-                eventId: event.id,
-                eventTitle: event.title,
-                eventCategory: event.category || undefined,
-                eventSubcategory: event.subcategory || undefined,
-                maxParticipantsPerRegistration: event.maxParticipantsPerRegistration,
-                minParticipantsPerRegistration: event.minParticipantsPerRegistration
-              });
-            }
-          } catch (err) {
-            console.error("Failed to fetch event details:", err);
-          }
-        }
-        setIsInitializing(false);
-      }
-    }
-    init();
-  }, [isReady, data.eventId, searchParams, updateData]);
 
   const minPart = data.minParticipantsPerRegistration || 1;
   const maxPart = data.maxParticipantsPerRegistration || 1;
@@ -109,7 +84,6 @@ export default function TeamForm() {
     control,
     handleSubmit,
     watch,
-    reset,
     setValue,
     register,
     formState: { errors },
@@ -117,7 +91,9 @@ export default function TeamForm() {
     resolver: zodResolver(teamSchema),
     defaultValues: {
       teamName: data.teamName || "",
-      members: data.members || Array(data.maxParticipantsPerRegistration || 1).fill(""),
+      members: data.members && data.members.length === maxPart 
+        ? data.members 
+        : Array(maxPart).fill(""),
       repSelectedEmail: data.repEmail || "",
       repName: data.repName || "",
       repEmail: data.repEmail || "",
@@ -146,35 +122,12 @@ export default function TeamForm() {
     load();
   }, []);
 
-  // Sync form with wizard data when isReady
-  useEffect(() => {
-    if (isReady) {
-      const initialMembers = data.members && data.members.length === (data.maxParticipantsPerRegistration || 1) 
-        ? data.members 
-        : Array(data.maxParticipantsPerRegistration || 1).fill("");
-        
-      reset({
-        teamName: data.teamName || "",
-        members: initialMembers,
-        repSelectedEmail: data.repEmail || "",
-        repName: data.repName || "",
-        repEmail: data.repEmail || "",
-      });
-    }
-  }, [isReady, data.teamName, data.members, data.maxParticipantsPerRegistration, data.repName, data.repEmail, reset]);
-
   const { fields, append, remove } = useFieldArray({
     control: control as any,
     name: "members" as any,
   });
 
-  useEffect(() => {
-    if (isReady && !isInitializing && !data.eventId) {
-      router.push("/register/step-1");
-    }
-  }, [isReady, isInitializing, data.eventId, router]);
-
-  if (!isReady || loadingEligible || isInitializing) {
+  if (loadingEligible) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
@@ -725,4 +678,55 @@ export default function TeamForm() {
       </div>
     </form>
   );
+}
+
+export default function TeamForm() {
+  const { data, isReady, updateData } = useWizard();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  useEffect(() => {
+    async function init() {
+      if (isReady) {
+        const eventIdParam = searchParams.get("eventId");
+        if (eventIdParam && data.eventId !== eventIdParam) {
+          try {
+            const event = await getEventDetailsForRegistration(eventIdParam);
+            if (event && event.status === "UPCOMING") {
+              updateData({
+                eventId: event.id,
+                eventTitle: event.title,
+                eventCategory: event.category || undefined,
+                eventSubcategory: event.subcategory || undefined,
+                maxParticipantsPerRegistration: event.maxParticipantsPerRegistration,
+                minParticipantsPerRegistration: event.minParticipantsPerRegistration
+              });
+            }
+          } catch (err) {
+            console.error("Failed to fetch event details:", err);
+          }
+        }
+        setIsInitializing(false);
+      }
+    }
+    init();
+  }, [isReady, data.eventId, searchParams, updateData]);
+
+  useEffect(() => {
+    if (isReady && !isInitializing && !data.eventId) {
+      router.push("/register/step-1");
+    }
+  }, [isReady, isInitializing, data.eventId, router]);
+
+  if (!isReady || isInitializing) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+        <p className="text-gray-500 font-bold">Preparing registration form...</p>
+      </div>
+    );
+  }
+
+  return <TeamFormInner data={data} updateData={updateData} />;
 }

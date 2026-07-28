@@ -10,6 +10,21 @@ import Papa from "papaparse";
 import { sendBrevoEmail } from "@/lib/email";
 import { env } from "@/env";
 
+const EVENT_MESSENGER_LINKS: Record<string, string> = {
+  "Information Technology Specialist  (Computational Thinking)": "https://m.me/j/AbZ9Tc89JVvaSENH",
+  "Lanyard Layout Design": "https://m.me/j/AbZRaFuJ9S_ZzXLz",
+  "Quiz Bee Challenge": "https://m.me/j/AbacnpKSpK6IzR8W",
+  "Micro Short Film": "https://m.me/j/AbZE27J3-ITpvpaw",
+  "TechTok Challenge: CTRL+ NEXT Edition": "https://m.me/j/AbbVukxNt2K9uO2Y",
+  "Infographics Design Competition": "https://m.me/j/Aba2Dgerjiz1h-PQ",
+  "Mobile Legends: Bang Bang": "https://m.me/j/AbY2SIVvO65XbsGY",
+  "Valorant": "https://m.me/j/AbaAwtOinywYxZy3",
+  "Mr. and Ms. Ambassador of Goodwill 2026": "https://m.me/j/Aba2Stca3deEukXc",
+  "Around the World Dance Competition": "https://m.me/j/AbYtA601iRKIERRe",
+  "Hackathon Programming ": "https://m.me/j/Abbu1jpQa7Iv-lWT",
+  "Programming Challenge": "https://m.me/j/AbaZLWNuDmxxt_NY",
+};
+
 const updateStatusSchema = z.object({
   id: z.string(),
   status: z.nativeEnum(RegistrationStatus),
@@ -29,7 +44,7 @@ export async function batchUpdateRegistrationStatus(data: z.infer<typeof batchUp
   try {
     const registrations = await db.registration.findMany({
       where: { id: { in: ids } },
-      include: { event: true, user: true }
+      include: { event: true, user: true, coach: true }
     });
 
     await db.registration.updateMany({
@@ -45,9 +60,20 @@ export async function batchUpdateRegistrationStatus(data: z.infer<typeof batchUp
     for (const reg of registrations) {
       if (status === "APPROVED") {
         try {
+          const to = [{ email: reg.user.email }];
+          if (reg.coach?.email) {
+            to.push({ email: reg.coach.email });
+          }
+          const messengerLink = EVENT_MESSENGER_LINKS[reg.event.title.trim()];
+          const messengerBlock = messengerLink ? `
+            <div style="margin: 20px 0; padding: 15px; background-color: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe;">
+              <p style="margin: 0 0 8px 0; font-size: 13px; color: #1e40af;"><strong>FB Messenger Group Chat:</strong> <a href="${messengerLink}" style="color: #2563eb; text-decoration: underline; font-weight: bold;">Join Group Chat</a></p>
+              <p style="margin: 0; font-size: 12px; color: #1e3a8a; font-style: italic;"><strong>NOTE:</strong> All competitors/ coaches, please join the respective FB Messenger Group for more information and other queries.</p>
+            </div>
+          ` : "";
           await sendBrevoEmail({
             subject: `RAITE 2026 - Registration Approved: ${reg.event.title}`,
-            to: [{ email: reg.user.email }],
+            to,
             htmlContent: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
                 <div style="text-align: center; margin-bottom: 20px;">
@@ -56,12 +82,13 @@ export async function batchUpdateRegistrationStatus(data: z.infer<typeof batchUp
                 </div>
                 <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
                 <h3 style="color: #16a34a; font-size: 18px; font-weight: 700; margin-top: 0;">Registration Approved</h3>
-                <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Hello <strong>${reg.user.name || "Faculty Coach"}</strong>,</p>
+                <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Hello <strong>${reg.user.name || "Participant"}</strong>${reg.coach?.name ? ` and Coach <strong>${reg.coach.name}</strong>` : ""},</p>
                 <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Your registration for the event/competition <strong>${reg.event.title}</strong> has been officially <strong>approved</strong> by the administrator.</p>
                 <div style="margin: 20px 0; padding: 15px; background-color: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
                   <p style="margin: 0 0 8px 0; font-size: 13px; color: #166534;"><strong>Event:</strong> ${reg.event.title}</p>
                   <p style="margin: 0; font-size: 13px; color: #166534;"><strong>Status:</strong> Approved</p>
                 </div>
+                ${messengerBlock}
                 <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">You can check the details of this registration on the RAITE portal.</p>
                 <div style="text-align: center; margin-top: 30px;">
                   <a href="${env.NEXT_PUBLIC_APP_URL || "http://localhost:3000/"}" style="display: inline-block; padding: 12px 24px; background-color: #0038a8; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">View Dashboard</a>
@@ -76,9 +103,13 @@ export async function batchUpdateRegistrationStatus(data: z.infer<typeof batchUp
         }
       } else if (status === "WAITLISTED") {
         try {
+          const to = [{ email: reg.user.email }];
+          if (reg.coach?.email) {
+            to.push({ email: reg.coach.email });
+          }
           await sendBrevoEmail({
             subject: `RAITE 2026 - Action Required: Registration Review for ${reg.event.title}`,
-            to: [{ email: reg.user.email }],
+            to,
             htmlContent: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
                 <div style="text-align: center; margin-bottom: 20px;">
@@ -87,7 +118,7 @@ export async function batchUpdateRegistrationStatus(data: z.infer<typeof batchUp
                 </div>
                 <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
                 <h3 style="color: #ea580c; font-size: 18px; font-weight: 700; margin-top: 0;">Action Required: Registration Under Review</h3>
-                <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Hello <strong>${reg.user.name || "Faculty Coach"}</strong>,</p>
+                <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Hello <strong>${reg.user.name || "Participant"}</strong>${reg.coach?.name ? ` and Coach <strong>${reg.coach.name}</strong>` : ""},</p>
                 <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Your registration for the event/competition <strong>${reg.event.title}</strong> has been flagged for review.</p>
                 <div style="margin: 20px 0; padding: 15px; background-color: #fff7ed; border-radius: 8px; border: 1px solid #ffedd5;">
                   <p style="margin: 0 0 8px 0; font-size: 13px; color: #9a3412;"><strong>Event:</strong> ${reg.event.title}</p>
@@ -159,7 +190,7 @@ export async function updateRegistrationStatus(data: z.infer<typeof updateStatus
   try {
     const registration = await db.registration.findUnique({
       where: { id },
-      include: { event: true, user: true }
+      include: { event: true, user: true, coach: true }
     });
 
     if (!registration) throw new Error("Registration not found");
@@ -175,9 +206,20 @@ export async function updateRegistrationStatus(data: z.infer<typeof updateStatus
 
     if (status === "APPROVED") {
       try {
+        const to = [{ email: registration.user.email }];
+        if (registration.coach?.email) {
+          to.push({ email: registration.coach.email });
+        }
+        const messengerLink = EVENT_MESSENGER_LINKS[registration.event.title.trim()];
+        const messengerBlock = messengerLink ? `
+          <div style="margin: 20px 0; padding: 15px; background-color: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe;">
+            <p style="margin: 0 0 8px 0; font-size: 13px; color: #1e40af;"><strong>FB Messenger Group Chat:</strong> <a href="${messengerLink}" style="color: #2563eb; text-decoration: underline; font-weight: bold;">Join Group Chat</a></p>
+            <p style="margin: 0; font-size: 12px; color: #1e3a8a; font-style: italic;"><strong>NOTE:</strong> All competitors/ coaches, please join the respective FB Messenger Group for more information and other queries.</p>
+          </div>
+        ` : "";
         await sendBrevoEmail({
           subject: `RAITE 2026 - Registration Approved: ${registration.event.title}`,
-          to: [{ email: registration.user.email }],
+          to,
           htmlContent: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
               <div style="text-align: center; margin-bottom: 20px;">
@@ -186,12 +228,13 @@ export async function updateRegistrationStatus(data: z.infer<typeof updateStatus
               </div>
               <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
               <h3 style="color: #16a34a; font-size: 18px; font-weight: 700; margin-top: 0;">Registration Approved</h3>
-              <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Hello <strong>${registration.user.name || "Faculty Coach"}</strong>,</p>
+              <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Hello <strong>${registration.user.name || "Participant"}</strong>${registration.coach?.name ? ` and Coach <strong>${registration.coach.name}</strong>` : ""},</p>
               <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Your registration for the event/competition <strong>${registration.event.title}</strong> has been officially <strong>approved</strong> by the administrator.</p>
               <div style="margin: 20px 0; padding: 15px; background-color: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
                 <p style="margin: 0 0 8px 0; font-size: 13px; color: #166534;"><strong>Event:</strong> ${registration.event.title}</p>
                 <p style="margin: 0; font-size: 13px; color: #166534;"><strong>Status:</strong> Approved</p>
               </div>
+              ${messengerBlock}
               <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">You can check the details of this registration on the RAITE portal.</p>
               <div style="text-align: center; margin-top: 30px;">
                 <a href="${env.NEXT_PUBLIC_APP_URL || "http://localhost:3000/"}" style="display: inline-block; padding: 12px 24px; background-color: #0038a8; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">View Dashboard</a>
@@ -206,9 +249,13 @@ export async function updateRegistrationStatus(data: z.infer<typeof updateStatus
       }
     } else if (status === "WAITLISTED") {
       try {
+        const to = [{ email: registration.user.email }];
+        if (registration.coach?.email) {
+          to.push({ email: registration.coach.email });
+        }
         await sendBrevoEmail({
           subject: `RAITE 2026 - Action Required: Registration Review for ${registration.event.title}`,
-          to: [{ email: registration.user.email }],
+          to,
           htmlContent: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
               <div style="text-align: center; margin-bottom: 20px;">
@@ -217,7 +264,7 @@ export async function updateRegistrationStatus(data: z.infer<typeof updateStatus
               </div>
               <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
               <h3 style="color: #ea580c; font-size: 18px; font-weight: 700; margin-top: 0;">Action Required: Registration Under Review</h3>
-              <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Hello <strong>${registration.user.name || "Faculty Coach"}</strong>,</p>
+              <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Hello <strong>${registration.user.name || "Participant"}</strong>${registration.coach?.name ? ` and Coach <strong>${registration.coach.name}</strong>` : ""},</p>
               <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Your registration for the event/competition <strong>${registration.event.title}</strong> has been flagged for review.</p>
               <div style="margin: 20px 0; padding: 15px; background-color: #fff7ed; border-radius: 8px; border: 1px solid #ffedd5;">
                 <p style="margin: 0 0 8px 0; font-size: 13px; color: #9a3412;"><strong>Event:</strong> ${registration.event.title}</p>
@@ -278,7 +325,7 @@ export async function submitRevisionRequest(data: z.infer<typeof revisionSchema>
   try {
     const registration = await db.registration.findUnique({
       where: { id },
-      include: { event: true, user: true }
+      include: { event: true, user: true, coach: true }
     });
 
     if (!registration) throw new Error("Registration not found");
@@ -293,9 +340,13 @@ export async function submitRevisionRequest(data: z.infer<typeof revisionSchema>
 
     // Send email that it is flagged for review with comments
     try {
+      const to = [{ email: registration.user.email }];
+      if (registration.coach?.email) {
+        to.push({ email: registration.coach.email });
+      }
       await sendBrevoEmail({
         subject: `RAITE 2026 - Action Required: Revision Requested for ${registration.event.title}`,
-        to: [{ email: registration.user.email }],
+        to,
         htmlContent: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
             <div style="text-align: center; margin-bottom: 20px;">
@@ -304,7 +355,7 @@ export async function submitRevisionRequest(data: z.infer<typeof revisionSchema>
             </div>
             <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
             <h3 style="color: #ea580c; font-size: 18px; font-weight: 700; margin-top: 0;">Action Required: Revision Requested</h3>
-            <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Hello <strong>${registration.user.name || "Faculty Coach"}</strong>,</p>
+            <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Hello <strong>${registration.user.name || "Participant"}</strong>${registration.coach?.name ? ` and Coach <strong>${registration.coach.name}</strong>` : ""},</p>
             <p style="color: #4b5563; font-size: 14px; line-height: 1.5;">Your registration for the event/competition <strong>${registration.event.title}</strong> has been flagged for review. A revision is required before this registration can be approved.</p>
             <div style="margin: 20px 0; padding: 15px; background-color: #fff7ed; border-radius: 8px; border: 1px solid #ffedd5;">
               <p style="margin: 0 0 8px 0; font-size: 13px; color: #9a3412;"><strong>Event:</strong> ${registration.event.title}</p>

@@ -89,8 +89,8 @@ export default function SchoolManagement({ schools }: { schools: School[] }) {
           </div>
         </div>
 
-        <div className="border rounded-md">
-          <table className="w-full text-sm">
+        <div className="border rounded-md overflow-x-auto w-full">
+          <table className="w-full text-sm min-w-[600px]">
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="p-2 text-left">Name</th>

@@ -22,7 +22,10 @@ import {
   FileText,
   BarChart3,
   Settings,
-  ShieldAlert
+  ShieldAlert,
+  School,
+  UserCheck,
+  CreditCard
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
@@ -76,12 +79,15 @@ export default function MobileMenu({ userId, userRole, userApproved }: MobileMen
     { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard, role: "ADMIN" },
     { name: "Competitions", href: "/admin/competitions", icon: Trophy, role: "ADMIN" },
     { name: "Users", href: "/admin/users", icon: Users, role: "ADMIN" },
+    { name: "Manage Schools", href: "/admin/schools", icon: School, role: "ADMIN" },
+    { name: "Faculty Coaches", href: "/admin/coaches", icon: UserCheck, role: "ADMIN" },
     { name: "Registrations", href: "/admin/registrations", icon: ClipboardList, role: "ADMIN" },
     { name: "Submissions", href: "/admin/submissions", icon: FileText, role: "ADMIN" },
     { name: "Announcements", href: "/admin/announcements", icon: Megaphone, role: "ADMIN" },
     { name: "Guidelines", href: "/admin/guidelines", icon: FileText, role: "ADMIN" },
     { name: "Reports", href: "/admin/reports", icon: BarChart3, role: "ADMIN" },
     { name: "Ranking", href: "/admin/ranking", icon: Trophy, role: "ADMIN" },
+    { name: "Billing", href: "/admin/billing", icon: CreditCard, role: "ADMIN" },
     { name: "Settings", href: "/admin/settings", icon: Settings, role: "ADMIN" },
     { name: "My Competitions", href: "/sub-admin/competitions", icon: Briefcase, role: "SUB_ADMIN" },
     { name: "Submissions", href: "/sub-admin/submissions", icon: FileText, role: "SUB_ADMIN" },

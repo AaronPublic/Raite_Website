@@ -54,7 +54,7 @@ async function HeroActions() {
   const guidelinesHref = guidelinesUrl || "/competitions";
 
   const programmeUrl = await getSystemSetting("EVENT_PROGRAMME_URL");
-  const programmeHref = programmeUrl || "/assets/RAITE-2026-Provisional-Programme.docx";
+  const programmeHref = programmeUrl || "/assets/RAITE-2026-Provisional-Programme.pdf";
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 md:gap-5 pt-4 w-full sm:w-auto">

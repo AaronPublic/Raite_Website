@@ -13,19 +13,24 @@ export default function EventProgrammeModalButton({ programmeUrl }: EventProgram
   const [isOpen, setIsOpen] = useState(false);
   const [iframeLoading, setIframeLoading] = useState(true);
 
-  const defaultUrl = "/assets/RAITE-2026-Provisional-Programme.docx";
+  const defaultUrl = "/assets/RAITE-2026-Provisional-Programme.pdf";
   const activeUrl = programmeUrl || defaultUrl;
 
-  // Determine if it is a local URL (e.g. static assets or localhost testing)
-  // This is evaluated identically on server and client to avoid hydration mismatch
+  // Derive download filename from the URL extension (pdf or docx)
+  const ext = activeUrl.split(".").pop()?.split("?")[0]?.toLowerCase() || "pdf";
+  const downloadFilename = `RAITE-2026-Provisional-Programme.${ext}`;
+  const isPdf = ext === "pdf";
+  
   const isLocal = 
     !activeUrl || 
     (!activeUrl.startsWith("http://") && !activeUrl.startsWith("https://")) ||
     activeUrl.includes("localhost") ||
     activeUrl.includes("127.0.0.1");
 
-  // Microsoft Office Web Viewer embed link (requires public URL)
-  const embedUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(activeUrl)}`;
+  // Microsoft Office Web Viewer embed link (requires public URL) or direct PDF link
+  const embedUrl = isPdf 
+    ? activeUrl 
+    : `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(activeUrl)}`;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -57,7 +62,7 @@ export default function EventProgrammeModalButton({ programmeUrl }: EventProgram
             asChild
             className="rounded-xl h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 flex items-center gap-2 shadow-lg shadow-blue-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shrink-0"
           >
-            <a href={activeUrl} download="RAITE-2026-Provisional-Programme.docx">
+            <a href={activeUrl} download={downloadFilename}>
               <Download className="w-4 h-4" />
               Download
             </a>
@@ -68,7 +73,7 @@ export default function EventProgrammeModalButton({ programmeUrl }: EventProgram
         <div className="flex-1 overflow-y-auto py-2">
           {/* Document Area */}
           <div className="w-full bg-gray-50 dark:bg-gray-950 rounded-2xl flex flex-col items-center justify-center p-4 min-h-[300px] md:min-h-0 md:h-full">
-            {isLocal ? (
+            {(!isPdf && isLocal) ? (
               <div className="max-w-md p-6 text-center space-y-6 flex flex-col items-center">
                 <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
                   <AlertCircle className="w-8 h-8" />
@@ -85,9 +90,9 @@ export default function EventProgrammeModalButton({ programmeUrl }: EventProgram
                   variant="outline"
                   className="rounded-xl h-12 px-6 font-bold border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-900 cursor-pointer"
                 >
-                  <a href={activeUrl} download="RAITE-2026-Provisional-Programme.docx">
+                  <a href={activeUrl} download={downloadFilename}>
                     <Download className="w-4 h-4 mr-2" />
-                    Download Word File (.docx)
+                    Download Programme File
                   </a>
                 </Button>
               </div>
@@ -99,14 +104,16 @@ export default function EventProgrammeModalButton({ programmeUrl }: EventProgram
                     <p className="text-sm font-bold text-gray-500">Loading document preview...</p>
                   </div>
                 )}
-                <iframe
-                  src={embedUrl}
-                  width="100%"
-                  height="100%"
-                  className="border-none w-full h-full min-h-[300px] md:min-h-0 rounded-2xl"
-                  onLoad={() => setIframeLoading(false)}
-                  title="Provisional Programme Viewer"
-                />
+                {isOpen && (
+                  <iframe
+                    src={embedUrl}
+                    width="100%"
+                    height="100%"
+                    className="border-none w-full h-full min-h-[300px] md:min-h-0 rounded-2xl"
+                    onLoad={() => setIframeLoading(false)}
+                    title="Provisional Programme Viewer"
+                  />
+                )}
               </div>
             )}
           </div>

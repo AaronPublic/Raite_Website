@@ -309,3 +309,47 @@ export async function toggleUserApproval(id: string, category?: "MEMBER" | "NON_
   revalidatePath("/admin/coaches");
   return { success: true, approved: updated.approved, category: updated.category };
 }
+
+export async function deleteUser(userId: string) {
+  try {
+    await checkAdmin();
+
+    const user = await db.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error("User not found");
+
+    // If the user has a clerkId, delete them from Clerk first
+    if (user.clerkId) {
+      try {
+        const { createClerkClient } = await import("@clerk/nextjs/server");
+        const clerk = createClerkClient({ secretKey: env.CLERK_SECRET_KEY });
+        await clerk.users.deleteUser(user.clerkId);
+      } catch (clerkErr) {
+        console.error("Failed to delete user from Clerk (they might not exist in Clerk):", clerkErr);
+      }
+    }
+
+    await db.$transaction(async (tx) => {
+      // Delete registrations first
+      await tx.registration.deleteMany({
+        where: { userId },
+      });
+      // Delete user record
+      await tx.user.delete({
+        where: { id: userId },
+      });
+    });
+
+    if (user.coachCertificateUrl) {
+      await deleteSupabaseFile(user.coachCertificateUrl);
+    }
+    if (user.schoolIdUrl) {
+      await deleteSupabaseFile(user.schoolIdUrl);
+    }
+
+    revalidatePath("/admin/users");
+    return { success: true };
+  } catch (error: any) {
+    console.error("deleteUser failed:", error);
+    return { success: false, error: error.message || "Failed to delete user." };
+  }
+}

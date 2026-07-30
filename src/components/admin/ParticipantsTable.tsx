@@ -15,11 +15,11 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Check, X, Loader2, ChevronLeft, ChevronRight, FileText, Download, ExternalLink, ShieldCheck } from "lucide-react";
+import { Check, X, Loader2, ChevronLeft, ChevronRight, FileText, Download, ExternalLink, ShieldCheck, Trash2, AlertTriangle } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { toggleUserApproval } from "@/app/actions/participants";
+import { toggleUserApproval, deleteUser } from "@/app/actions/participants";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
@@ -119,6 +119,88 @@ function ApprovalCell({ userId, initialApproved, role }: { userId: string; initi
               className="rounded-xl font-bold text-gray-400 hover:text-gray-700 dark:hover:text-white"
             >
               Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function DeleteUserCell({ userId, userName }: { userId: string; userName: string | null }) {
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+
+  const handleDelete = () => {
+    startTransition(async () => {
+      try {
+        const res = await deleteUser(userId);
+        if (res.success) {
+          toast.success(`User "${userName || "Unknown"}" has been deleted.`);
+          setShowConfirm(false);
+          router.refresh();
+        } else {
+          toast.error((res as any).error || "Failed to delete user.");
+        }
+      } catch (err: any) {
+        toast.error(err.message || "Failed to delete user.");
+      }
+    });
+  };
+
+  return (
+    <>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setShowConfirm(true)}
+        className="rounded-xl h-9 w-9 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all"
+        title="Delete user"
+      >
+        <Trash2 className="w-4 h-4" />
+      </Button>
+
+      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <DialogContent className="w-[calc(100%-2rem)] sm:max-w-md rounded-[2rem] border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 p-6 shadow-2xl space-y-6">
+          <div className="flex flex-col items-center text-center gap-4 pt-2">
+            <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-950/20 text-red-500 flex items-center justify-center border border-red-100 dark:border-red-900/30">
+              <AlertTriangle className="w-8 h-8" />
+            </div>
+            <div className="space-y-2">
+              <DialogTitle className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
+                Delete User
+              </DialogTitle>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                You are about to permanently delete{" "}
+                <span className="font-black text-gray-900 dark:text-white">{userName || "this user"}</span>.
+                All their records, registrations, and data will be removed from the database.
+              </p>
+              <p className="text-xs font-black uppercase tracking-widest text-red-500">
+                ⚠ This action cannot be undone.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirm(false)}
+              disabled={isPending}
+              className="flex-1 h-12 rounded-2xl font-bold border-gray-200 dark:border-gray-800"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDelete}
+              disabled={isPending}
+              className="flex-1 h-12 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black shadow-lg shadow-red-600/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              {isPending ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Deleting...</>
+              ) : (
+                <><Trash2 className="w-4 h-4 mr-2" /> Delete Permanently</>
+              )}
             </Button>
           </div>
         </DialogContent>
@@ -284,6 +366,7 @@ export default function ParticipantsTable({
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Category</TableHead>
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Documents</TableHead>
                 <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Joined</TableHead>
+                <TableHead className="h-14 font-black uppercase tracking-widest text-[10px] text-gray-400 px-6">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -354,6 +437,9 @@ export default function ParticipantsTable({
                     </TableCell>
                     <TableCell className="px-6 text-xs font-bold text-gray-400">
                       {new Date(user.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="px-6">
+                      <DeleteUserCell userId={user.id} userName={user.name} />
                     </TableCell>
                   </TableRow>
                 ))

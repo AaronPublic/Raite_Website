@@ -21,7 +21,7 @@ export default function ProgrammeSettingsForm({ initialProgrammeUrl }: Programme
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const defaultUrl = "/assets/RAITE-2026-Provisional-Programme.docx";
+  const defaultUrl = "/assets/RAITE-2026-Provisional-Programme.pdf";
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -52,11 +52,12 @@ export default function ProgrammeSettingsForm({ initialProgrammeUrl }: Programme
   const uploadFile = async (file: File) => {
     const allowedTypes = [
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "application/msword"
+      "application/msword",
+      "application/pdf",
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      toast.error("Only Microsoft Word (.doc, .docx) files are allowed.");
+      toast.error("Only PDF or Microsoft Word (.doc, .docx) files are allowed.");
       return;
     }
 
@@ -126,7 +127,7 @@ export default function ProgrammeSettingsForm({ initialProgrammeUrl }: Programme
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* File Upload Dropzone */}
           <div className="space-y-4">
-            <Label className="text-xs font-black uppercase tracking-widest text-gray-400">Upload New Word Document (.docx)</Label>
+            <Label className="text-xs font-black uppercase tracking-widest text-gray-400">Upload Programme File (.pdf or .docx)</Label>
             
             <div
               className={cn(
@@ -145,7 +146,7 @@ export default function ProgrammeSettingsForm({ initialProgrammeUrl }: Programme
                 ref={fileInputRef}
                 type="file"
                 className="hidden"
-                accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                accept=".doc,.docx,.pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
                 onChange={handleFileChange}
                 disabled={isUploading}
               />
@@ -162,9 +163,9 @@ export default function ProgrammeSettingsForm({ initialProgrammeUrl }: Programme
                   </div>
                   <div>
                     <p className="text-base font-bold text-gray-700 dark:text-gray-300">
-                      Drag & drop your .docx file here, or <span className="text-blue-600 hover:underline">browse</span>
+                      Drag & drop your file here, or <span className="text-blue-600 hover:underline">browse</span>
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">Accepts Word files only (max 10MB)</p>
+                    <p className="text-xs text-gray-400 mt-1">Accepts PDF or Word files (.pdf, .docx)</p>
                   </div>
                 </div>
               )}

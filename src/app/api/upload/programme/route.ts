@@ -3,7 +3,8 @@ import { supabaseAdmin } from "@/lib/supabase";
 
 const ALLOWED_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
-  "application/msword" // .doc
+  "application/msword", // .doc
+  "application/pdf", // .pdf
 ];
 
 export async function POST(req: NextRequest) {
@@ -18,22 +19,39 @@ export async function POST(req: NextRequest) {
     // Validate file type
     if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
-        { error: "Only Microsoft Word (.doc, .docx) files are allowed" },
+        { error: "Only PDF or Microsoft Word (.doc, .docx) files are allowed" },
         { status: 400 }
       );
     }
 
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    let buffer: any = Buffer.from(bytes);
+    let finalContentType = file.type;
+    let finalFileName = file.name;
+
+    // Convert docx/doc to pdf if a converter is available (Word on Windows or LibreOffice on Windows/Linux)
+    if (
+      file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      file.type === "application/msword"
+    ) {
+      try {
+        const { convertDocxToPdfLocal } = await import("@/lib/docx-converter");
+        buffer = await convertDocxToPdfLocal(buffer);
+        finalContentType = "application/pdf";
+        finalFileName = file.name.replace(/\.(docx|doc)$/i, ".pdf");
+      } catch (convError) {
+        console.error("Conversion to PDF failed, uploading original DOCX file:", convError);
+      }
+    }
 
     // Create unique filename with a clean structure
-    const filename = `programme/RAITE-2026-Provisional-Programme-${Date.now()}-${file.name.replaceAll(" ", "_")}`;
+    const filename = `programme/RAITE-2026-Provisional-Programme-${Date.now()}-${finalFileName.replaceAll(" ", "_")}`;
     
     // Upload to Supabase Storage using Admin client (using the public 'rules' bucket)
     const { data, error } = await supabaseAdmin.storage
       .from("rules")
       .upload(filename, buffer, {
-        contentType: file.type,
+        contentType: finalContentType,
         cacheControl: "3600",
         upsert: false,
       });

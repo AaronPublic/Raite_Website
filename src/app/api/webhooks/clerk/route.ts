@@ -90,13 +90,18 @@ export async function POST(req: Request) {
     const { id } = data;
     const user = await db.user.findUnique({
       where: { clerkId: id as string },
-      select: { coachCertificateUrl: true },
+      select: { coachCertificateUrl: true, schoolIdUrl: true },
     });
-    await db.user.delete({
-      where: { clerkId: id as string },
-    });
-    if (user?.coachCertificateUrl) {
-      await deleteSupabaseFile(user.coachCertificateUrl);
+    if (user) {
+      await db.user.delete({
+        where: { clerkId: id as string },
+      });
+      if (user.coachCertificateUrl) {
+        await deleteSupabaseFile(user.coachCertificateUrl);
+      }
+      if (user.schoolIdUrl) {
+        await deleteSupabaseFile(user.schoolIdUrl);
+      }
     }
   }
 

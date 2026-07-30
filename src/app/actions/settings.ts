@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getUserByClerkId } from "@/lib/data/users";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { redis } from "@/lib/redis";
 
 export async function updateSystemSetting(key: string, value: string) {
   try {
@@ -41,6 +42,16 @@ export async function updateSystemSetting(key: string, value: string) {
       update: { value },
       create: { key, value },
     });
+
+    // Invalidate Redis cache for this setting
+    if (redis) {
+      try {
+        const SETTINGS_CACHE_PREFIX = "setting:";
+        await redis.del(`${SETTINGS_CACHE_PREFIX}${key}`);
+      } catch (redisErr) {
+        console.error("Failed to clear redis cache for setting:", redisErr);
+      }
+    }
 
     revalidatePath("/");
     revalidatePath("/admin/settings");

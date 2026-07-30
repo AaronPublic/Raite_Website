@@ -21,6 +21,11 @@ export default function EventProgrammeModalButton({ programmeUrl }: EventProgram
   const downloadFilename = `RAITE-2026-Provisional-Programme.${ext}`;
   const isPdf = ext === "pdf";
   
+  // For cross-origin Supabase URLs, append ?download to force browser attachment download
+  const downloadUrl = activeUrl.includes("supabase.co")
+    ? `${activeUrl}${activeUrl.includes("?") ? "&" : "?"}download=`
+    : activeUrl;
+
   const isLocal = 
     !activeUrl || 
     (!activeUrl.startsWith("http://") && !activeUrl.startsWith("https://")) ||
@@ -62,7 +67,7 @@ export default function EventProgrammeModalButton({ programmeUrl }: EventProgram
             asChild
             className="rounded-xl h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 flex items-center gap-2 shadow-lg shadow-blue-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shrink-0"
           >
-            <a href={activeUrl} download={downloadFilename}>
+            <a href={downloadUrl} download={downloadFilename}>
               <Download className="w-4 h-4" />
               Download
             </a>
@@ -90,7 +95,7 @@ export default function EventProgrammeModalButton({ programmeUrl }: EventProgram
                   variant="outline"
                   className="rounded-xl h-12 px-6 font-bold border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-900 cursor-pointer"
                 >
-                  <a href={activeUrl} download={downloadFilename}>
+                  <a href={downloadUrl} download={downloadFilename}>
                     <Download className="w-4 h-4 mr-2" />
                     Download Programme File
                   </a>

@@ -1,9 +1,11 @@
 import { getSystemSetting } from "@/lib/data/settings";
 import SettingsForm from "@/components/admin/SettingsForm";
+import ProgrammeSettingsForm from "@/components/admin/ProgrammeSettingsForm";
 import { Settings } from "lucide-react";
 
 export default async function AdminSettingsPage() {
   const missionStartDate = await getSystemSetting("MISSION_START_DATE");
+  const eventProgrammeUrl = await getSystemSetting("EVENT_PROGRAMME_URL");
 
   return (
     <div className="space-y-12">
@@ -18,9 +20,11 @@ export default async function AdminSettingsPage() {
         <p className="text-gray-500 dark:text-gray-400 font-medium text-lg mt-2">Manage global configurations and site-wide parameters.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
         <SettingsForm initialMissionStartDate={missionStartDate} />
+        <ProgrammeSettingsForm initialProgrammeUrl={eventProgrammeUrl} />
       </div>
     </div>
   );
 }
+

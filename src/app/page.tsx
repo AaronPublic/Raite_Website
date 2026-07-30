@@ -15,7 +15,8 @@ import CountdownTimer from "@/components/home/CountdownTimer";
 import AnnouncementCarousel from "@/components/home/AnnouncementCarousel";
 import DecorativeLayout from "@/components/layout/DecorativeLayout";
 import CoachHeroButtons from "@/components/home/CoachHeroButtons";
-import { Calendar, MapPin, School, Mail, ArrowRight, Sparkles, Trophy, Megaphone, ChevronRight, BookOpen } from "lucide-react";
+import EventProgrammeModalButton from "@/components/home/EventProgrammeModalButton";
+import { Calendar, MapPin, School, Mail, ArrowRight, Sparkles, Trophy, Megaphone, ChevronRight, BookOpen, FileText } from "lucide-react";
 import * as motion from "framer-motion/client";
 import { Suspense } from "react";
 import { cn } from "@/lib/utils";
@@ -51,6 +52,9 @@ async function HeroActions() {
 
   const guidelinesUrl = await getSystemSetting("GENERAL_GUIDELINES_URL");
   const guidelinesHref = guidelinesUrl || "/competitions";
+
+  const programmeUrl = await getSystemSetting("EVENT_PROGRAMME_URL");
+  const programmeHref = programmeUrl || "/assets/RAITE-2026-Provisional-Programme.docx";
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 md:gap-5 pt-4 w-full sm:w-auto">
@@ -108,6 +112,7 @@ async function HeroActions() {
         General Guidelines
         <BookOpen className="w-5 h-5 transition-transform group-hover:translate-x-1" />
       </Link>
+      <EventProgrammeModalButton programmeUrl={programmeHref} />
     </div>
   );
 }

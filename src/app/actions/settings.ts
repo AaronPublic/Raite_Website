@@ -24,6 +24,18 @@ export async function updateSystemSetting(key: string, value: string) {
       return { error: "System error: Configuration module is currently initializing. Please try again in a few seconds." };
     }
 
+    if (key === "EVENT_PROGRAMME_URL") {
+      const oldSetting = await model.findUnique({ where: { key } });
+      if (oldSetting && oldSetting.value && oldSetting.value !== value) {
+        try {
+          const { deleteSupabaseFile } = await import("@/lib/supabase");
+          await deleteSupabaseFile(oldSetting.value);
+        } catch (err) {
+          console.error("Error deleting old programme file from storage:", err);
+        }
+      }
+    }
+
     await model.upsert({
       where: { key },
       update: { value },

@@ -17,6 +17,30 @@ async function commandExists(cmd: string): Promise<boolean> {
   }
 }
 
+// List of potential absolute paths for LibreOffice / soffice binaries
+const POTENTIAL_PATHS = [
+  "/usr/bin/soffice",
+  "/usr/bin/libreoffice",
+  "/usr/local/bin/soffice",
+  "/usr/local/bin/libreoffice",
+  "/usr/bin/soffice.bin",
+  "/Applications/LibreOffice.app/Contents/MacOS/soffice",
+  "C:\\Program Files\\LibreOffice\\program\\soffice.exe",
+  "C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe"
+];
+
+async function getLibreOfficeBinary(): Promise<string | null> {
+  if (await commandExists("soffice")) return "soffice";
+  if (await commandExists("libreoffice")) return "libreoffice";
+
+  for (const p of POTENTIAL_PATHS) {
+    if (fs.existsSync(p)) {
+      return p;
+    }
+  }
+  return null;
+}
+
 export async function convertDocxToPdfLocal(docxBuffer: Buffer): Promise<Buffer> {
   const tempDir = os.tmpdir();
   const baseName = `temp-${Date.now()}`;
@@ -41,9 +65,7 @@ export async function convertDocxToPdfLocal(docxBuffer: Buffer): Promise<Buffer>
     }
 
     // 2. Cross-platform LibreOffice / soffice fallback
-    const hasSoffice = await commandExists("soffice");
-    const hasLibreoffice = !hasSoffice && (await commandExists("libreoffice"));
-    const binary = hasSoffice ? "soffice" : hasLibreoffice ? "libreoffice" : null;
+    const binary = await getLibreOfficeBinary();
 
     if (binary) {
       // Create a unique profile directory for this execution to avoid permission/locking conflicts in serverless/VPS environments

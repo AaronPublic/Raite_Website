@@ -36,9 +36,11 @@ export async function POST(req: NextRequest) {
     ) {
       try {
         const { convertDocxToPdfLocal } = await import("@/lib/docx-converter");
+        console.log("Starting docx-to-pdf conversion for uploaded file:", file.name);
         buffer = await convertDocxToPdfLocal(buffer);
         finalContentType = "application/pdf";
         finalFileName = file.name.replace(/\.(docx|doc)$/i, ".pdf");
+        console.log("docx-to-pdf conversion successful! Uploading as:", finalFileName);
       } catch (convError) {
         console.error("Conversion to PDF failed, uploading original DOCX file:", convError);
       }

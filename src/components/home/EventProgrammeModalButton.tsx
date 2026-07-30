@@ -33,7 +33,7 @@ export default function EventProgrammeModalButton({ programmeUrl }: EventProgram
         <Button
           variant="outline"
           size="lg"
-          className="h-14 sm:h-16 w-full sm:w-auto px-8 rounded-xl text-lg font-bold group border border-blue-600/30 dark:border-blue-500/20 flex items-center justify-center gap-2 bg-blue-50/10 dark:bg-blue-950/10 text-blue-600 dark:text-blue-400 hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white dark:hover:text-white hover:border-blue-600 dark:hover:border-blue-600 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-lg shadow-blue-500/5 hover:shadow-[0_0_25px_rgba(37,99,235,0.4)]"
+          className="h-14 sm:h-16 w-full sm:w-auto px-8 rounded-xl text-lg font-bold group border border-blue-600 dark:border-blue-500 flex items-center justify-center gap-2 bg-blue-600 dark:bg-blue-500 text-white hover:bg-transparent dark:hover:bg-transparent hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-600 dark:hover:border-blue-500 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-lg shadow-blue-500/20 hover:shadow-[0_0_25px_rgba(37,99,235,0.4)]"
         >
           Event Programme
           <FileText className="w-5 h-5 transition-transform group-hover:scale-110" />

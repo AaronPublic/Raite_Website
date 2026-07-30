@@ -46,14 +46,25 @@ export async function convertDocxToPdfLocal(docxBuffer: Buffer): Promise<Buffer>
     const binary = hasSoffice ? "soffice" : hasLibreoffice ? "libreoffice" : null;
 
     if (binary) {
-      // Execute LibreOffice headless conversion
-      // LibreOffice --convert-to pdf converts in place and outputs to outdir
-      await execAsync(`"${binary}" --headless --convert-to pdf --outdir "${tempDir}" "${tempDocxPath}"`);
-      
-      // LibreOffice outputs file with same base name but .pdf extension in the outdir
-      const expectedPdfPath = path.join(tempDir, `${baseName}.pdf`);
-      if (fs.existsSync(expectedPdfPath)) {
-        return await fs.promises.readFile(expectedPdfPath);
+      // Create a unique profile directory for this execution to avoid permission/locking conflicts in serverless/VPS environments
+      const profilePath = path.join(tempDir, `libreoffice_profile_${baseName}`);
+      const profileUrl = `file://${profilePath.replace(/\\/g, "/")}`;
+
+      try {
+        // Execute LibreOffice headless conversion
+        // -env:UserInstallation overrides user configuration directory to avoid lock failures
+        await execAsync(`"${binary}" "-env:UserInstallation=${profileUrl}" --headless --convert-to pdf --outdir "${tempDir}" "${tempDocxPath}"`);
+        
+        // LibreOffice outputs file with same base name but .pdf extension in the outdir
+        const expectedPdfPath = path.join(tempDir, `${baseName}.pdf`);
+        if (fs.existsSync(expectedPdfPath)) {
+          return await fs.promises.readFile(expectedPdfPath);
+        }
+      } finally {
+        // Clean up custom profile directory
+        if (fs.existsSync(profilePath)) {
+          await fs.promises.rm(profilePath, { recursive: true, force: true }).catch(() => {});
+        }
       }
     }
 

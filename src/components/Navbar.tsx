@@ -3,6 +3,7 @@ import Image from "next/image";
 import { auth } from "@clerk/nextjs/server";
 import { getUserByClerkId } from "@/lib/data/users";
 import { ThemeToggle } from "./ThemeToggle";
+import { AdminNotifications } from "./admin/AdminNotifications";
 import NavItems from "./NavItems";
 import NavbarActions from "./NavbarActions";
 import MobileMenu from "./MobileMenu";
@@ -41,6 +42,7 @@ export default async function Navbar() {
 
         {/* Actions */}
         <div className="flex items-center gap-3">
+          {user?.role === "ADMIN" && <AdminNotifications />}
           <ThemeToggle />
           <NavbarActions userId={userId} userRole={user?.role || null} userApproved={user?.approved ?? false} />
           <MobileMenu userId={userId} userRole={user?.role || null} userApproved={user?.approved ?? false} />

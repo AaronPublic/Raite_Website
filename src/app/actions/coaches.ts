@@ -42,3 +42,24 @@ export async function updateCoachCategory(id: string, category: "MEMBER" | "NON_
   revalidatePath("/admin/users");
   return { success: true, category: updated.category };
 }
+
+export async function getUnapprovedCoaches() {
+  await checkAdmin();
+
+  return await db.user.findMany({
+    where: {
+      role: "FACULTY_COACH",
+      approved: false,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      school: true,
+      createdAt: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}

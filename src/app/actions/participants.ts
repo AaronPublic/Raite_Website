@@ -71,7 +71,7 @@ export async function bulkRegisterParticipants(participants: { name: string, ema
       const email = p.email.trim().toLowerCase();
       const isValidEmail = 
         email.endsWith("@gmail.com") || 
-        (!isPublicDomain && email.endsWith(`@${coachDomain}`)) ||
+        (!isPublicDomain && (email.endsWith(`@${coachDomain}`) || email.endsWith(`.${coachDomain}`))) ||
         (isPublicDomain && (email.endsWith(".edu.ph") || email.endsWith(".edu") || /@[a-zA-Z0-9.-]+\.edu(\.[a-zA-Z]{2,})?$/.test(email)));
 
       if (!isValidEmail) {

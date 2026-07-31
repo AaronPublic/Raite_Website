@@ -92,8 +92,8 @@ export async function getSubAdminExportData(eventId: string) {
     return {
       id: r.id,
       school: r.user.school || "N/A",
-      coachName: r.coach?.name || r.user.name || "N/A",
-      coachEmail: r.coach?.email || r.user.email,
+      coachName: r.coach?.name || r.registeredBy || "N/A",
+      coachEmail: r.coach?.email || "N/A",
       members: memberDetails,
       date: r.createdAt.toLocaleDateString(),
     };
@@ -112,6 +112,7 @@ export async function getSubAdminCompetitionRegistrations(eventId: string) {
     where: { eventId },
     include: {
       user: { select: { name: true, email: true, school: true } },
+      coach: { select: { name: true, email: true } },
     },
     orderBy: { createdAt: "asc" },
   });
@@ -123,8 +124,8 @@ export async function getSubAdminCompetitionRegistrations(eventId: string) {
     
     return {
       school: r.user.school || "N/A",
-      coachName: r.user.name || "N/A",
-      coachEmail: r.user.email,
+      coachName: r.coach?.name || r.registeredBy || "N/A",
+      coachEmail: r.coach?.email || "N/A",
       competitors: participants.map((p: any) => typeof p === 'string' ? p : (p.name || "N/A")).join(", "),
     };
   });
@@ -198,7 +199,7 @@ export async function getCompetitionRegistrations(eventId: string) {
       teamName: r.teamName || "Individual",
       teamMembers: membersList,
       fullTeamDetails: fullTeamDetails,
-      coachName: r.coach?.name || "N/A",
+      coachName: r.coach?.name || r.registeredBy || "N/A",
       coachEmail: r.coach?.email || "N/A",
       status: r.status,
       date: r.createdAt.toLocaleDateString(),

@@ -403,12 +403,14 @@ export async function exportRegistrationsCSV(filters: RegistrationFilters) {
   const registrations = await getFilteredRegistrations(filters);
   
   const data = registrations.map(r => ({
-    School: r.user.school,
+    School: r.user.school || "N/A",
     Competition: r.event.title,
     Status: r.status,
-    Coach: r.user.name,
-    Email: r.user.email,
-    RegisteredAt: r.createdAt
+    "Competitor/Team": r.teamName || r.user.name || "N/A",
+    "Competitor Email": r.user.email,
+    Coach: r.coach?.name || r.registeredBy || "N/A",
+    "Coach Email": r.coach?.email || "N/A",
+    RegisteredAt: new Date(r.createdAt).toLocaleDateString()
   }));
   
   return Papa.unparse(data);
@@ -422,7 +424,7 @@ export async function getRegistrationsForPDF(filters: RegistrationFilters) {
     school: r.user.school || "N/A",
     competition: r.event.title,
     status: r.status,
-    coach: r.user.name || "N/A",
+    coach: r.coach?.name || r.registeredBy || "N/A",
     date: new Date(r.createdAt).toLocaleDateString()
   }));
 }

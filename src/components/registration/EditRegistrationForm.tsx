@@ -57,7 +57,12 @@ export default function EditRegistrationForm({
 
   const editSchema = useMemo(() => z.object({
     teamName: z.string().optional(),
-    members: z.array(z.string().email("Invalid email"))
+    members: z.array(
+      z.string()
+        .trim()
+        .min(1, "Please select a participant")
+        .email("Invalid email format")
+    )
       .length(maxParticipants, `Exactly ${maxParticipants} team members are required`),
     requirements: z.record(z.string(), z.string().url("Must be a valid URL")),
   }), [maxParticipants]);
@@ -239,8 +244,8 @@ export default function EditRegistrationForm({
                             <CommandGroup heading="Pre-registered Participants" className="px-1 pb-2 pt-4 **:[[cmdk-group-heading]]:font-black **:[[cmdk-group-heading]]:text-[10px] **:[[cmdk-group-heading]]:tracking-[0.2em] **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:mb-3 **:[[cmdk-group-heading]]:px-2">
                               {eligibleParticipants.map(p => (
                                 <CommandItem key={p.email} onSelect={() => {
-                                  setValue(`members.${index}`, p.email);
-                                  validateMember(index, p.email);
+                                  setValue(`members.${index}`, p.email.trim());
+                                  validateMember(index, p.email.trim());
                                   setPopoversOpen(prev => ({ ...prev, [index]: false }));
                                 }}
                                 className="p-3 rounded-2xl mb-2 bg-gray-100/50 dark:bg-gray-800/50 border-2 border-transparent data-selected:bg-blue-50/50 dark:data-selected:bg-blue-900/20 data-selected:border-blue-100 dark:data-selected:border-blue-800/50 data-selected:shadow-sm cursor-pointer transition-all group/item"

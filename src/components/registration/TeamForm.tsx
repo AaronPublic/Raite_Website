@@ -69,7 +69,12 @@ function TeamFormInner({ data, updateData }: TeamFormInnerProps) {
 
   const teamSchema = z.object({
     teamName: z.string().optional(),
-    members: z.array(z.string().email("Invalid email"))
+    members: z.array(
+      z.string()
+        .trim()
+        .min(1, "Please select a participant")
+        .email("Invalid email format")
+    )
         .min(minPart, `Minimum ${minPart} members required`)
         .max(maxPart, `Maximum ${maxPart} members allowed`),
     repSelectedEmail: z.string().optional(),
@@ -663,8 +668,8 @@ function MemberInput({
                           key={participant.id}
                           value={`${participant.name} ${participant.email} ${participant.uniqueId} ${participant.course}`}
                           onSelect={() => {
-                            setValue(`members.${index}`, participant.email, { shouldValidate: true });
-                            validateMember(participant.email);
+                            setValue(`members.${index}`, participant.email.trim(), { shouldValidate: true });
+                            validateMember(participant.email.trim());
                             setOpen(false);
                           }}
                           className="p-3 rounded-2xl mb-2 bg-gray-100/50 dark:bg-gray-800/50 border-2 border-transparent data-selected:bg-blue-50/50 dark:data-selected:bg-blue-900/20 data-selected:border-blue-100 dark:data-selected:border-blue-800/50 data-selected:shadow-sm cursor-pointer transition-all group/item"

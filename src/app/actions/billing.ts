@@ -4,6 +4,32 @@ import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
+function calculateBaseFee(regDate: Date): number {
+  const time = regDate.getTime();
+  
+  const startEarly = new Date("2026-06-30T00:00:00+08:00").getTime();
+  const endEarly = new Date("2026-07-25T23:59:59+08:00").getTime();
+  
+  const startRegular = new Date("2026-07-26T00:00:00+08:00").getTime();
+  const endRegular = new Date("2026-08-20T23:59:59+08:00").getTime();
+  
+  const startLate = new Date("2026-08-21T00:00:00+08:00").getTime();
+  const endLate = new Date("2026-09-04T23:59:59+08:00").getTime();
+
+  if (time >= startEarly && time <= endEarly) {
+    return 1300;
+  }
+  if (time >= startRegular && time <= endRegular) {
+    return 1500;
+  }
+  if (time >= startLate && time <= endLate) {
+    return 1700;
+  }
+  
+  // Default fallback
+  return 1700;
+}
+
 export async function getSchoolBillingData(schoolId: string) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -37,26 +63,14 @@ export async function getSchoolBillingData(schoolId: string) {
     })
   ]);
 
-  // Build a map of email -> earliest registration date and E-GAMES email set
-  const emailToEarliestRegDate = new Map<string, Date>();
+  // Build a set of E-GAMES emails
   const egamesEmails = new Set<string>();
 
   registrations.forEach(r => {
     const isEgames = r.event?.category === "E-GAMES" || r.event?.category === "EGAMES";
-    if (Array.isArray(r.members)) {
+    if (isEgames && Array.isArray(r.members)) {
       (r.members as string[]).forEach(email => {
-        const cleanEmail = email.trim().toLowerCase();
-        
-        // Track earliest registration
-        const existing = emailToEarliestRegDate.get(cleanEmail);
-        if (!existing || r.createdAt.getTime() < existing.getTime()) {
-          emailToEarliestRegDate.set(cleanEmail, r.createdAt);
-        }
-
-        // Track if registered for E-GAMES
-        if (isEgames) {
-          egamesEmails.add(cleanEmail);
-        }
+        egamesEmails.add(email.trim().toLowerCase());
       });
     }
   });
@@ -64,16 +78,8 @@ export async function getSchoolBillingData(schoolId: string) {
   const participantDetails = participants.map(p => {
     const cleanEmail = p.email.trim().toLowerCase();
     
-    const regDate = emailToEarliestRegDate.get(cleanEmail) || p.createdAt;
-    const month = regDate.getMonth();
-    const date = regDate.getDate();
-
-    let baseFee = 1700;
-    if (month === 6 && date <= 15) {
-      baseFee = 1500;
-    } else if (month < 6) {
-      baseFee = 1500;
-    }
+    const regDate = p.createdAt;
+    const baseFee = calculateBaseFee(regDate);
 
     const dateRegistered = p.role === "FACULTY_COACH" ? "N/A" : regDate.toLocaleDateString();
     const isEgames = p.role === "PARTICIPANT" && egamesEmails.has(cleanEmail);
@@ -193,20 +199,13 @@ export async function getBillingDashboardData() {
     })
   ]);
 
-  // 4. Build school-specific email -> earliest registration date map and E-GAMES participant sets
-  const schoolEmailToEarliestRegDate = new Map<string, Map<string, Date>>();
+  // 4. Build school-specific E-GAMES participant sets
   const schoolEgamesEmails = new Map<string, Set<string>>();
 
   allRegistrations.forEach(r => {
     const schoolName = r.user?.school;
     const isEgames = r.event?.category === "E-GAMES" || r.event?.category === "EGAMES";
-    if (schoolName && Array.isArray(r.members)) {
-      let emailMap = schoolEmailToEarliestRegDate.get(schoolName);
-      if (!emailMap) {
-        emailMap = new Map<string, Date>();
-        schoolEmailToEarliestRegDate.set(schoolName, emailMap);
-      }
-
+    if (schoolName && isEgames && Array.isArray(r.members)) {
       let egamesSet = schoolEgamesEmails.get(schoolName);
       if (!egamesSet) {
         egamesSet = new Set<string>();
@@ -214,16 +213,7 @@ export async function getBillingDashboardData() {
       }
 
       (r.members as string[]).forEach(email => {
-        const cleanEmail = email.trim().toLowerCase();
-        
-        const existing = emailMap!.get(cleanEmail);
-        if (!existing || r.createdAt.getTime() < existing.getTime()) {
-          emailMap!.set(cleanEmail, r.createdAt);
-        }
-
-        if (isEgames) {
-          egamesSet!.add(cleanEmail);
-        }
+        egamesSet!.add(email.trim().toLowerCase());
       });
     }
   });
@@ -241,7 +231,6 @@ export async function getBillingDashboardData() {
   // 6. Map schools to dashboard items
   const dashboardItems = schools.map(school => {
     const schoolUsers = schoolUsersMap.get(school.name) || [];
-    const emailMap = schoolEmailToEarliestRegDate.get(school.name);
     const egamesSet = schoolEgamesEmails.get(school.name);
 
     let actualBill = 0;
@@ -251,16 +240,8 @@ export async function getBillingDashboardData() {
 
     schoolUsers.forEach(p => {
       const cleanEmail = p.email.trim().toLowerCase();
-      const regDate = (emailMap && emailMap.get(cleanEmail)) || p.createdAt;
-      const month = regDate.getMonth();
-      const date = regDate.getDate();
-
-      let baseFee = 1700;
-      if (month === 6 && date <= 15) {
-        baseFee = 1500;
-      } else if (month < 6) {
-        baseFee = 1500;
-      }
+      const regDate = p.createdAt;
+      const baseFee = calculateBaseFee(regDate);
       actualBill += baseFee;
 
       if (p.role === "FACULTY_COACH") {

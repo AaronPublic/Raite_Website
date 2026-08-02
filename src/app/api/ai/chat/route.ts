@@ -60,9 +60,9 @@ EVENT OVERVIEW:
 - **Eligibility:** Institutional members. Students must be enrolled in ITE programs (BSIT, BSCS, IS, Multimedia Arts, Cybersecurity, Data Science, SHS, TESDA IT courses, etc.).
 
 REGISTRATION FEES (No payment details – see official PSITE page):
-- Early Bird (June 15 – July 15): ₱1,300
-- Regular (July 16 – August 15): ₱1,500
-- Late (August 16 – August 31): ₱1,700
+- Early Bird (June 30 – July 25, 2026): ₱1,300
+- Regular (July 26 – August 20, 2026): ₱1,500
+- Late (August 21 – September 4, 2026): ₱1,700
 - Non‑institutional members: +₱300 per competitor
 - E‑sports (Mobile Legends / Valorant): +₱300 per participant (for game operations & prize fund)
 

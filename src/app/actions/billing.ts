@@ -7,26 +7,17 @@ import { revalidatePath } from "next/cache";
 function calculateBaseFee(regDate: Date): number {
   const time = regDate.getTime();
   
-  const startEarly = new Date("2026-06-30T00:00:00+08:00").getTime();
   const endEarly = new Date("2026-07-25T23:59:59+08:00").getTime();
-  
-  const startRegular = new Date("2026-07-26T00:00:00+08:00").getTime();
   const endRegular = new Date("2026-08-20T23:59:59+08:00").getTime();
-  
-  const startLate = new Date("2026-08-21T00:00:00+08:00").getTime();
-  const endLate = new Date("2026-09-04T23:59:59+08:00").getTime();
 
-  if (time >= startEarly && time <= endEarly) {
+  if (time <= endEarly) {
     return 1300;
   }
-  if (time >= startRegular && time <= endRegular) {
+  if (time <= endRegular) {
     return 1500;
   }
-  if (time >= startLate && time <= endLate) {
-    return 1700;
-  }
   
-  // Default fallback
+  // Late registration and default fallback
   return 1700;
 }
 

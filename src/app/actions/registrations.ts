@@ -401,18 +401,61 @@ export async function deleteRegistration(id: string) {
 export async function exportRegistrationsCSV(filters: RegistrationFilters) {
   await checkAccess(); // Admin check
   const registrations = await getFilteredRegistrations(filters);
-  
-  const data = registrations.map(r => ({
-    School: r.user.school || "N/A",
-    Competition: r.event.title,
-    Status: r.status,
-    "Competitor/Team": r.teamName || r.user.name || "N/A",
-    "Competitor Email": r.user.email,
-    Coach: r.coach?.name || r.registeredBy || "N/A",
-    "Coach Email": r.coach?.email || "N/A",
-    RegisteredAt: new Date(r.createdAt).toLocaleDateString()
-  }));
-  
+
+  // Collect all member emails so we can resolve names in one DB query
+  const allMemberEmails = new Set<string>();
+  registrations.forEach(r => {
+    if (Array.isArray(r.members)) {
+      (r.members as string[]).forEach(email => allMemberEmails.add(email));
+    }
+  });
+
+  // Fetch name lookup map (email → name) for all member emails
+  const emailToName = new Map<string, string>();
+  if (allMemberEmails.size > 0) {
+    const users = await db.user.findMany({
+      where: { email: { in: Array.from(allMemberEmails) } },
+      select: { email: true, name: true },
+    });
+    users.forEach(u => emailToName.set(u.email, u.name || u.email));
+  }
+
+  const data = registrations.map(r => {
+    // Build full competitors list: all members resolved to names, or primary registrant
+    let competitorNames = r.user.name || r.user.email;
+    if (Array.isArray(r.members) && (r.members as string[]).length > 0) {
+      const memberNames = (r.members as string[]).map(
+        email => emailToName.get(email) || email
+      );
+      competitorNames = memberNames.join("; ");
+    }
+
+    // Parse requirements links (record of key → URL string)
+    let requirementsLinks = "N/A";
+    if (r.requirements && typeof r.requirements === "object") {
+      const reqs = r.requirements as Record<string, string>;
+      const pairs = Object.entries(reqs)
+        .filter(([, v]) => typeof v === "string" && v.trim() !== "")
+        .map(([k, v]) => `${k}: ${v}`);
+      if (pairs.length > 0) requirementsLinks = pairs.join(" | ");
+    }
+
+    return {
+      School: r.user.school || "N/A",
+      Competition: r.event.title,
+      Status: r.status,
+      "Team Name": r.teamName || "Individual",
+      "All Competitors": competitorNames,
+      "Primary Registrant": r.user.name || "N/A",
+      "Primary Registrant Email": r.user.email,
+      Coach: r.coach?.name || r.registeredBy || "N/A",
+      "Coach Email": r.coach?.email || "N/A",
+      "Entry/Submission Link": r.entryUrl || "N/A",
+      "Requirements Links": requirementsLinks,
+      RegisteredAt: new Date(r.createdAt).toLocaleDateString(),
+    };
+  });
+
   return Papa.unparse(data);
 }
 

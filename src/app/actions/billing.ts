@@ -42,14 +42,15 @@ export async function getSchoolBillingData(schoolId: string) {
         school: school.name,
         role: { in: ["PARTICIPANT", "FACULTY_COACH"] }
       },
-      select: { name: true, email: true, createdAt: true, role: true, category: true }
+      select: { id: true, name: true, email: true, createdAt: true, role: true, category: true }
     }),
     db.registration.findMany({
       where: { user: { school: school.name } },
       select: { 
+        userId: true,
         createdAt: true, 
         members: true,
-        event: { select: { category: true } }
+        event: { select: { title: true, category: true } }
       }
     })
   ]);
@@ -75,6 +76,21 @@ export async function getSchoolBillingData(schoolId: string) {
     const dateRegistered = p.role === "FACULTY_COACH" ? "N/A" : regDate.toLocaleDateString();
     const isEgames = p.role === "PARTICIPANT" && egamesEmails.has(cleanEmail);
 
+    // Find registered events
+    const registeredEvents: string[] = [];
+    if (p.role === "PARTICIPANT") {
+      registrations.forEach(r => {
+        const isPrimary = r.userId === p.id;
+        const isMember = Array.isArray(r.members) && 
+          (r.members as string[]).some(mEmail => mEmail.trim().toLowerCase() === cleanEmail);
+        
+        if ((isPrimary || isMember) && r.event?.title) {
+          registeredEvents.push(r.event.title);
+        }
+      });
+    }
+    const eventName = registeredEvents.length > 0 ? registeredEvents.join(", ") : "N/A";
+
     return {
       name: p.name || (p.role === "FACULTY_COACH" ? "Pending Coach" : "Pending Registration"),
       email: p.email,
@@ -82,7 +98,8 @@ export async function getSchoolBillingData(schoolId: string) {
       category: p.category,
       dateRegistered,
       baseFee,
-      isEgames
+      isEgames,
+      eventName
     };
   });
 
@@ -97,17 +114,19 @@ export async function getSchoolBillingData(schoolId: string) {
   const nonMemberCoachCount = participantDetails.filter(p => p.role === "FACULTY_COACH" && p.category === "NON_MEMBER").length;
   const nonMemberCoachFee = nonMemberCoachCount * 500;
   const institutionalFee = isNonMember ? 3500 : 0;
-  const grandTotal = subTotal + egamesPotMoney + competitorAdditional + institutionalFee + nonMemberCoachFee;
+  const grandTotal = subTotal + egamesPotMoney + competitorAdditional + institutionalFee + nonMemberCoachFee - school.downPayment;
 
   return {
     schoolName: school.name,
     abbreviation: school.abbreviation,
     category: school.category,
     discount: school.discount,
+    downPayment: school.downPayment,
     participants: participantDetails,
     summary: {
       actualBill,
       discount,
+      downPayment: school.downPayment,
       subTotal,
       egamesPotMoney,
       competitorAdditional,
@@ -135,6 +154,26 @@ export async function updateSchoolDiscount(schoolId: string, discount: number) {
     return { success: true };
   } catch (err) {
     return { error: "Failed to update discount" };
+  }
+}
+
+export async function updateSchoolDownPayment(schoolId: string, downPayment: number) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const admin = await db.user.findUnique({ where: { clerkId: userId } });
+  if (!admin || admin.role !== "ADMIN") throw new Error("Forbidden");
+
+  try {
+    await db.school.update({
+      where: { id: schoolId },
+      data: { downPayment },
+    });
+    revalidatePath("/admin/settings");
+    revalidatePath("/admin/billing");
+    return { success: true };
+  } catch (err) {
+    return { error: "Failed to update down payment" };
   }
 }
 
@@ -254,7 +293,7 @@ export async function getBillingDashboardData() {
     
     const egamesPotMoney = egamesCount * 300;
     
-    const grandTotal = (actualBill - school.discount) + egamesPotMoney + competitorAdditional + institutionalFee + nonMemberCoachFee;
+    const grandTotal = (actualBill - school.discount) + egamesPotMoney + competitorAdditional + institutionalFee + nonMemberCoachFee - school.downPayment;
 
     return {
       id: school.id,
@@ -262,6 +301,7 @@ export async function getBillingDashboardData() {
       abbreviation: school.abbreviation,
       category: school.category,
       discount: school.discount,
+      downPayment: school.downPayment,
       billingPaid: school.billingPaid,
       participantCount: participantCount,
       baseBill: actualBill,

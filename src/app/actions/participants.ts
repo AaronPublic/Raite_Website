@@ -138,17 +138,16 @@ export async function getEligibleParticipants() {
     return [];
   }
 
-  const where: any = {
-    role: "PARTICIPANT",
-  };
+  const where: any = {};
 
-  // Faculty Coach and Sub-Admin can only see participants from their school
   if (requester.role === "FACULTY_COACH" || requester.role === "SUB_ADMIN") {
     if (!requester.school) return [];
     where.school = requester.school;
+    where.role = { in: ["PARTICIPANT", "FACULTY_COACH"] };
+  } else if (requester.role === "ADMIN") {
+    where.role = { in: ["PARTICIPANT", "FACULTY_COACH"] };
   }
 
-  // Admins can see everyone
   return await db.user.findMany({
     where,
     select: {
@@ -159,6 +158,8 @@ export async function getEligibleParticipants() {
       course: true,
       uniqueId: true,
       approved: true,
+      role: true,
+      shirtSize: true,
     },
     orderBy: { name: "asc" },
   });
@@ -179,7 +180,7 @@ export async function getParticipantsForPDF(filters: ParticipantFilters) {
   }));
 }
 
-export async function updateParticipant(id: string, data: { name: string; email: string; course?: string }) {
+export async function updateParticipant(id: string, data: { name: string; email: string; course?: string; shirtSize?: string }) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
@@ -189,12 +190,12 @@ export async function updateParticipant(id: string, data: { name: string; email:
   }
 
   const participant = await db.user.findUnique({ where: { id } });
-  if (!participant || participant.role !== "PARTICIPANT") {
-    throw new Error("Participant not found");
+  if (!participant || (participant.role !== "PARTICIPANT" && participant.role !== "FACULTY_COACH")) {
+    throw new Error("User not found");
   }
 
   if ((requester.role === "FACULTY_COACH" || requester.role === "SUB_ADMIN") && requester.school !== participant.school) {
-    throw new Error("Forbidden: You can only update participants from your own school.");
+    throw new Error("Forbidden: You can only update users from your own school.");
   }
 
   const updated = await db.user.update({
@@ -203,10 +204,12 @@ export async function updateParticipant(id: string, data: { name: string; email:
       name: data.name,
       email: data.email,
       course: data.course || null,
+      shirtSize: data.shirtSize,
     },
   });
 
   revalidatePath("/admin/users");
+  revalidatePath("/admin/shirt-sizes");
   revalidatePath("/registrations/competitors");
   revalidatePath("/register/step-2");
   return { success: true, user: updated };
@@ -351,5 +354,51 @@ export async function deleteUser(userId: string) {
   } catch (error: any) {
     console.error("deleteUser failed:", error);
     return { success: false, error: error.message || "Failed to delete user." };
+  }
+}
+
+export async function getShirtSizesData(filters: { school?: string; search?: string } = {}) {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    const requester = await db.user.findUnique({ where: { clerkId: userId } });
+    if (!requester || requester.role !== "ADMIN") {
+      throw new Error("Forbidden");
+    }
+
+    const where: any = {
+      role: { in: ["PARTICIPANT", "FACULTY_COACH"] },
+    };
+
+    if (filters.school && filters.school !== "all") {
+      where.school = filters.school;
+    }
+
+    if (filters.search) {
+      where.OR = [
+        { name: { contains: filters.search, mode: "insensitive" } },
+        { email: { contains: filters.search, mode: "insensitive" } },
+      ];
+    }
+
+    const users = await db.user.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        school: true,
+        role: true,
+        shirtSize: true,
+        approved: true,
+      },
+      orderBy: { name: "asc" },
+    });
+
+    return users;
+  } catch (error) {
+    console.error("getShirtSizesData failed:", error);
+    return [];
   }
 }

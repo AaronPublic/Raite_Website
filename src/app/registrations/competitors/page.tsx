@@ -30,8 +30,8 @@ export default async function CompetitorsPage() {
           <ArrowLeft className="w-4 h-4" /> Back to My Registrations
         </Link>
         <div className="space-y-2">
-          <h1 className="text-4xl font-black tracking-tighter text-gray-900 dark:text-white">Registered Competitors</h1>
-          <p className="text-lg text-gray-500 font-medium">View, edit, and delete participants from {user.school || "your school"}.</p>
+          <h1 className="text-4xl font-black tracking-tighter text-gray-900 dark:text-white">Registered Competitors and Shirt Sizes</h1>
+          <p className="text-lg text-gray-500 font-medium">View and manage registered competitors, coaches, and shirt sizes for {user.school || "your school"}.</p>
         </div>
       </div>
 

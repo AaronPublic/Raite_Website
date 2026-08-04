@@ -15,7 +15,8 @@ import {
   FileText,
   CreditCard,
   School,
-  UserCheck
+  UserCheck,
+  Shirt
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SafeUserButton } from "@/components/SafeUserButton";
@@ -36,6 +37,7 @@ export function AdminSidebar({ user }: { user: { name: string | null; role: stri
     { href: "/admin/reports", label: "Reports", icon: BarChart3 },
     { href: "/admin/ranking", label: "Ranking", icon: Trophy },
     { href: "/admin/billing", label: "Billing", icon: CreditCard },
+    { href: "/admin/shirt-sizes", label: "Shirt Sizes & Kit", icon: Shirt },
     { href: "/admin/settings", label: "Settings", icon: Settings },
   ];
 

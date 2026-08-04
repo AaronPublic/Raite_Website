@@ -21,11 +21,22 @@ interface Participant {
   course: string | null;
   uniqueId: string | null;
   approved: boolean;
+  role?: string | null;
+  shirtSize?: string | null;
 }
 
 interface CompetitorsTableProps {
   initialParticipants: Participant[];
 }
+
+const SHIRT_SIZES = [
+  "Small (S)",
+  "Medium (M)",
+  "Large (L)",
+  "Extra Large (XL)",
+  "Double Extra Large (XXL)",
+  "Triple Extra Large (XXXL)",
+];
 
 export function CompetitorsTable({ initialParticipants }: CompetitorsTableProps) {
   const [participants, setParticipants] = useState<Participant[]>(initialParticipants);
@@ -36,6 +47,7 @@ export function CompetitorsTable({ initialParticipants }: CompetitorsTableProps)
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editCourse, setEditCourse] = useState("");
+  const [editShirtSize, setEditShirtSize] = useState("XL");
   const [isCustomCourseActive, setIsCustomCourseActive] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -59,10 +71,34 @@ export function CompetitorsTable({ initialParticipants }: CompetitorsTableProps)
     setEditName(p.name ?? "");
     setEditEmail(p.email ?? "");
     setEditCourse(p.course ?? "");
+    setEditShirtSize(p.shirtSize ?? "XL");
     
     // Check if current course is custom
     const isCustom = p.course ? !COURSES.includes(p.course) : false;
     setIsCustomCourseActive(isCustom);
+  };
+
+  const handleShirtSizeChange = async (participantId: string, size: string) => {
+    const p = participants.find((x) => x.id === participantId);
+    if (!p) return;
+    try {
+      const result = await updateParticipant(participantId, {
+        name: p.name || "",
+        email: p.email,
+        course: p.role === "FACULTY_COACH" ? undefined : (p.course || undefined),
+        shirtSize: size,
+      });
+      if (result.success) {
+        setParticipants(
+          participants.map((x) =>
+            x.id === participantId ? { ...x, shirtSize: size } : x
+          )
+        );
+        toast.success("Shirt size updated successfully");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update shirt size");
+    }
   };
 
   const handleSaveEdit = async () => {
@@ -81,7 +117,8 @@ export function CompetitorsTable({ initialParticipants }: CompetitorsTableProps)
       const result = await updateParticipant(editingParticipant.id, {
         name: editName.trim(),
         email: editEmail.trim(),
-        course: editCourse.trim() || undefined,
+        course: editingParticipant.role === "FACULTY_COACH" ? undefined : (editCourse.trim() || undefined),
+        shirtSize: editShirtSize,
       });
 
       if (result.success) {
@@ -92,12 +129,13 @@ export function CompetitorsTable({ initialParticipants }: CompetitorsTableProps)
                   ...p,
                   name: editName.trim(),
                   email: editEmail.trim(),
-                  course: editCourse.trim() || null,
+                  course: editingParticipant.role === "FACULTY_COACH" ? null : (editCourse.trim() || null),
+                  shirtSize: editShirtSize,
                 }
               : p
           )
         );
-        toast.success("Competitor updated successfully");
+        toast.success("Details updated successfully");
         setEditingParticipant(null);
       }
     } catch (err: any) {
@@ -146,6 +184,7 @@ export function CompetitorsTable({ initialParticipants }: CompetitorsTableProps)
               <TableHead className="font-bold text-gray-900 dark:text-gray-100 h-14">Name</TableHead>
               <TableHead className="font-bold text-gray-900 dark:text-gray-100 h-14">Email</TableHead>
               <TableHead className="font-bold text-gray-900 dark:text-gray-100 h-14">Course</TableHead>
+              <TableHead className="font-bold text-gray-900 dark:text-gray-100 h-14">Shirt Size</TableHead>
               <TableHead className="font-bold text-gray-900 dark:text-gray-100 h-14 text-center">Status</TableHead>
               <TableHead className="font-bold text-gray-900 dark:text-gray-100 h-14 text-right pr-6">Actions</TableHead>
             </TableRow>
@@ -153,7 +192,7 @@ export function CompetitorsTable({ initialParticipants }: CompetitorsTableProps)
           <TableBody>
             {filteredParticipants.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-10 font-bold text-gray-400">
+                <TableCell colSpan={7} className="text-center py-10 font-bold text-gray-400">
                   No competitors found.
                 </TableCell>
               </TableRow>
@@ -163,9 +202,35 @@ export function CompetitorsTable({ initialParticipants }: CompetitorsTableProps)
                   <TableCell className="font-mono text-xs font-bold pl-6 text-gray-500 dark:text-gray-400">
                     {p.uniqueId || "N/A"}
                   </TableCell>
-                  <TableCell className="font-bold text-gray-900 dark:text-white">{p.name || "N/A"}</TableCell>
+                  <TableCell className="font-bold text-gray-900 dark:text-white">
+                    {p.name || "N/A"}
+                    {p.role === "FACULTY_COACH" && (
+                      <Badge className="ml-2 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30 hover:bg-blue-50/80 font-black text-[9px] tracking-wider rounded-md border">
+                        COACH
+                      </Badge>
+                    )}
+                  </TableCell>
                   <TableCell className="font-medium text-gray-600 dark:text-gray-400">{p.email}</TableCell>
-                  <TableCell className="font-medium text-gray-600 dark:text-gray-400">{p.course || "N/A"}</TableCell>
+                  <TableCell className="font-medium text-gray-600 dark:text-gray-400">
+                    {p.role === "FACULTY_COACH" ? "N/A" : (p.course || "N/A")}
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={p.shirtSize || "XL"}
+                      onValueChange={(val) => handleShirtSizeChange(p.id, val || "XL")}
+                    >
+                      <SelectTrigger className="h-9 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 font-medium px-3 text-xs w-[140px]">
+                        <SelectValue placeholder="Shirt Size" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-gray-100 dark:border-gray-800">
+                        {SHIRT_SIZES.map((size) => (
+                          <SelectItem key={size} value={size} className="text-xs">
+                            {size}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
                   <TableCell className="text-center">
                     {p.approved ? (
                       <Badge className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30 hover:bg-green-50/80 font-black text-[10px] tracking-wider rounded-md border">
@@ -186,14 +251,16 @@ export function CompetitorsTable({ initialParticipants }: CompetitorsTableProps)
                     >
                       <Edit2 className="w-4 h-4" />
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setDeletingParticipant(p)}
-                      className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 h-9 w-9 p-0 rounded-xl"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {p.role !== "FACULTY_COACH" && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setDeletingParticipant(p)}
+                        className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 h-9 w-9 p-0 rounded-xl"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
@@ -210,7 +277,7 @@ export function CompetitorsTable({ initialParticipants }: CompetitorsTableProps)
               Edit Competitor
             </DialogTitle>
             <DialogDescription className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Update name, email, and course details.
+              Update name, email, and details.
             </DialogDescription>
           </DialogHeader>
 
@@ -234,45 +301,65 @@ export function CompetitorsTable({ initialParticipants }: CompetitorsTableProps)
                 className="h-12 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
               />
             </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-gray-400">Course</Label>
-              <Select
-                value={isCustomCourseActive ? "Others" : editCourse}
-                onValueChange={(val) => {
-                  if (val === "Others") {
-                    setIsCustomCourseActive(true);
-                    if (COURSES.includes(editCourse)) {
-                      setEditCourse("");
+            {editingParticipant?.role !== "FACULTY_COACH" && (
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-gray-400">Course</Label>
+                <Select
+                  value={isCustomCourseActive ? "Others" : editCourse}
+                  onValueChange={(val) => {
+                    if (val === "Others") {
+                      setIsCustomCourseActive(true);
+                      if (COURSES.includes(editCourse)) {
+                        setEditCourse("");
+                      }
+                    } else {
+                      setIsCustomCourseActive(false);
+                      setEditCourse(val ?? "");
                     }
-                  } else {
-                    setIsCustomCourseActive(false);
-                    setEditCourse(val ?? "");
-                  }
-                }}
+                  }}
+                >
+                  <SelectTrigger className="w-full h-12 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-blue-600/20 font-medium px-4">
+                    <SelectValue placeholder="Select course" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-gray-100 dark:border-gray-800 max-h-[250px]">
+                    {COURSES.map((course) => (
+                      <SelectItem key={course} value={course}>
+                        {course}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="Others">Others</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {isCustomCourseActive && (
+                  <div className="pt-2 animate-in fade-in slide-in-from-top-1">
+                    <Input
+                      placeholder="Type custom course name"
+                      value={editCourse}
+                      onChange={(e) => setEditCourse(e.target.value)}
+                      className="h-12 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-wider text-gray-400">Shirt Size</Label>
+              <Select
+                value={editShirtSize}
+                onValueChange={(val) => setEditShirtSize(val || "XL")}
               >
                 <SelectTrigger className="w-full h-12 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-blue-600/20 font-medium px-4">
-                  <SelectValue placeholder="Select course" />
+                  <SelectValue placeholder="Select shirt size" />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-gray-100 dark:border-gray-800 max-h-[250px]">
-                  {COURSES.map((course) => (
-                    <SelectItem key={course} value={course}>
-                      {course}
+                <SelectContent className="rounded-xl border-gray-100 dark:border-gray-800">
+                  {SHIRT_SIZES.map((size) => (
+                    <SelectItem key={size} value={size}>
+                      {size}
                     </SelectItem>
                   ))}
-                  <SelectItem value="Others">Others</SelectItem>
                 </SelectContent>
               </Select>
-
-              {isCustomCourseActive && (
-                <div className="pt-2 animate-in fade-in slide-in-from-top-1">
-                  <Input
-                    placeholder="Type custom course name"
-                    value={editCourse}
-                    onChange={(e) => setEditCourse(e.target.value)}
-                    className="h-12 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-blue-600/20 transition-all font-medium"
-                  />
-                </div>
-              )}
             </div>
           </div>
 

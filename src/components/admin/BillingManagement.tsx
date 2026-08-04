@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getBillingDashboardData, updateSchoolDiscount, getSchoolBillingData, toggleSchoolPaymentStatus } from "@/app/actions/billing";
+import { getBillingDashboardData, updateSchoolDiscount, getSchoolBillingData, toggleSchoolPaymentStatus, updateSchoolDownPayment } from "@/app/actions/billing";
 import { generateRAITEBillingPDF } from "@/lib/pdf-reports";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ interface BillingItem {
   abbreviation: string;
   category: string;
   discount: number;
+  downPayment: number;
   billingPaid: boolean;
   participantCount: number;
   baseBill: number;
@@ -24,8 +25,10 @@ interface BillingItem {
 export default function BillingManagement() {
   const [items, setItems] = useState<BillingItem[]>([]);
   const [discounts, setDiscounts] = useState<Record<string, string>>({});
+  const [downPayments, setDownPayments] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState<Record<string, boolean>>({});
+  const [saveDownPaymentLoading, setSaveDownPaymentLoading] = useState<Record<string, boolean>>({});
   const [payLoading, setPayLoading] = useState<Record<string, boolean>>({});
   const [pdfLoading, setPdfLoading] = useState<Record<string, boolean>>({});
 
@@ -39,10 +42,13 @@ export default function BillingManagement() {
       const data = await getBillingDashboardData();
       setItems(data);
       const discMap: Record<string, string> = {};
+      const downPayMap: Record<string, string> = {};
       data.forEach(item => {
         discMap[item.id] = item.discount.toString();
+        downPayMap[item.id] = (item.downPayment || 0).toString();
       });
       setDiscounts(discMap);
+      setDownPayments(downPayMap);
     } catch (err) {
       toast.error("Failed to load billing dashboard items");
     } finally {
@@ -74,6 +80,25 @@ export default function BillingManagement() {
       toast.error(res.error);
     } else {
       toast.success("Discount updated successfully");
+      loadData();
+    }
+  };
+
+  const handleSaveDownPayment = async (id: string) => {
+    const downPaymentVal = parseFloat(downPayments[id] || "0");
+    if (isNaN(downPaymentVal) || downPaymentVal < 0) {
+      toast.error("Down payment must be a positive number");
+      return;
+    }
+
+    setSaveDownPaymentLoading(prev => ({ ...prev, [id]: true }));
+    const res = await updateSchoolDownPayment(id, downPaymentVal);
+    setSaveDownPaymentLoading(prev => ({ ...prev, [id]: false }));
+
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success("Down payment updated successfully");
       loadData();
     }
   };
@@ -173,7 +198,7 @@ export default function BillingManagement() {
 
         {/* Responsive Table Wrapper */}
         <div className="overflow-x-auto w-full border rounded-xl">
-          <table className="w-full text-sm min-w-[950px]">
+          <table className="w-full text-sm min-w-[1100px]">
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="p-3 text-left">School</th>
@@ -181,6 +206,7 @@ export default function BillingManagement() {
                 <th className="p-3 text-center">Participants</th>
                 <th className="p-3 text-right">Base Bill</th>
                 <th className="p-3 text-center">Discount (PHP)</th>
+                <th className="p-3 text-center">Down Payment (PHP)</th>
                 <th className="p-3 text-right">Grand Total</th>
                 <th className="p-3 text-center">Status</th>
                 <th className="p-3 text-center">Invoice</th>
@@ -189,7 +215,7 @@ export default function BillingManagement() {
             <tbody>
               {paginatedItems.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-gray-400 font-medium">
+                  <td colSpan={9} className="p-8 text-center text-gray-400 font-medium">
                     No schools found matching your search.
                   </td>
                 </tr>
@@ -226,6 +252,25 @@ export default function BillingManagement() {
                           className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"
                         >
                           {saveLoading[item.id] ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                    </td>
+                    <td className="p-3 text-center">
+                      <div className="flex items-center justify-center gap-2 max-w-[150px] mx-auto">
+                        <Input
+                          type="number"
+                          value={downPayments[item.id] || "0"}
+                          onChange={(e) => setDownPayments(prev => ({ ...prev, [item.id]: e.target.value }))}
+                          className="h-8 text-center rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleSaveDownPayment(item.id)}
+                          disabled={saveDownPaymentLoading[item.id]}
+                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"
+                        >
+                          {saveDownPaymentLoading[item.id] ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                         </Button>
                       </div>
                     </td>

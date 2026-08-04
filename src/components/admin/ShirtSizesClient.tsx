@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,15 +78,18 @@ export function ShirtSizesClient({ schools, initialParticipants }: ShirtSizesCli
     return summary;
   };
 
-  const currentSummary = getCounts(filteredParticipants);
+  const currentSummary = useMemo(() => getCounts(filteredParticipants), [filteredParticipants]);
 
-  // Generate All Schools Summaries (excluding schools with 0 total shirts)
+  // Generate All Schools Summaries (excluding schools with 0 total shirts and unassigned schools)
   const getAllSchoolsSummaries = () => {
     const schoolGroups: Record<string, { S: number; M: number; L: number; XL: number; XXL: number; XXXL: number; total: number }> = {};
     
     // Group using the main list of participants to ensure completeness
     participants.forEach((p) => {
-      const schoolName = p.school || "Unassigned School";
+      if (!p.school || p.school.toLowerCase().includes("unassigned") || p.school.trim() === "") {
+        return; // Skip unassigned schools
+      }
+      const schoolName = p.school;
       if (!schoolGroups[schoolName]) {
         schoolGroups[schoolName] = { S: 0, M: 0, L: 0, XL: 0, XXL: 0, XXXL: 0, total: 0 };
       }
@@ -189,7 +192,7 @@ export function ShirtSizesClient({ schools, initialParticipants }: ShirtSizesCli
         </div>
 
         {/* Buttons */}
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-row items-center gap-3">
           <Button
             onClick={handleExportPDF}
             variant="outline"
@@ -211,10 +214,10 @@ export function ShirtSizesClient({ schools, initialParticipants }: ShirtSizesCli
       {/* Dynamic Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
         {[
-          { label: "Small (S)", count: currentSummary.S, color: "border-blue-100 dark:border-blue-900/30" },
-          { label: "Medium (M)", count: currentSummary.M, color: "border-green-100 dark:border-green-900/30" },
-          { label: "Large (L)", count: currentSummary.L, color: "border-amber-100 dark:border-amber-900/30" },
-          { label: "Extra Large (XL)", count: currentSummary.XL, color: "border-indigo-100 dark:border-indigo-900/30" },
+          { label: "S", count: currentSummary.S, color: "border-blue-100 dark:border-blue-900/30" },
+          { label: "M", count: currentSummary.M, color: "border-green-100 dark:border-green-900/30" },
+          { label: "L", count: currentSummary.L, color: "border-amber-100 dark:border-amber-900/30" },
+          { label: "XL", count: currentSummary.XL, color: "border-indigo-100 dark:border-indigo-900/30" },
           { label: "XXL", count: currentSummary.XXL, color: "border-purple-100 dark:border-purple-900/30" },
           { label: "XXXL", count: currentSummary.XXXL, color: "border-rose-100 dark:border-rose-900/30" },
           { label: "Total Shirts", count: currentSummary.total, color: "border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/20 font-bold" },

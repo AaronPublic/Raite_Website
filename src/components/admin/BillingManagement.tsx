@@ -203,10 +203,10 @@ export default function BillingManagement() {
               <tr className="border-b bg-muted/50">
                 <th className="p-3 text-left">School</th>
                 <th className="p-3 text-left">Category</th>
-                <th className="p-3 text-center">Participants</th>
+                <th className="p-3 text-center w-[100px]">Participants</th>
                 <th className="p-3 text-right">Base Bill</th>
-                <th className="p-3 text-center">Discount (PHP)</th>
-                <th className="p-3 text-center">Down Payment (PHP)</th>
+                <th className="p-3 text-center w-[200px]">Discount (PHP)</th>
+                <th className="p-3 text-center w-[200px]">Down Payment (PHP)</th>
                 <th className="p-3 text-right">Grand Total</th>
                 <th className="p-3 text-center">Status</th>
                 <th className="p-3 text-center">Invoice</th>
@@ -232,12 +232,12 @@ export default function BillingManagement() {
                         {item.category}
                       </span>
                     </td>
-                    <td className="p-3 text-center font-bold text-gray-700 dark:text-gray-300">{item.participantCount}</td>
+                    <td className="p-3 text-center font-bold text-gray-700 dark:text-gray-300 w-[100px]">{item.participantCount}</td>
                     <td className="p-3 text-right font-mono text-gray-600 dark:text-gray-400">
                       ₱{item.baseBill.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                     </td>
-                    <td className="p-3 text-center">
-                      <div className="flex items-center justify-center gap-2 max-w-[150px] mx-auto">
+                    <td className="p-3 text-center w-[200px]">
+                      <div className="flex items-center justify-center gap-2 max-w-[185px] mx-auto">
                         <Input
                           type="number"
                           value={discounts[item.id] || "0"}
@@ -255,8 +255,8 @@ export default function BillingManagement() {
                         </Button>
                       </div>
                     </td>
-                    <td className="p-3 text-center">
-                      <div className="flex items-center justify-center gap-2 max-w-[150px] mx-auto">
+                    <td className="p-3 text-center w-[200px]">
+                      <div className="flex items-center justify-center gap-2 max-w-[185px] mx-auto">
                         <Input
                           type="number"
                           value={downPayments[item.id] || "0"}

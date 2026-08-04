@@ -13,6 +13,7 @@ const cleanText = (val: any): any => {
   if (val === null || val === undefined) return "";
   const str = typeof val === "string" ? val : String(val);
   return str
+    .replace(/\uFFFD/g, "n")
     .replace(/ñ/g, "n")
     .replace(/Ñ/g, "N")
     .normalize("NFD")

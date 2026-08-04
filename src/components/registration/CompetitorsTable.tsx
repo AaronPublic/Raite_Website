@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,15 +56,17 @@ export function CompetitorsTable({ initialParticipants }: CompetitorsTableProps)
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Filtered participants
-  const filteredParticipants = participants.filter((p) => {
+  const filteredParticipants = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return (
-      (p.name || "").toLowerCase().includes(term) ||
-      p.email.toLowerCase().includes(term) ||
-      (p.course || "").toLowerCase().includes(term) ||
-      (p.uniqueId || "").toLowerCase().includes(term)
-    );
-  });
+    return participants.filter((p) => {
+      return (
+        (p.name || "").toLowerCase().includes(term) ||
+        p.email.toLowerCase().includes(term) ||
+        (p.course || "").toLowerCase().includes(term) ||
+        (p.uniqueId || "").toLowerCase().includes(term)
+      );
+    });
+  }, [participants, searchTerm]);
 
   const handleEditClick = (p: Participant) => {
     setEditingParticipant(p);

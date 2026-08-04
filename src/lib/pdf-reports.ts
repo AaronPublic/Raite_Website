@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { robotoRegularBase64, robotoBoldBase64 } from "./roboto-base64";
 
 interface ReportOptions {
   title: string;
@@ -9,15 +10,25 @@ interface ReportOptions {
   data: any[][];
 }
 
+const setupFonts = (doc: jsPDF) => {
+  doc.addFileToVFS("helvetica-normal.ttf", robotoRegularBase64);
+  doc.addFont("helvetica-normal.ttf", "helvetica", "normal");
+  doc.addFileToVFS("helvetica-bold.ttf", robotoBoldBase64);
+  doc.addFont("helvetica-bold.ttf", "helvetica", "bold");
+  doc.setFont("helvetica", "normal");
+};
+
 const cleanText = (val: any): any => {
   if (val === null || val === undefined) return "";
   const str = typeof val === "string" ? val : String(val);
   return str
-    .replace(/\uFFFD/g, "n")
-    .replace(/ñ/g, "n")
-    .replace(/Ñ/g, "N")
+    .replace(/\uFFFD/g, "ñ")
+    .replace(/ñ/g, "__nye_lower__")
+    .replace(/Ñ/g, "__nye_upper__")
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/__nye_lower__/g, "ñ")
+    .replace(/__nye_upper__/g, "Ñ");
 };
 
 export const generateRAITEReport = (options: ReportOptions) => {
@@ -27,6 +38,7 @@ export const generateRAITEReport = (options: ReportOptions) => {
   const columns = options.columns.map(c => cleanText(c));
   const data = options.data.map(row => row.map(cell => cleanText(cell)));
   const doc = new jsPDF();
+  setupFonts(doc);
   const date = new Date().toLocaleString();
 
   // Add Logos
@@ -147,6 +159,7 @@ export const generateRAITEBillingPDF = (rawBillingData: {
   };
 
   const doc = new jsPDF();
+  setupFonts(doc);
   const dateStr = new Date().toLocaleString();
 
   // Logos
@@ -414,6 +427,7 @@ export const generateRAITEShirtSizesPDF = (
   summary: { S: number; M: number; L: number; XL: number; XXL: number; XXXL: number; total: number }
 ) => {
   const doc = new jsPDF();
+  setupFonts(doc);
   const date = new Date().toLocaleString();
 
   // Add Logos
@@ -519,6 +533,7 @@ export const generateRAITEShirtSizesSummaryPDF = (
   }[]
 ) => {
   const doc = new jsPDF();
+  setupFonts(doc);
   const date = new Date().toLocaleString();
 
   // Add Logos

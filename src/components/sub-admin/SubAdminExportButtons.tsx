@@ -34,18 +34,18 @@ export default function SubAdminExportButtons({ eventId }: ExportButtonsProps) {
         let csvContent = "";
         
         if (type === "competition") {
-          const headers = ["School", "Faculty Coach Name", "Faculty Coach Email", "Competitors"];
+          const headers = ["School", "Faculty Coach Name", "Faculty Coach Email", "Competitors (with Shirt Size)"];
           const rows = registrations.map(r => [
             `"${(r.school || "").replace(/"/g, '""')}"`,
             `"${(r.coachName || "").replace(/"/g, '""')}"`,
             `"${(r.coachEmail || "").replace(/"/g, '""')}"`,
-            `"${r.members.map(m => m.name).join(", ").replace(/"/g, '""')}"`
+            `"${r.members.map(m => `${m.name} (${m.shirtSize})`).join(", ").replace(/"/g, '""')}"`
           ]);
           // Include Competition Name at the top
           csvContent = `Competition Name,${eventTitle.replace(/"/g, '""')}\n\n` + 
                        [headers.join(","), ...rows.map(row => row.join(","))].join("\n");
         } else {
-          const headers = ["ID", "Competitor's Name", "Competitor's Email", "Competitor's Competition Name", "Faculty Coach Name", "Faculty Coach Email"];
+          const headers = ["ID", "Competitor's Name", "Competitor's Email", "Shirt Size", "Competitor's Competition Name", "Faculty Coach Name", "Faculty Coach Email"];
           const rows: string[][] = [];
           registrations.forEach(r => {
             r.members.forEach(m => {
@@ -53,6 +53,7 @@ export default function SubAdminExportButtons({ eventId }: ExportButtonsProps) {
                 `"${(m.id || "").replace(/"/g, '""')}"`,
                 `"${(m.name || "").replace(/"/g, '""')}"`,
                 `"${(m.email || "").replace(/"/g, '""')}"`,
+                `"${(m.shirtSize || "N/A").replace(/"/g, '""')}"`,
                 `"${eventTitle.replace(/"/g, '""')}"`,
                 `"${(r.coachName || "").replace(/"/g, '""')}"`,
                 `"${(r.coachEmail || "").replace(/"/g, '""')}"`
@@ -78,12 +79,12 @@ export default function SubAdminExportButtons({ eventId }: ExportButtonsProps) {
             title: eventTitle,
             subtitle: `Registration Report (By Competition) - Generated ${date}`,
             filename: `${eventTitle.replace(/ /g, '_')}_Per_Competition_${date}`,
-            columns: ['School', 'Faculty Coach Name', 'Faculty Coach Email', 'Competitors'],
+            columns: ['School', 'Faculty Coach Name', 'Faculty Coach Email', 'Competitors (with Shirt Size)'],
             data: registrations.map(r => [
               r.school,
               r.coachName,
               r.coachEmail,
-              r.members.map(m => m.name).join(", ")
+              r.members.map(m => `${m.name} (${m.shirtSize})`).join(", ")
             ]),
           });
         } else {
@@ -94,6 +95,7 @@ export default function SubAdminExportButtons({ eventId }: ExportButtonsProps) {
                 m.id,
                 m.name,
                 m.email,
+                m.shirtSize,
                 eventTitle,
                 r.coachName,
                 r.coachEmail
@@ -105,7 +107,7 @@ export default function SubAdminExportButtons({ eventId }: ExportButtonsProps) {
             title: eventTitle,
             subtitle: `Registration Report (By School) - Generated ${date}`,
             filename: `${eventTitle.replace(/ /g, '_')}_Per_School_${date}`,
-            columns: ['ID', "Competitor's Name", "Competitor's Email", 'Competitor\'s Competition Name', 'Faculty Coach Name', 'Faculty Coach Email'],
+            columns: ['ID', "Competitor's Name", "Competitor's Email", "Shirt Size", 'Competitor\'s Competition Name', 'Faculty Coach Name', 'Faculty Coach Email'],
             data: pdfData,
           });
         }

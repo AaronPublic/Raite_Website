@@ -396,6 +396,7 @@ function RegistrationDetailsModal({
                       <TableRow className="hover:bg-transparent border-b h-16">
                         <TableHead className="font-black uppercase tracking-wider text-[11px] px-6 md:px-12">Candidate Identity</TableHead>
                         <TableHead className="font-black uppercase tracking-wider text-[11px] px-6 md:px-12">Communication</TableHead>
+                        <TableHead className="font-black uppercase tracking-wider text-[11px] px-6 md:px-12">Shirt Size</TableHead>
                         <TableHead className="font-black uppercase tracking-wider text-[11px] px-6 md:px-12 text-right">System ID</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -412,6 +413,11 @@ function RegistrationDetailsModal({
                               </div>
                             </TableCell>
                             <TableCell className="px-6 md:px-12 font-medium text-gray-500 text-sm md:text-base">{m.email}</TableCell>
+                            <TableCell className="px-6 md:px-12">
+                              <Badge variant="outline" className="font-black text-[10px] md:text-[11px] px-3 md:px-4 py-1 rounded-xl bg-amber-50/50 border-amber-200 text-amber-600 uppercase tracking-wider">
+                                {m.shirtSize || "N/A"}
+                              </Badge>
+                            </TableCell>
                             <TableCell className="px-6 md:px-12 text-right">
                               <Badge variant="outline" className="font-mono text-[10px] md:text-[11px] px-3 md:px-4 py-1.5 rounded-xl bg-gray-50/50 border-gray-200 text-blue-600 font-black shadow-sm">
                                 {m.id}
@@ -421,7 +427,7 @@ function RegistrationDetailsModal({
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={3} className="text-center text-gray-300 py-24 font-black uppercase tracking-[0.4em] text-base">
+                          <TableCell colSpan={4} className="text-center text-gray-300 py-24 font-black uppercase tracking-[0.4em] text-base">
                             Null Roster Detected
                           </TableCell>
                         </TableRow>

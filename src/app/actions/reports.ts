@@ -66,17 +66,18 @@ export async function getSubAdminExportData(eventId: string) {
     select: {
       email: true,
       name: true,
-      uniqueId: true
+      uniqueId: true,
+      shirtSize: true
     }
   });
 
-  const emailToInfo = new Map<string, { name: string, id: string }>(users.map(u => [
+  const emailToInfo = new Map<string, { name: string, id: string, shirtSize: string }>(users.map(u => [
     u.email, 
-    { name: u.name || u.email, id: u.uniqueId || "N/A" }
+    { name: u.name || u.email, id: u.uniqueId || "N/A", shirtSize: u.shirtSize || "N/A" }
   ]));
 
   const formattedRegistrations = registrations.map((r) => {
-    let memberDetails: { name: string, email: string, id: string }[] = [];
+    let memberDetails: { name: string, email: string, id: string, shirtSize: string }[] = [];
 
     if (Array.isArray(r.members)) {
       memberDetails = (r.members as string[]).map(email => {
@@ -84,7 +85,8 @@ export async function getSubAdminExportData(eventId: string) {
         return {
           name: info?.name || email,
           email: email,
-          id: info?.id || "N/A"
+          id: info?.id || "N/A",
+          shirtSize: info?.shirtSize || "N/A"
         };
       });
     }
@@ -225,12 +227,12 @@ export async function getRegistrationDetails(id: string) {
   if (!registration) throw new Error("Registration not found");
 
   // Fetch member details
-  let memberDetails: { name: string, email: string, id: string }[] = [];
+  let memberDetails: { name: string, email: string, id: string, shirtSize: string }[] = [];
   if (Array.isArray(registration.members)) {
     const emails = registration.members as string[];
     const members = await db.user.findMany({
       where: { email: { in: emails } },
-      select: { name: true, email: true, uniqueId: true }
+      select: { name: true, email: true, uniqueId: true, shirtSize: true }
     });
     
     memberDetails = emails.map(email => {
@@ -238,7 +240,8 @@ export async function getRegistrationDetails(id: string) {
       return {
         name: m?.name || email,
         email: email,
-        id: m?.uniqueId || "N/A"
+        id: m?.uniqueId || "N/A",
+        shirtSize: m?.shirtSize || "N/A"
       };
     });
   }

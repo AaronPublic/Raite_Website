@@ -56,7 +56,26 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ClerkProvider appearance={{ theme: shadcn }}>
+          <ClerkProvider
+            appearance={{
+              theme: shadcn,
+              elements: {
+                headerSubtitle: "font-bold text-amber-600 dark:text-amber-400 text-xs text-center leading-relaxed mt-2",
+              },
+            }}
+            localization={{
+              signIn: {
+                start: {
+                  subtitle: "This is for FACULTY OR PSITE MEMBER ONLY. For student participants, CONTACT YOUR FACULTY COACHES OR SCHOOL.",
+                },
+              },
+              signUp: {
+                start: {
+                  subtitle: "This is for FACULTY OR PSITE MEMBER ONLY. For student participants, CONTACT YOUR FACULTY COACHES OR SCHOOL.",
+                },
+              },
+            }}
+          >
             <Suspense fallback={<div className="h-20 w-full border-b bg-background animate-pulse" />}>
               <Navbar />
             </Suspense>

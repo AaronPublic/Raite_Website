@@ -60,20 +60,23 @@ export default function RootLayout({
             appearance={{
               theme: shadcn,
               elements: {
-                headerSubtitle: "font-bold text-amber-600 dark:text-amber-400 text-xs text-center leading-relaxed mt-2",
+                dividerLine: {
+                  display: "none",
+                },
+                dividerText: {
+                  fontWeight: "700",
+                  color: "black",
+                  fontSize: "0.75rem",
+                  textTransform: "none",
+                  lineHeight: "1.4",
+                  textAlign: "center",
+                  marginTop: "0.5rem",
+                  marginBottom: "0.5rem",
+                },
               },
             }}
             localization={{
-              signIn: {
-                start: {
-                  subtitle: "This is for FACULTY OR PSITE MEMBER ONLY. For student participants, CONTACT YOUR FACULTY COACHES OR SCHOOL.",
-                },
-              },
-              signUp: {
-                start: {
-                  subtitle: "This is for FACULTY OR PSITE MEMBER ONLY. For student participants, CONTACT YOUR FACULTY COACHES OR SCHOOL.",
-                },
-              },
+              dividerText: "This is for FACULTY OR PSITE MEMBER ONLY. For student participants, CONTACT YOUR FACULTY COACHES OR SCHOOL.",
             }}
           >
             <Suspense fallback={<div className="h-20 w-full border-b bg-background animate-pulse" />}>

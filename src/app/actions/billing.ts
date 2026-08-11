@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 function calculateBaseFee(regDate: Date): number {
   const time = regDate.getTime();
   
-  const endEarly = new Date("2026-07-25T23:59:59+08:00").getTime();
+  const endEarly = new Date("2026-07-26T23:59:59+08:00").getTime();
   const endRegular = new Date("2026-08-20T23:59:59+08:00").getTime();
 
   if (time <= endEarly) {

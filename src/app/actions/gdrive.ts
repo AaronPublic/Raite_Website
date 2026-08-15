@@ -191,9 +191,22 @@ export async function uploadFileToDrive(formData: FormData) {
     };
   } catch (error: any) {
     console.error("Google Drive upload error:", error);
+    const clientEmail = process.env.GOOGLE_CLIENT_EMAIL?.trim();
+    let errorMessage = error.message || "Failed to upload file to Google Drive";
+    
+    if (errorMessage.includes("Service Accounts do not have storage quota")) {
+      errorMessage = `Google Drive upload failed: The configured Google Service Account does not have storage quota. To resolve this, you must either: 1) Use a Google Shared Drive and add your Service Account email (${clientEmail || "configured client email"}) as an Editor/Content Manager, or 2) Configure OAuth2 credentials (GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REFRESH_TOKEN) in your environment variables instead of a Service Account.`;
+    } else if (errorMessage.includes("File not found") || errorMessage.includes("notFound")) {
+      errorMessage = `Google Drive folder not found. Please verify that GOOGLE_DRIVE_FOLDER_ID is correct and that the folder is shared with the Service Account email (${clientEmail || "configured client email"}) or OAuth2 user.`;
+    } else if (errorMessage.includes("insufficientPermissions") || errorMessage.includes("Forbidden")) {
+      errorMessage = `Google Drive permission denied. Please verify that the target folder is shared with the Service Account email (${clientEmail || "configured client email"}) with Editor permissions.`;
+    } else if (errorMessage.includes("invalid_grant")) {
+      errorMessage = "Google Drive authentication failed (invalid grant). Please verify that your credentials or refresh tokens are valid.";
+    }
+
     return {
       success: false,
-      error: error.message || "Failed to upload file to Google Drive",
+      error: errorMessage,
     };
   }
 }

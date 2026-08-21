@@ -402,6 +402,13 @@ export async function exportRegistrationsCSV(filters: RegistrationFilters) {
   await checkAccess(); // Admin check
   const registrations = await getFilteredRegistrations(filters);
 
+  // Fetch all schools to map name to category
+  const schools = await db.school.findMany({
+    select: { name: true, category: true }
+  });
+  const schoolCategoryMap = new Map<string, string>();
+  schools.forEach(s => schoolCategoryMap.set(s.name, s.category));
+
   // Collect all member emails so we can resolve names in one DB query
   const allMemberEmails = new Set<string>();
   registrations.forEach(r => {
@@ -440,8 +447,13 @@ export async function exportRegistrationsCSV(filters: RegistrationFilters) {
       if (pairs.length > 0) requirementsLinks = pairs.join(" | ");
     }
 
+    const schoolName = r.user.school || "N/A";
+    const schoolCategory = schoolName !== "N/A" ? (schoolCategoryMap.get(schoolName) || "N/A") : "N/A";
+    const coachCategory = r.coach ? (r.coach.category || "N/A") : "N/A";
+
     return {
-      School: r.user.school || "N/A",
+      School: schoolName,
+      "School Membership": schoolCategory,
       Competition: r.event.title,
       Status: r.status,
       "Team Name": r.teamName || "Individual",
@@ -450,6 +462,7 @@ export async function exportRegistrationsCSV(filters: RegistrationFilters) {
       "Primary Registrant Email": r.user.email,
       Coach: r.coach?.name || r.registeredBy || "N/A",
       "Coach Email": r.coach?.email || "N/A",
+      "Coach Membership": coachCategory,
       "Entry/Submission Link": r.entryUrl || "N/A",
       "Requirements Links": requirementsLinks,
       RegisteredAt: new Date(r.createdAt).toLocaleDateString(),
@@ -462,12 +475,27 @@ export async function exportRegistrationsCSV(filters: RegistrationFilters) {
 export async function getRegistrationsForPDF(filters: RegistrationFilters) {
   await checkAccess(); // Admin check
   const registrations = await getFilteredRegistrations(filters);
+
+  // Fetch all schools to map name to category
+  const schools = await db.school.findMany({
+    select: { name: true, category: true }
+  });
+  const schoolCategoryMap = new Map<string, string>();
+  schools.forEach(s => schoolCategoryMap.set(s.name, s.category));
   
-  return registrations.map(r => ({
-    school: r.user.school || "N/A",
-    competition: r.event.title,
-    status: r.status,
-    coach: r.coach?.name || r.registeredBy || "N/A",
-    date: new Date(r.createdAt).toLocaleDateString()
-  }));
+  return registrations.map(r => {
+    const schoolName = r.user.school || "N/A";
+    const schoolCategory = schoolName !== "N/A" ? (schoolCategoryMap.get(schoolName) || "N/A") : "N/A";
+    const coachCategory = r.coach ? (r.coach.category || "N/A") : "N/A";
+
+    return {
+      school: schoolName,
+      schoolCategory: schoolCategory,
+      competition: r.event.title,
+      status: r.status,
+      coach: r.coach?.name || r.registeredBy || "N/A",
+      coachCategory: coachCategory,
+      date: new Date(r.createdAt).toLocaleDateString()
+    };
+  });
 }

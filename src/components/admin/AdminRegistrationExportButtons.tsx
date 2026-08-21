@@ -45,8 +45,16 @@ export default function AdminRegistrationExportButtons() {
         title: "Registration List",
         subtitle: `Generated for: RAITE 2026 Administrative Review`,
         filename: `RAITE_2026_Registrations_List_${date}`,
-        columns: ['School', 'Competition', 'Status', 'Coach', 'Date'],
-        data: data.map(r => [r.school, r.competition, r.status, r.coach, r.date]),
+        columns: ['School', 'School Membership', 'Competition', 'Status', 'Coach', 'Coach Membership', 'Date'],
+        data: data.map(r => [
+          r.school,
+          r.schoolCategory,
+          r.competition,
+          r.status,
+          r.coach,
+          r.coachCategory,
+          r.date
+        ]),
       });
     } catch (error) {
       console.error("Export failed:", error);

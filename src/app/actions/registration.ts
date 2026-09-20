@@ -391,6 +391,10 @@ export async function submitEntryUrl(registrationId: string, entryUrl: string) {
       throw new Error("You are not authorized to submit for this team.");
     }
 
+    if (registration.event.subcategory === "ONLINE" && !isAdmin && !isSubAdmin) {
+      throw new Error("Submissions for online competitions are now closed.");
+    }
+
     if (registration.event.subcategory !== "ONLINE" && registration.event.subcategory !== "ONSITE_PAGEANT") {
       throw new Error("This competition does not support online submissions.");
     }

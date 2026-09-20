@@ -415,7 +415,13 @@ export function MyRegistrationsTable({
               </Badge>
             )}
 
-            {(isOnline || isPageant) && isApproved && !hasSubmitted && (
+            {isOnline && !hasSubmitted && (
+              <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50 font-black text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full border-2">
+                Closed
+              </Badge>
+            )}
+
+            {isPageant && isApproved && !hasSubmitted && (
               <Dialog 
                 open={openDialog === row.original.id} 
                 onOpenChange={(open) => {
@@ -436,7 +442,7 @@ export function MyRegistrationsTable({
                     className="rounded-xl font-bold gap-2 h-8 px-3 bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20 active:scale-95 text-[11px]"
                   >
                     <Send className="h-3.5 w-3.5" />
-                    Submit Entry
+                    Submit Photos
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="w-[95vw] sm:max-w-lg md:max-w-xl rounded-[2rem] p-6 sm:p-8 border-none shadow-2xl bg-white dark:bg-gray-900 transition-all duration-300 overflow-y-auto max-h-[90vh] no-scrollbar">

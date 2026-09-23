@@ -9,7 +9,7 @@ const withSerwist = withSerwistInit({
 
 const nextConfig: NextConfig = {
   turbopack: {},
-  serverExternalPackages: ["@prisma/client"],
+  serverExternalPackages: ["@prisma/client", "@prisma/adapter-pg", "pg"],
   cacheComponents: true,
   experimental: {
     proxyClientMaxBodySize: "1200mb",

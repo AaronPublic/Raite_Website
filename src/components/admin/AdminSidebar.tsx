@@ -16,7 +16,9 @@ import {
   CreditCard,
   School,
   UserCheck,
-  Shirt
+  Shirt,
+  Gavel,
+  Award
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SafeUserButton } from "@/components/SafeUserButton";
@@ -27,6 +29,8 @@ export function AdminSidebar({ user }: { user: { name: string | null; role: stri
   const navLinks = [
     { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/competitions", label: "Competitions", icon: Trophy },
+    { href: "/admin/judges", label: "Judges", icon: Gavel },
+    { href: "/admin/scores", label: "Scores & Rankings", icon: Award },
     { href: "/admin/users", label: "Users", icon: Users },
     { href: "/admin/schools", label: "Manage Schools", icon: School },
     { href: "/admin/coaches", label: "Faculty Coaches", icon: UserCheck },
@@ -35,7 +39,7 @@ export function AdminSidebar({ user }: { user: { name: string | null; role: stri
     { href: "/admin/announcements", label: "Announcements", icon: Megaphone },
     { href: "/admin/guidelines", label: "Guidelines", icon: FileText },
     { href: "/admin/reports", label: "Reports", icon: BarChart3 },
-    { href: "/admin/ranking", label: "Ranking", icon: Trophy },
+    { href: "/admin/ranking", label: "Podium Setup", icon: Trophy },
     { href: "/admin/billing", label: "Billing", icon: CreditCard },
     { href: "/admin/shirt-sizes", label: "Shirt Sizes & Kit", icon: Shirt },
     { href: "/admin/settings", label: "Settings", icon: Settings },

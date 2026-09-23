@@ -50,10 +50,11 @@ async function HeroActions() {
   const isFacultyCoach = user?.role === "FACULTY_COACH";
   const isParticipant = user?.role === "PARTICIPANT";
 
-  const guidelinesUrl = await getSystemSetting("GENERAL_GUIDELINES_URL");
+  const [guidelinesUrl, programmeUrl] = await Promise.all([
+    getSystemSetting("GENERAL_GUIDELINES_URL"),
+    getSystemSetting("EVENT_PROGRAMME_URL"),
+  ]);
   const guidelinesHref = guidelinesUrl || "/competitions";
-
-  const programmeUrl = await getSystemSetting("EVENT_PROGRAMME_URL");
   const programmeHref = programmeUrl || "/assets/RAITE-2026-Provisional-Programme.pdf";
 
   return (
@@ -118,8 +119,10 @@ async function HeroActions() {
 }
 
 async function HeroCountdown() {
-  const upcomingEvents = await getUpcomingEvents();
-  const missionStartSetting = await getSystemSetting("MISSION_START_DATE");
+  const [upcomingEvents, missionStartSetting] = await Promise.all([
+    getUpcomingEvents(),
+    getSystemSetting("MISSION_START_DATE"),
+  ]);
   
   const missionStartDate = missionStartSetting 
     ? new Date(missionStartSetting) 
@@ -219,9 +222,12 @@ function HeroSection() {
 }
 
 async function RankingSection() {
-  const leaderboard = await getLeaderboard();
-  const competitionWinners = await getCompetitionWinners();
-  const winnersYear = await getSystemSetting("WINNERS_YEAR") || "2025";
+  const [leaderboard, competitionWinners, winnersYearSetting] = await Promise.all([
+    getLeaderboard(),
+    getCompetitionWinners(),
+    getSystemSetting("WINNERS_YEAR"),
+  ]);
+  const winnersYear = winnersYearSetting || "2025";
   
   const getRankEntries = (place: number) => leaderboard.filter((e: any) => e.place === place);
   const firstPlace = getRankEntries(1);

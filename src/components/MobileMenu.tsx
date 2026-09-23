@@ -26,7 +26,9 @@ import {
   School,
   UserCheck,
   CreditCard,
-  Shirt
+  Shirt,
+  Award,
+  Gavel
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
@@ -89,8 +91,11 @@ export default function MobileMenu({ userId, userRole, userApproved }: MobileMen
     { name: "Reports", href: "/admin/reports", icon: BarChart3, role: "ADMIN" },
     { name: "Ranking", href: "/admin/ranking", icon: Trophy, role: "ADMIN" },
     { name: "Billing", href: "/admin/billing", icon: CreditCard, role: "ADMIN" },
+    { name: "Judges", href: "/admin/judges", icon: Gavel, role: "ADMIN" },
+    { name: "Scores & Rankings", href: "/admin/scores", icon: Award, role: "ADMIN" },
     { name: "Shirt Sizes & Kit", href: "/admin/shirt-sizes", icon: Shirt, role: "ADMIN" },
     { name: "Settings", href: "/admin/settings", icon: Settings, role: "ADMIN" },
+    { name: "Judging Portal", href: "/judge/competitions", icon: Award, role: "JUDGE" },
     { name: "My Competitions", href: "/sub-admin/competitions", icon: Briefcase, role: "SUB_ADMIN" },
     { name: "Submissions", href: "/sub-admin/submissions", icon: FileText, role: "SUB_ADMIN" },
     { name: "My Registrations", href: "/registrations/my", icon: User, role: "SUB_ADMIN" },

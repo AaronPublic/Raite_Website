@@ -61,6 +61,15 @@ export default function NavbarActions({ userId, userRole, userApproved }: Navbar
         </Link>
       )}
 
+      {userRole === "JUDGE" && (
+        <Link
+          href="/judge/competitions"
+          className="hidden items-center justify-center sm:inline-flex rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 transition-colors hover:bg-amber-500 hover:text-white"
+        >
+          Judging Portal
+        </Link>
+      )}
+
       {userRole === "SUB_ADMIN" && (
         <div className="hidden items-center gap-3 sm:inline-flex">
           <Link

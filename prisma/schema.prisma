@@ -41,9 +41,11 @@ model User {
   shirtSize           String         @default("XL")
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
-  assignedEvents     Event[]        @relation("SubAdminEvents")
-  coachRegistrations Registration[] @relation("CoachRegistrations")
+  assignedEvents     Event[]           @relation("SubAdminEvents")
+  coachRegistrations Registration[]    @relation("CoachRegistrations")
   registrations      Registration[]
+  judgeAssignments   JudgeAssignment[]
+  scoresGiven        Score[]
 
   @@index([role])
   @@index([school])
@@ -70,6 +72,11 @@ model Event {
   subAdminId                     String?
   subAdmin                       User?             @relation("SubAdminEvents", fields: [subAdminId], references: [id])
   registrations                  Registration[]
+  judgeAssignments               JudgeAssignment[]
+
+  @@index([status])
+  @@index([subcategory])
+  @@index([category])
 }
 
 model Registration {
@@ -85,15 +92,52 @@ model Registration {
   registeredBy         String?
   coachId              String?
   entryUrl             String?
+  socialMediaScore     Float?             @default(0)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
   coach                User?              @relation("CoachRegistrations", fields: [coachId], references: [id])
   event                Event              @relation(fields: [eventId], references: [id])
   user                 User               @relation(fields: [userId], references: [id])
+  scores               Score[]
 
   @@unique([userId, eventId])
   @@index([eventId])
   @@index([userId])
+  @@index([coachId])
+  @@index([status])
+}
+
+model JudgeAssignment {
+  id        String   @id @default(cuid())
+  judgeId   String
+  eventId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  judge     User     @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([judgeId, eventId])
+  @@index([judgeId])
+  @@index([eventId])
+}
+
+model Score {
+  id              String       @id @default(cuid())
+  registrationId  String
+  judgeId         String
+  criteriaScores  Json
+  totalScore      Float
+  feedback        String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  registration    Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  judge           User         @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+
+  @@unique([registrationId, judgeId])
+  @@index([registrationId])
+  @@index([judgeId])
 }
 
 model Announcement {
@@ -106,6 +150,8 @@ model Announcement {
   isArchived  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([pinned, isArchived])
 }
 
 model SystemSetting {
@@ -146,6 +192,7 @@ enum Role {
   ADMIN
   SUB_ADMIN
   FACULTY_COACH
+  JUDGE
 }
 
 enum EventStatus {

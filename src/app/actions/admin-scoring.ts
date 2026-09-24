@@ -45,9 +45,12 @@ export async function getJudges() {
 
   return {
     judges: judges.map((j) => {
-      const username = j.email.endsWith("@judge.raite.internal")
-        ? j.email.replace("@judge.raite.internal", "")
-        : j.email;
+      let username = j.email;
+      if (username.endsWith("@raite2026.com")) {
+        username = username.replace("@raite2026.com", "");
+      } else if (username.endsWith("@judge.raite.internal")) {
+        username = username.replace("@judge.raite.internal", "");
+      }
 
       return {
         id: j.id,
@@ -68,13 +71,10 @@ export async function getJudges() {
 }
 
 const createJudgeSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  username: z
-    .string()
-    .min(3, "Username must be at least 3 characters")
-    .regex(/^[a-zA-Z0-9_.-]+$/, "Username can only contain letters, numbers, underscores, dashes, and periods"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  eventIds: z.array(z.string()).min(1, "Assign at least one competition"),
+  name: z.string().min(1, "Please enter the judge's full name"),
+  username: z.string().min(1, "Please enter a username"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  eventIds: z.array(z.string()).optional().default([]),
 });
 
 export async function createJudge(data: z.infer<typeof createJudgeSchema>) {
@@ -82,49 +82,91 @@ export async function createJudge(data: z.infer<typeof createJudgeSchema>) {
 
   const parsed = createJudgeSchema.safeParse(data);
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message || "Invalid input data" };
+    const firstIssue = parsed.error.issues[0];
+    const fieldName = firstIssue?.path[0] !== undefined ? ` (${String(firstIssue.path[0])})` : "";
+    return { error: `${firstIssue?.message || "Invalid input data"}${fieldName}` };
   }
 
   const { name, username, password, eventIds } = parsed.data;
-  const cleanUsername = username.trim().toLowerCase();
-  const internalEmail = cleanUsername.includes("@")
+  const cleanUsername = username.trim().toLowerCase().replace(/\s+/g, "");
+  
+  if (!cleanUsername) {
+    return { error: "Username cannot be empty. Please enter a valid username." };
+  }
+
+  // Format valid RFC/TLD email address for Clerk
+  const validEmail = cleanUsername.includes("@")
     ? cleanUsername
-    : `${cleanUsername.replace(/[^a-z0-9_]/g, "")}@judge.raite.internal`;
+    : `${cleanUsername.replace(/[^a-z0-9_.-]/g, "") || "judge"}@raite2026.com`;
 
   // Check if username / email already exists in DB
   const existingUser = await db.user.findFirst({
     where: {
       OR: [
-        { email: internalEmail },
+        { email: validEmail },
         { name: name.trim() },
       ],
     },
   });
 
-  if (existingUser && existingUser.email === internalEmail) {
-    return { error: `A judge account with username "${cleanUsername}" already exists.` };
+  if (existingUser) {
+    if (existingUser.email.toLowerCase() === validEmail.toLowerCase()) {
+      return { 
+        error: `Username "${cleanUsername}" is already in use by another judge or account. Please choose a different username.` 
+      };
+    }
   }
 
   try {
     const clerk = await clerkClient();
-
-    // 1. Create Clerk user with username & password (bypassing email verification)
     const sanitizedClerkUsername = cleanUsername.replace(/[^a-zA-Z0-9_]/g, "");
 
     let clerkUser;
+    // Attempt 1: Try creating with username (if enabled in Clerk)
     try {
       clerkUser = await clerk.users.createUser({
+        emailAddress: [validEmail],
         username: sanitizedClerkUsername.length >= 4 ? sanitizedClerkUsername : undefined,
-        emailAddress: [internalEmail],
         password,
         firstName: name.trim(),
+        skipPasswordChecks: true,
         skipPasswordRequirement: true,
       });
-    } catch (clerkErr: any) {
-      console.error("Clerk user creation error:", clerkErr);
-      return {
-        error: clerkErr.errors?.[0]?.message || clerkErr.message || "Failed to create user in authentication provider.",
-      };
+    } catch (firstErr: any) {
+      console.warn("Primary Clerk user creation attempt failed, retrying with email only:", firstErr?.message);
+      // Attempt 2: Retry with emailAddress only
+      try {
+        clerkUser = await clerk.users.createUser({
+          emailAddress: [validEmail],
+          password,
+          firstName: name.trim(),
+          skipPasswordChecks: true,
+          skipPasswordRequirement: true,
+        });
+      } catch (secondErr: any) {
+        console.error("Clerk user creation error:", secondErr);
+        const clerkErrors = secondErr.errors || firstErr.errors || [];
+        const firstError = clerkErrors[0];
+        
+        let rawMessage = firstError?.longMessage || firstError?.message || secondErr.message || "Failed to create user authentication.";
+        const paramName = (firstError?.meta?.paramName || "").toLowerCase();
+
+        if (paramName === "email_address" || rawMessage.toLowerCase().includes("email_address") || rawMessage.toLowerCase().includes("email address")) {
+          return {
+            error: `Invalid Username / Email: "${cleanUsername}". Please use simple letters and numbers (e.g. judge1, judge_alpha).`,
+          };
+        } else if (paramName === "password" || rawMessage.toLowerCase().includes("password")) {
+          return {
+            error: `Password Requirement: ${firstError?.longMessage || firstError?.message || "Password does not meet authentication standards. Please use at least 8 characters."}`,
+          };
+        } else if (paramName === "username" || rawMessage.toLowerCase().includes("username")) {
+          return {
+            error: `Username Error: ${firstError?.longMessage || firstError?.message || "Please choose a different username."}`,
+          };
+        }
+
+        return { error: `Authentication Error: ${rawMessage}` };
+      }
     }
 
     // 2. Create database User and JudgeAssignments in a transaction
@@ -132,14 +174,14 @@ export async function createJudge(data: z.infer<typeof createJudgeSchema>) {
       const newUser = await tx.user.create({
         data: {
           clerkId: clerkUser.id,
-          email: internalEmail,
+          email: validEmail,
           name: name.trim(),
           role: "JUDGE",
           approved: true,
         },
       });
 
-      if (eventIds.length > 0) {
+      if (eventIds && eventIds.length > 0) {
         await tx.judgeAssignment.createMany({
           data: eventIds.map((eventId) => ({
             judgeId: newUser.id,
@@ -159,9 +201,9 @@ export async function createJudge(data: z.infer<typeof createJudgeSchema>) {
 
 const updateJudgeSchema = z.object({
   judgeId: z.string(),
-  name: z.string().min(2, "Name must be at least 2 characters").optional(),
-  password: z.string().min(8, "Password must be at least 8 characters").optional().or(z.literal("")),
-  eventIds: z.array(z.string()),
+  name: z.string().min(1, "Name cannot be empty").optional(),
+  password: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal("")),
+  eventIds: z.array(z.string()).optional().default([]),
 });
 
 export async function updateJudge(data: z.infer<typeof updateJudgeSchema>) {

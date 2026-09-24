@@ -220,10 +220,9 @@ export default function RubricEvaluationForm({
                 <User className="w-4 h-4 text-primary shrink-0 mt-1" />
                 <div>
                   <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground block">
-                    Team & Competitor
+                    Team / Entry
                   </label>
                   <p className="text-sm font-bold text-foreground">{registration.teamName}</p>
-                  <p className="text-xs font-medium text-muted-foreground">{registration.competitorName}</p>
                 </div>
               </div>
 
@@ -248,7 +247,7 @@ export default function RubricEvaluationForm({
                   className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider shadow-md shadow-blue-600/20 transition-all active:scale-95"
                 >
                   <ExternalLink className="w-4 h-4" />
-                  Open Entry in New Tab
+                  View Submission
                 </a>
                 <p className="text-[10px] text-center text-muted-foreground mt-2">
                   Review the Google Drive / submission link carefully before locking in points.
@@ -430,7 +429,7 @@ export default function RubricEvaluationForm({
 
           <div className="my-4 space-y-3 bg-secondary/30 rounded-2xl p-4 border border-border/60">
             <div className="text-xs font-bold text-foreground pb-2 border-b border-border/40">
-              {registration.school} — {registration.teamName} ({registration.competitorName})
+              {registration.school} — {registration.teamName}
             </div>
 
             <div className="space-y-2">

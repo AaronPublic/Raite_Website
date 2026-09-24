@@ -1,3 +1,6 @@
+import { auth } from "@clerk/nextjs/server";
+import { getUserByClerkId } from "@/lib/data/users";
+import { redirect } from "next/navigation";
 import { getSchools } from "@/lib/data/schools";
 import ProfileCompleteForm from "@/components/profile/ProfileCompleteForm";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -5,6 +8,17 @@ import { GraduationCap, Sparkles } from "lucide-react";
 import { MotionDiv } from "@/components/profile/MotionDiv";
 
 export default async function ProfileCompletePage() {
+  const { userId } = await auth();
+  if (userId) {
+    const user = await getUserByClerkId(userId);
+    if (user?.role === "JUDGE") {
+      redirect("/judge/competitions");
+    }
+    if (user?.role === "ADMIN") {
+      redirect("/admin/dashboard");
+    }
+  }
+
   const schools = await getSchools();
 
   return (

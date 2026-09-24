@@ -44,7 +44,7 @@ export const COMPETITION_RUBRICS: Record<string, CompetitionRubric> = {
   },
   "Micro Short Film": {
     title: "Micro Short Film",
-    socialMediaLabel: "YouTube Like Voting",
+    socialMediaLabel: "YouTube Likes",
     socialMediaMax: 5,
     judgeMaxTotal: 95,
     grandTotal: 100,
@@ -77,7 +77,7 @@ export const COMPETITION_RUBRICS: Record<string, CompetitionRubric> = {
   },
   "TechTok Challenge: CTRL+ NEXT Edition": {
     title: "TechTok Challenge: CTRL+ NEXT Edition",
-    socialMediaLabel: "Facebook Like & Reaction",
+    socialMediaLabel: "TikTok Reactions",
     socialMediaMax: 5,
     judgeMaxTotal: 95,
     grandTotal: 100,

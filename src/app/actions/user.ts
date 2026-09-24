@@ -136,6 +136,11 @@ export async function isProfileComplete() {
 
   if (!user) return false;
 
+  // Judges and Admins do not need to complete a coach profile
+  if (user.role === "JUDGE" || user.role === "ADMIN" || user.role === "SUB_ADMIN") {
+    return true;
+  }
+
   const hasBasicInfo = !!(user.school && user.role && user.name);
   if (!hasBasicInfo) return false;
 

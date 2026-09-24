@@ -95,7 +95,6 @@ export default function AdminScoringClient({
       const baseObj: Record<string, any> = {
         Rank: r.rank || index + 1,
         School: r.schoolName,
-        "Team / Competitor": r.teamOrCompetitor,
         "Submission Link": r.entryUrl || "N/A",
       };
 
@@ -239,7 +238,6 @@ export default function AdminScoringClient({
               <TableRow>
                 <TableHead className="w-16 font-bold text-xs text-center">Rank</TableHead>
                 <TableHead className="font-bold text-xs">School / Institution</TableHead>
-                <TableHead className="font-bold text-xs">Team / Competitor</TableHead>
                 <TableHead className="font-bold text-xs text-center">Submission</TableHead>
                 <TableHead className="font-bold text-xs text-center">Judge Scores Breakdown</TableHead>
                 <TableHead className="font-bold text-xs text-center">Judge Avg (/95)</TableHead>
@@ -252,7 +250,7 @@ export default function AdminScoringClient({
             <TableBody>
               {rankings.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground font-medium">
+                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground font-medium">
                     No submitted entries found for this competition.
                   </TableCell>
                 </TableRow>
@@ -285,11 +283,6 @@ export default function AdminScoringClient({
                         {row.schoolName}
                       </TableCell>
 
-                      {/* Team / Competitor */}
-                      <TableCell className="text-xs text-muted-foreground font-medium">
-                        {row.teamOrCompetitor}
-                      </TableCell>
-
                       {/* Submission Link */}
                       <TableCell className="text-center">
                         {row.entryUrl ? (
@@ -300,7 +293,7 @@ export default function AdminScoringClient({
                             className="h-8 px-2.5 rounded-lg text-blue-600 hover:bg-blue-50 font-bold text-xs"
                           >
                             <a href={row.entryUrl} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="w-3.5 h-3.5 mr-1" /> View Entry
+                              <ExternalLink className="w-3.5 h-3.5 mr-1" /> View Submission
                             </a>
                           </Button>
                         ) : (

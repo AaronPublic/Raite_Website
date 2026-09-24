@@ -44,25 +44,35 @@ export async function getJudges() {
   });
 
   return {
-    judges: judges.map((j) => ({
-      id: j.id,
-      name: j.name || "Unnamed Judge",
-      email: j.email,
-      clerkId: j.clerkId,
-      assignedEvents: j.judgeAssignments.map((a) => ({
-        id: a.event.id,
-        title: a.event.title,
-      })),
-      evaluatedCount: j._count.scoresGiven,
-      createdAt: j.createdAt,
-    })),
+    judges: judges.map((j) => {
+      const username = j.email.endsWith("@judge.raite.internal")
+        ? j.email.replace("@judge.raite.internal", "")
+        : j.email;
+
+      return {
+        id: j.id,
+        name: j.name || "Unnamed Judge",
+        username,
+        email: j.email,
+        clerkId: j.clerkId,
+        assignedEvents: j.judgeAssignments.map((a) => ({
+          id: a.event.id,
+          title: a.event.title,
+        })),
+        evaluatedCount: j._count.scoresGiven,
+        createdAt: j.createdAt,
+      };
+    }),
     availableEvents: allOnlineEvents,
   };
 }
 
 const createJudgeSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .regex(/^[a-zA-Z0-9_.-]+$/, "Username can only contain letters, numbers, underscores, dashes, and periods"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   eventIds: z.array(z.string()).min(1, "Assign at least one competition"),
 });
@@ -75,34 +85,40 @@ export async function createJudge(data: z.infer<typeof createJudgeSchema>) {
     return { error: parsed.error.issues[0]?.message || "Invalid input data" };
   }
 
-  const { name, email, password, eventIds } = parsed.data;
-  const cleanEmail = email.trim().toLowerCase();
+  const { name, username, password, eventIds } = parsed.data;
+  const cleanUsername = username.trim().toLowerCase();
+  const internalEmail = cleanUsername.includes("@")
+    ? cleanUsername
+    : `${cleanUsername.replace(/[^a-z0-9_]/g, "")}@judge.raite.internal`;
 
-  // Check if email already exists in DB
-  const existingUser = await db.user.findUnique({
-    where: { email: cleanEmail },
+  // Check if username / email already exists in DB
+  const existingUser = await db.user.findFirst({
+    where: {
+      OR: [
+        { email: internalEmail },
+        { name: name.trim() },
+      ],
+    },
   });
 
-  if (existingUser) {
-    return { error: `A user with email "${cleanEmail}" already exists.` };
+  if (existingUser && existingUser.email === internalEmail) {
+    return { error: `A judge account with username "${cleanUsername}" already exists.` };
   }
 
   try {
     const clerk = await clerkClient();
 
-    // 1. Create Clerk user
-    const nameParts = name.trim().split(" ");
-    const firstName = nameParts[0] || name;
-    const lastName = nameParts.slice(1).join(" ") || "";
+    // 1. Create Clerk user with username & password (bypassing email verification)
+    const sanitizedClerkUsername = cleanUsername.replace(/[^a-zA-Z0-9_]/g, "");
 
     let clerkUser;
     try {
       clerkUser = await clerk.users.createUser({
-        emailAddress: [cleanEmail],
+        username: sanitizedClerkUsername.length >= 4 ? sanitizedClerkUsername : undefined,
+        emailAddress: [internalEmail],
         password,
-        firstName,
-        lastName,
-        skipPasswordRequirement: false,
+        firstName: name.trim(),
+        skipPasswordRequirement: true,
       });
     } catch (clerkErr: any) {
       console.error("Clerk user creation error:", clerkErr);
@@ -116,7 +132,7 @@ export async function createJudge(data: z.infer<typeof createJudgeSchema>) {
       const newUser = await tx.user.create({
         data: {
           clerkId: clerkUser.id,
-          email: cleanEmail,
+          email: internalEmail,
           name: name.trim(),
           role: "JUDGE",
           approved: true,
@@ -307,7 +323,7 @@ export async function getCompetitionLeaderboard(eventId: string) {
     return {
       registrationId: reg.id,
       schoolName: reg.user.school || "N/A",
-      teamOrCompetitor: reg.teamName ? `${reg.teamName} (${reg.user.name || reg.user.email})` : reg.user.name || reg.user.email,
+      teamOrCompetitor: reg.teamName || "Individual Entry",
       entryUrl: reg.entryUrl,
       socialMediaScore,
       judgeScores,

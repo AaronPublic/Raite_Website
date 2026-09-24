@@ -24,6 +24,7 @@ import { createJudge, deleteJudge, updateJudge } from "@/app/actions/admin-scori
 interface JudgeItem {
   id: string;
   name: string;
+  username?: string;
   email: string;
   clerkId: string | null;
   assignedEvents: { id: string; title: string }[];
@@ -50,7 +51,7 @@ export default function JudgesManagement({ initialJudges, availableEvents }: Jud
   // Create Judge Modal State
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createName, setCreateName] = useState("");
-  const [createEmail, setCreateEmail] = useState("");
+  const [createUsername, setCreateUsername] = useState("");
   const [createPassword, setCreatePassword] = useState("");
   const [createSelectedEvents, setCreateSelectedEvents] = useState<string[]>([]);
   const [showCreatePassword, setShowCreatePassword] = useState(false);
@@ -69,14 +70,19 @@ export default function JudgesManagement({ initialJudges, availableEvents }: Jud
   const filteredJudges = judges.filter(
     (j) =>
       j.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (j.username && j.username.toLowerCase().includes(searchQuery.toLowerCase())) ||
       j.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       j.assignedEvents.some((e) => e.title.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const handleCreateJudge = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!createName || !createEmail || !createPassword) {
+    if (!createName || !createUsername || !createPassword) {
       toast.error("Please fill in all required fields.");
+      return;
+    }
+    if (createUsername.length < 3) {
+      toast.error("Username must be at least 3 characters long.");
       return;
     }
     if (createPassword.length < 8) {
@@ -91,24 +97,25 @@ export default function JudgesManagement({ initialJudges, availableEvents }: Jud
     startTransition(async () => {
       const res = await createJudge({
         name: createName,
-        email: createEmail,
+        username: createUsername,
         password: createPassword,
         eventIds: createSelectedEvents,
       });
 
       if (res.success) {
-        toast.success(`Judge account created for ${createEmail}!`);
+        toast.success(`Judge account created for "${createUsername}"!`);
         setIsCreateOpen(false);
         // Reset form
         setCreateName("");
-        setCreateEmail("");
+        setCreateUsername("");
         setCreatePassword("");
         setCreateSelectedEvents([]);
         // Update local state
         const newJudge: JudgeItem = {
           id: `temp-${Date.now()}`,
           name: createName,
-          email: createEmail.toLowerCase(),
+          username: createUsername.toLowerCase(),
+          email: `${createUsername.toLowerCase()}@judge.raite.internal`,
           clerkId: "new",
           assignedEvents: availableEvents.filter((ev) => createSelectedEvents.includes(ev.id)),
           evaluatedCount: 0,
@@ -205,7 +212,7 @@ export default function JudgesManagement({ initialJudges, availableEvents }: Jud
         <div className="relative w-full sm:w-80">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Search by name, email, or event..."
+            placeholder="Search by name, username, or event..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 rounded-xl border-gray-200 dark:border-gray-800"
@@ -225,7 +232,7 @@ export default function JudgesManagement({ initialJudges, availableEvents }: Jud
                 <Gavel className="w-5 h-5 text-primary" /> Create Judge Account
               </DialogTitle>
               <DialogDescription>
-                Create credentials for a competition judge. The judge can log in with this email and password.
+                Create credentials for a competition judge. The judge can log in with this username and password.
               </DialogDescription>
             </DialogHeader>
 
@@ -242,19 +249,18 @@ export default function JudgesManagement({ initialJudges, availableEvents }: Jud
               </div>
 
               <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase text-gray-500">Email Address</Label>
+                <Label className="text-xs font-bold uppercase text-gray-500">Username</Label>
                 <Input
                   required
-                  type="email"
-                  placeholder="judge@example.com"
-                  value={createEmail}
-                  onChange={(e) => setCreateEmail(e.target.value)}
+                  placeholder="e.g. judge1, judge_lanyard"
+                  value={createUsername}
+                  onChange={(e) => setCreateUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, ""))}
                   className="rounded-xl"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase text-gray-500">Temporary Password</Label>
+                <Label className="text-xs font-bold uppercase text-gray-500">Password</Label>
                 <div className="relative">
                   <Input
                     required
@@ -336,7 +342,7 @@ export default function JudgesManagement({ initialJudges, availableEvents }: Jud
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="font-bold text-xs">Judge Name</TableHead>
-                <TableHead className="font-bold text-xs">Email</TableHead>
+                <TableHead className="font-bold text-xs">Username</TableHead>
                 <TableHead className="font-bold text-xs">Assigned Competitions</TableHead>
                 <TableHead className="font-bold text-xs text-center">Evaluations Done</TableHead>
                 <TableHead className="font-bold text-xs text-right pr-6">Actions</TableHead>
@@ -360,7 +366,11 @@ export default function JudgesManagement({ initialJudges, availableEvents }: Jud
                         {judge.name}
                       </div>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground font-medium">{judge.email}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground font-semibold">
+                      <span className="bg-secondary px-2.5 py-1 rounded-lg">
+                        {judge.username || judge.email.replace("@judge.raite.internal", "")}
+                      </span>
+                    </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1.5 max-w-md">
                         {judge.assignedEvents.length === 0 ? (
@@ -422,7 +432,7 @@ export default function JudgesManagement({ initialJudges, availableEvents }: Jud
               <KeyRound className="w-5 h-5 text-primary" /> Edit Judge Details
             </DialogTitle>
             <DialogDescription>
-              Update name, assigned competitions, or reset the password for {editingJudge?.email}.
+              Update name, assigned competitions, or reset the password for judge &quot;{editingJudge?.username || editingJudge?.name}&quot;.
             </DialogDescription>
           </DialogHeader>
 

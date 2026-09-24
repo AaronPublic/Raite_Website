@@ -12,7 +12,6 @@ import {
   Sparkles, 
   FileText,
   School,
-  User,
   ArrowRight
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -55,7 +54,6 @@ export default function CompetitionSubmissionsClient({
     const matchesSearch =
       sub.school.toLowerCase().includes(searchTerm.toLowerCase()) ||
       sub.teamName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sub.competitorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       sub.coachName.toLowerCase().includes(searchTerm.toLowerCase());
 
     if (!matchesSearch) return false;
@@ -152,7 +150,7 @@ export default function CompetitionSubmissionsClient({
         <div className="relative w-full sm:w-80">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search by school, team, competitor..."
+            placeholder="Search by school or team..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 rounded-xl h-11 bg-card border-border/80 text-sm font-medium"
@@ -226,7 +224,7 @@ export default function CompetitionSubmissionsClient({
                   )}
                 </div>
 
-                {/* School & Competitor details */}
+                {/* School & Team details */}
                 <div className="space-y-1.5">
                   <div className="flex items-start gap-2">
                     <School className="w-4 h-4 text-primary shrink-0 mt-0.5" />
@@ -236,11 +234,6 @@ export default function CompetitionSubmissionsClient({
                       </h4>
                       <p className="text-xs font-bold text-muted-foreground">{sub.teamName}</p>
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground pt-1">
-                    <User className="w-3.5 h-3.5" />
-                    <span>Participant: <strong className="text-foreground">{sub.competitorName}</strong></span>
                   </div>
                 </div>
 
@@ -254,7 +247,7 @@ export default function CompetitionSubmissionsClient({
                       className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
-                      Open Submission Link
+                      View Submission
                     </a>
                   </div>
                 )}

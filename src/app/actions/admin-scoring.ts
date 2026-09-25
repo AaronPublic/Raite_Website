@@ -43,6 +43,34 @@ export async function getJudges() {
     orderBy: { title: "asc" },
   });
 
+  // Ensure all existing judge accounts in Clerk are marked as verified (bypasses verification code)
+  (async () => {
+    try {
+      const clerk = await clerkClient();
+      for (const j of judges) {
+        if (j.clerkId) {
+          try {
+            const clerkUser = await clerk.users.getUser(j.clerkId);
+            if (clerkUser?.emailAddresses) {
+              for (const emailObj of clerkUser.emailAddresses) {
+                if (emailObj.verification?.status !== "verified") {
+                  await clerk.emailAddresses.updateEmailAddress(emailObj.id, {
+                    verified: true,
+                    primary: true,
+                  });
+                }
+              }
+            }
+          } catch (e) {
+            // Ignore individual user check errors
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore background sync error
+    }
+  })();
+
   return {
     judges: judges.map((j) => {
       let username = j.email;
@@ -169,7 +197,23 @@ export async function createJudge(data: z.infer<typeof createJudgeSchema>) {
       }
     }
 
-    // 2. Create database User and JudgeAssignments in a transaction
+    // 2. MARK EMAIL AS VERIFIED IN CLERK IMMEDIATELY (Prevents Clerk from asking for verification code!)
+    try {
+      if (clerkUser.emailAddresses && clerkUser.emailAddresses.length > 0) {
+        for (const emailObj of clerkUser.emailAddresses) {
+          if (emailObj.verification?.status !== "verified") {
+            await clerk.emailAddresses.updateEmailAddress(emailObj.id, {
+              verified: true,
+              primary: true,
+            });
+          }
+        }
+      }
+    } catch (verifyErr) {
+      console.warn("Could not explicitly mark email as verified:", verifyErr);
+    }
+
+    // 3. Create database User and JudgeAssignments in a transaction
     await db.$transaction(async (tx) => {
       const newUser = await tx.user.create({
         data: {
@@ -225,12 +269,33 @@ export async function updateJudge(data: z.infer<typeof updateJudgeSchema>) {
   }
 
   try {
-    // 1. Update password in Clerk if provided
-    if (password && password.trim() !== "" && judge.clerkId) {
-      const clerk = await clerkClient();
-      await clerk.users.updateUser(judge.clerkId, {
-        password: password.trim(),
-      });
+    const clerk = await clerkClient();
+
+    // 1. Update password in Clerk if provided and ensure email is verified
+    if (judge.clerkId) {
+      if (password && password.trim() !== "") {
+        await clerk.users.updateUser(judge.clerkId, {
+          password: password.trim(),
+          skipPasswordChecks: true,
+        });
+      }
+
+      // Ensure judge's email is marked as verified in Clerk
+      try {
+        const clerkUser = await clerk.users.getUser(judge.clerkId);
+        if (clerkUser.emailAddresses) {
+          for (const emailObj of clerkUser.emailAddresses) {
+            if (emailObj.verification?.status !== "verified") {
+              await clerk.emailAddresses.updateEmailAddress(emailObj.id, {
+                verified: true,
+                primary: true,
+              });
+            }
+          }
+        }
+      } catch (verifyErr) {
+        console.warn("Could not verify email in updateJudge:", verifyErr);
+      }
     }
 
     // 2. Update name and assignments in database transaction
@@ -247,7 +312,7 @@ export async function updateJudge(data: z.infer<typeof updateJudgeSchema>) {
         where: { judgeId },
       });
 
-      if (eventIds.length > 0) {
+      if (eventIds && eventIds.length > 0) {
         await tx.judgeAssignment.createMany({
           data: eventIds.map((eventId) => ({
             judgeId,

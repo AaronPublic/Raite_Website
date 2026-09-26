@@ -263,3 +263,140 @@ export async function submitJudgeScore(data: {
     return { error: err.message || "Failed to record score" };
   }
 }
+
+export async function getJudgeConsolidatedSummary(targetEventId?: string) {
+  const user = await getAuthenticatedJudge();
+
+  let assignedEvents: Array<{ id: string; title: string }> = [];
+  if (user.role === "ADMIN") {
+    const allOnlineEvents = await db.event.findMany({
+      where: { subcategory: "ONLINE" },
+      orderBy: { title: "asc" },
+      select: { id: true, title: true },
+    });
+    assignedEvents = allOnlineEvents;
+  } else {
+    assignedEvents = user.judgeAssignments.map((ja) => ({
+      id: ja.event.id,
+      title: ja.event.title,
+    }));
+  }
+
+  if (assignedEvents.length === 0) {
+    return {
+      events: [],
+      activeEventId: null,
+      activeEventTitle: null,
+      currentJudgeId: user.id,
+      currentJudgeName: user.name || "Judge",
+      rubric: null,
+      assignedJudges: [],
+      submissions: [],
+    };
+  }
+
+  const selectedEventId = (targetEventId && assignedEvents.some((e) => e.id === targetEventId))
+    ? targetEventId
+    : assignedEvents[0].id;
+
+  const event = await db.event.findUnique({
+    where: { id: selectedEventId },
+    include: {
+      judgeAssignments: {
+        include: {
+          judge: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      },
+    },
+  });
+
+  if (!event) throw new Error("Event not found");
+
+  const rubric = getRubricForEvent(event.title);
+
+  const registrations = await db.registration.findMany({
+    where: {
+      eventId: selectedEventId,
+      entryUrl: { not: null },
+      NOT: { entryUrl: "" },
+    },
+    include: {
+      user: true,
+      scores: {
+        include: {
+          judge: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      },
+    },
+    orderBy: [{ user: { school: "asc" } }, { createdAt: "asc" }],
+  });
+
+  const assignedJudges = event.judgeAssignments.map((ja) => ({
+    id: ja.judge.id,
+    name: ja.judge.name || ja.judge.email.replace("@raite2026.com", "").replace("@judge.raite.internal", ""),
+  }));
+
+  const submissions = registrations.map((reg) => {
+    // Current judge score
+    const myScore = reg.scores.find((s) => s.judgeId === user.id);
+    const myCriteriaScores: Record<string, number> = (myScore?.criteriaScores as Record<string, number>) || {};
+
+    // Other assigned judges' scores (read-only for peer judges)
+    const otherJudgesEvaluations = assignedJudges
+      .filter((j) => j.id !== user.id)
+      .map((peerJudge) => {
+        const peerScore = reg.scores.find((s) => s.judgeId === peerJudge.id);
+        return {
+          judgeId: peerJudge.id,
+          judgeName: peerJudge.name,
+          totalScore: peerScore ? peerScore.totalScore : null,
+          criteriaScores: (peerScore?.criteriaScores as Record<string, number>) || {},
+          feedback: peerScore?.feedback || null,
+          isEvaluated: !!peerScore,
+        };
+      });
+
+    // Compute averages
+    const allScored = reg.scores;
+    const judgesCount = allScored.length;
+    const sumTotal = allScored.reduce((sum, s) => sum + s.totalScore, 0);
+    const averageJudgeScore = judgesCount > 0 ? Number((sumTotal / judgesCount).toFixed(2)) : 0;
+    const socialMediaScore = reg.socialMediaScore ?? 0;
+    const finalScore = Number((averageJudgeScore + socialMediaScore).toFixed(2));
+
+    return {
+      id: reg.id,
+      school: reg.user.school || "N/A",
+      teamName: reg.teamName || "Individual",
+      entryUrl: reg.entryUrl,
+      socialMediaScore,
+      myEvaluation: {
+        criteriaScores: myCriteriaScores,
+        totalScore: myScore ? myScore.totalScore : null,
+        feedback: myScore?.feedback || null,
+        isEvaluated: !!myScore,
+        updatedAt: myScore?.updatedAt || null,
+      },
+      otherJudgesEvaluations,
+      averageJudgeScore,
+      finalScore,
+      judgesCount,
+    };
+  });
+
+  return {
+    events: assignedEvents,
+    activeEventId: selectedEventId,
+    activeEventTitle: event.title,
+    currentJudgeId: user.id,
+    currentJudgeName: user.name || "Judge",
+    rubric,
+    assignedJudges,
+    submissions,
+  };
+}
+

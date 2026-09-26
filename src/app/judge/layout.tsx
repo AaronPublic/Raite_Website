@@ -2,8 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getUserByClerkId } from "@/lib/data/users";
 import { Role } from "@prisma/client";
-import { Gavel, Trophy, ArrowLeft } from "lucide-react";
-import { SafeUserButton } from "@/components/SafeUserButton";
+import { Gavel } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 
@@ -53,10 +52,10 @@ export default async function JudgeLayout({
             </Badge>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             <Link
               href="/judge/competitions"
-              className="text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors hidden sm:block"
+              className="text-xs font-bold text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
             >
               My Competitions
             </Link>
@@ -64,20 +63,16 @@ export default async function JudgeLayout({
             {user.role === Role.ADMIN && (
               <Link
                 href="/admin/scores"
-                className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline hidden sm:block"
+                className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
               >
                 Admin Scores
               </Link>
             )}
 
-            <div className="flex items-center gap-3 pl-3 border-l border-gray-200 dark:border-gray-800">
-              <div className="flex flex-col text-right hidden md:block">
-                <span className="text-xs font-black text-gray-900 dark:text-white">{user.name || "Judge"}</span>
-                <span className="text-[10px] text-gray-400 font-medium">{user.email}</span>
-              </div>
-              <div className="ring-2 ring-purple-500/20 rounded-full p-0.5">
-                <SafeUserButton />
-              </div>
+            <div className="flex items-center pl-6 border-l border-gray-200 dark:border-gray-800">
+              <span className="text-xs font-black text-gray-900 dark:text-white tracking-tight">
+                {user.name || "Judge"}
+              </span>
             </div>
           </div>
         </div>

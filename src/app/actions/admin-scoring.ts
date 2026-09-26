@@ -4,7 +4,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { computeRankings, getRubricForEvent, ScoredRegistrationRow } from "@/lib/rubrics";
+import { computeRankings, getRubricForEvent, ScoredRegistrationRow, sumCriteriaScores } from "@/lib/rubrics";
 
 async function getAuthenticatedAdmin() {
   const { userId } = await auth();
@@ -476,3 +476,73 @@ export async function updateSocialMediaScore(registrationId: string, score: numb
     return { error: err.message || "Failed to update social media score" };
   }
 }
+
+export async function submitAdminCriteriaScoreOverride(data: {
+  registrationId: string;
+  judgeId: string;
+  criteriaScores: Record<string, number>;
+  feedback?: string;
+}) {
+  await getAuthenticatedAdmin();
+
+  const registration = await db.registration.findUnique({
+    where: { id: data.registrationId },
+    include: { event: true },
+  });
+
+  if (!registration) return { error: "Registration not found" };
+
+  const rubric = getRubricForEvent(registration.event.title);
+  if (!rubric) return { error: "Rubric not found for this event" };
+
+  // Validate criteria scores
+  const validatedScores: Record<string, number> = {};
+  for (const criterion of rubric.criteria) {
+    const rawVal = data.criteriaScores[criterion.id];
+    const scoreVal = typeof rawVal === "number" ? rawVal : Number(rawVal);
+
+    if (isNaN(scoreVal) || scoreVal < 0) {
+      return { error: `Score for "${criterion.name}" must be 0 or higher.` };
+    }
+    if (scoreVal > criterion.maxScore) {
+      return { error: `Score for "${criterion.name}" cannot exceed ${criterion.maxScore} points.` };
+    }
+    validatedScores[criterion.id] = scoreVal;
+  }
+
+  const totalScore = sumCriteriaScores(validatedScores);
+
+  try {
+    await db.score.upsert({
+      where: {
+        registrationId_judgeId: {
+          registrationId: data.registrationId,
+          judgeId: data.judgeId,
+        },
+      },
+      update: {
+        criteriaScores: validatedScores,
+        totalScore,
+        feedback: data.feedback?.trim() || null,
+      },
+      create: {
+        registrationId: data.registrationId,
+        judgeId: data.judgeId,
+        criteriaScores: validatedScores,
+        totalScore,
+        feedback: data.feedback?.trim() || null,
+      },
+    });
+
+    revalidatePath("/admin/scores");
+    revalidatePath(`/judge/competitions`);
+    revalidatePath(`/judge/competitions/${registration.eventId}`);
+    revalidatePath(`/judge/competitions/${registration.eventId}/evaluate/${data.registrationId}`);
+
+    return { success: true, totalScore };
+  } catch (err: any) {
+    console.error("submitAdminCriteriaScoreOverride error:", err);
+    return { error: err.message || "Failed to record score" };
+  }
+}
+

@@ -1,12 +1,16 @@
-import { getJudgeCompetitions } from "@/app/actions/judging";
+import { getJudgeCompetitions, getJudgeConsolidatedSummary } from "@/app/actions/judging";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, ChevronRight, CheckCircle2, Clock, Sparkles } from "lucide-react";
+import { Trophy, ChevronRight, CheckCircle2, Clock } from "lucide-react";
 import Link from "next/link";
+import JudgeConsolidatedSummary from "@/components/judge/JudgeConsolidatedSummary";
 
 export default async function JudgeCompetitionsPage() {
-  const competitions = await getJudgeCompetitions();
+  const [competitions, consolidatedData] = await Promise.all([
+    getJudgeCompetitions(),
+    getJudgeConsolidatedSummary(),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -103,6 +107,12 @@ export default async function JudgeCompetitionsPage() {
           })}
         </div>
       )}
+
+      {/* Consolidated Scoring Summary Section */}
+      {consolidatedData && consolidatedData.events.length > 0 && (
+        <JudgeConsolidatedSummary initialData={consolidatedData} />
+      )}
     </div>
   );
 }
+

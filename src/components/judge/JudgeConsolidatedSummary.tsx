@@ -393,7 +393,7 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
                 {/* Tier 2: Individual Column Names */}
                 <tr className="border-b-2 border-border text-[11px] font-black uppercase tracking-tight text-foreground bg-secondary/40">
                   {/* Entry Identifiers */}
-                  <th className="px-4 py-3 border-r border-border/80 min-w-[180px]">
+                  <th className="px-4 py-3 border-r border-border/80 min-w-[200px]">
                     School Name
                   </th>
                   <th className="px-3 py-3 border-r border-border/80 min-w-[130px]">
@@ -405,17 +405,21 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
                     data.rubric.criteria.map((c) => (
                       <th
                         key={c.id}
-                        className="px-2 py-3 border-r border-border/80 text-center min-w-[100px] bg-primary/[0.04]"
+                        className="px-3 py-3 border-r border-border/80 text-center min-w-[130px] max-w-[180px] bg-primary/[0.04]"
                       >
-                        <div className="flex flex-col items-center">
-                          <span className="truncate max-w-[90px]">{c.name}</span>
-                          <span className="text-[10px] font-bold text-primary">/{c.maxScore}</span>
+                        <div className="flex flex-col items-center justify-center gap-1">
+                          <span className="text-[11px] font-black leading-tight text-foreground whitespace-normal break-words">
+                            {c.name}
+                          </span>
+                          <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                            /{c.maxScore} pts
+                          </span>
                         </div>
                       </th>
                     ))}
 
                   {/* My Total */}
-                  <th className="px-3 py-3 border-r border-border/80 text-center min-w-[85px] bg-primary/10 font-black text-primary">
+                  <th className="px-3 py-3 border-r border-border/80 text-center min-w-[90px] bg-primary/10 font-black text-primary">
                     My Total
                   </th>
 
@@ -428,28 +432,32 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
                     peerJudges.map((peer) => (
                       <th
                         key={peer.id}
-                        className="px-3 py-3 border-r border-border/80 text-center min-w-[100px] text-muted-foreground"
+                        className="px-3 py-3 border-r border-border/80 text-center min-w-[110px] text-muted-foreground"
                       >
-                        <div className="flex flex-col items-center">
-                          <span className="truncate max-w-[90px]">{peer.name}</span>
-                          <span className="text-[10px] font-bold text-muted-foreground/80">/95</span>
+                        <div className="flex flex-col items-center justify-center gap-1">
+                          <span className="text-[11px] font-bold text-foreground/80 whitespace-normal break-words leading-tight">
+                            {peer.name}
+                          </span>
+                          <span className="text-[10px] font-semibold text-muted-foreground/80 bg-secondary/80 px-1.5 py-0.5 rounded">
+                            /{data.rubric?.judgeMaxTotal || 95} pts
+                          </span>
                         </div>
                       </th>
                     ))
                   )}
 
                   {/* Social Media Column */}
-                  <th className="px-3 py-3 border-r border-border/80 text-center min-w-[75px]">
+                  <th className="px-3 py-3 border-r border-border/80 text-center min-w-[80px]">
                     Voting (/5)
                   </th>
 
                   {/* Final Score */}
-                  <th className="px-3 py-3 border-r border-border/80 text-center min-w-[85px] bg-primary/15 font-black text-primary">
+                  <th className="px-3 py-3 border-r border-border/80 text-center min-w-[90px] bg-primary/15 font-black text-primary">
                     Total (/100)
                   </th>
 
                   {/* Row Save Action */}
-                  <th className="px-3 py-3 text-center min-w-[90px]">
+                  <th className="px-3 py-3 text-center min-w-[95px]">
                     Save
                   </th>
                 </tr>
@@ -519,7 +527,7 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
                                   max={c.maxScore}
                                   value={currentScore === 0 ? "0" : currentScore || ""}
                                   onChange={(e) => handleCellChange(sub.id, c.id, c.maxScore, e.target.value)}
-                                  className="h-8 w-16 mx-auto text-center font-black font-mono text-xs rounded-lg border-border/80 bg-background focus:border-primary focus:ring-1 focus:ring-primary shadow-inner"
+                                  className="h-8 w-20 mx-auto text-center font-black font-mono text-xs rounded-lg border-border/80 bg-background focus:border-primary focus:ring-1 focus:ring-primary shadow-inner"
                                 />
                               </div>
                             </td>

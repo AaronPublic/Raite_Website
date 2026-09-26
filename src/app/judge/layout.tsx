@@ -27,7 +27,7 @@ export default async function JudgeLayout({
     <div className="min-h-screen bg-gray-50/50 dark:bg-gray-950 flex flex-col">
       {/* Top Judging Navigation Bar */}
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200/80 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-[1700px] w-full mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link
               href="/judge/competitions"
@@ -79,7 +79,7 @@ export default async function JudgeLayout({
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+      <main className="flex-1 max-w-[1700px] w-full mx-auto p-4 sm:p-6 lg:p-8">
         {children}
       </main>
     </div>

@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { CompetitionRubric } from "@/lib/rubrics";
 import { getJudgeConsolidatedSummary, submitJudgeScore } from "@/app/actions/judging";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -16,19 +15,17 @@ import {
 import { 
   Trophy, 
   ExternalLink, 
-  Pencil, 
   CheckCircle2, 
-  Clock, 
   Save, 
-  X, 
   Loader2, 
   Sparkles, 
   School as SchoolIcon, 
-  Users, 
   Search,
   Lock,
   Eye,
-  BarChart3
+  FileSpreadsheet,
+  Check,
+  Calculator
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -79,163 +76,232 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
   const [searchTerm, setSearchTerm] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  // Inline editing state per submission id
-  const [editingSubmissionId, setEditingSubmissionId] = useState<string | null>(null);
-  const [editCriteriaScores, setEditCriteriaScores] = useState<Record<string, number>>({});
-  const [editFeedback, setEditFeedback] = useState<string>("");
-  const [isSaving, setIsSaving] = useState(false);
+  // In-cell working scores state per submission id
+  const [cellScores, setCellScores] = useState<Record<string, Record<string, number>>>(() => {
+    const map: Record<string, Record<string, number>> = {};
+    initialData.submissions.forEach((sub) => {
+      const criteriaMap: Record<string, number> = {};
+      if (initialData.rubric) {
+        initialData.rubric.criteria.forEach((c) => {
+          criteriaMap[c.id] = sub.myEvaluation.criteriaScores?.[c.id] ?? 0;
+        });
+      }
+      map[sub.id] = criteriaMap;
+    });
+    return map;
+  });
+
+  // Track modified / dirty rows and saving state per row
+  const [dirtyRows, setDirtyRows] = useState<Record<string, boolean>>({});
+  const [savingRows, setSavingRows] = useState<Record<string, boolean>>({});
+  const [savedSuccessRows, setSavedSuccessRows] = useState<Record<string, boolean>>({});
 
   const handleSwitchEvent = (eventId: string) => {
     setSelectedEventId(eventId);
-    setEditingSubmissionId(null);
+    setDirtyRows({});
+    setSavedSuccessRows({});
     startTransition(async () => {
       try {
         const res = await getJudgeConsolidatedSummary(eventId);
         setData(res);
+
+        // Reset cell scores
+        const map: Record<string, Record<string, number>> = {};
+        res.submissions.forEach((sub) => {
+          const criteriaMap: Record<string, number> = {};
+          if (res.rubric) {
+            res.rubric.criteria.forEach((c) => {
+              criteriaMap[c.id] = sub.myEvaluation.criteriaScores?.[c.id] ?? 0;
+            });
+          }
+          map[sub.id] = criteriaMap;
+        });
+        setCellScores(map);
       } catch (err: any) {
-        toast.error("Failed to load competition summary");
+        toast.error("Failed to load competition spreadsheet");
       }
     });
   };
 
-  const handleStartEdit = (sub: ConsolidatedSubmission) => {
-    setEditingSubmissionId(sub.id);
-    const initialScores: Record<string, number> = {};
-    if (data.rubric) {
-      data.rubric.criteria.forEach((c) => {
-        initialScores[c.id] = sub.myEvaluation.criteriaScores?.[c.id] ?? 0;
-      });
-    }
-    setEditCriteriaScores(initialScores);
-    setEditFeedback(sub.myEvaluation.feedback || "");
-  };
-
-  const handleCancelEdit = () => {
-    setEditingSubmissionId(null);
-    setEditCriteriaScores({});
-    setEditFeedback("");
-  };
-
-  const handleScoreChange = (criterionId: string, maxScore: number, rawVal: string) => {
+  const handleCellChange = (submissionId: string, criterionId: string, maxScore: number, rawVal: string) => {
     let val = parseFloat(rawVal);
     if (isNaN(val)) val = 0;
     if (val < 0) val = 0;
     if (val > maxScore) val = maxScore;
     val = Math.round(val * 10) / 10;
 
-    setEditCriteriaScores((prev) => ({
+    setCellScores((prev) => ({
       ...prev,
-      [criterionId]: val,
+      [submissionId]: {
+        ...(prev[submissionId] || {}),
+        [criterionId]: val,
+      },
+    }));
+
+    setDirtyRows((prev) => ({
+      ...prev,
+      [submissionId]: true,
+    }));
+
+    // Reset success indicator for this row
+    setSavedSuccessRows((prev) => ({
+      ...prev,
+      [submissionId]: false,
     }));
   };
 
-  const handleSaveMyScore = async (submissionId: string) => {
+  const getRowMyTotal = (submissionId: string) => {
+    if (!data.rubric) return 0;
+    const scores = cellScores[submissionId] || {};
+    return data.rubric.criteria.reduce((sum, c) => sum + (Number(scores[c.id]) || 0), 0);
+  };
+
+  const getRowFinalScore = (sub: ConsolidatedSubmission) => {
+    const myTotal = getRowMyTotal(sub.id);
+    const peerScores = sub.otherJudgesEvaluations
+      .filter((p) => p.totalScore !== null)
+      .map((p) => p.totalScore as number);
+
+    const allJudgeTotals = [myTotal, ...peerScores];
+    const avg = allJudgeTotals.length > 0 ? allJudgeTotals.reduce((a, b) => a + b, 0) / allJudgeTotals.length : 0;
+    return Number((avg + sub.socialMediaScore).toFixed(2));
+  };
+
+  const handleSaveRow = async (submissionId: string) => {
     if (!data.rubric) return;
+
+    const rowCriteria = cellScores[submissionId] || {};
 
     // Validate
     for (const c of data.rubric.criteria) {
-      const val = editCriteriaScores[c.id];
+      const val = rowCriteria[c.id];
       if (val === undefined || isNaN(val) || val < 0 || val > c.maxScore) {
-        toast.error(`Please provide a score between 0 and ${c.maxScore} for "${c.name}".`);
+        toast.error(`Please provide a valid score between 0 and ${c.maxScore} for "${c.name}".`);
         return;
       }
     }
 
-    setIsSaving(true);
+    setSavingRows((prev) => ({ ...prev, [submissionId]: true }));
     try {
       const res = await submitJudgeScore({
         registrationId: submissionId,
-        criteriaScores: editCriteriaScores,
-        feedback: editFeedback,
+        criteriaScores: rowCriteria,
       });
 
       if (res.success && res.totalScore !== undefined) {
-        toast.success(`Score updated: ${res.totalScore.toFixed(1)} / ${data.rubric.judgeMaxTotal} pts!`);
+        toast.success(`Row saved! Score: ${res.totalScore.toFixed(1)} / ${data.rubric.judgeMaxTotal} pts`);
 
-        // Update local state smoothly
+        // Mark row as clean and show success check
+        setDirtyRows((prev) => ({ ...prev, [submissionId]: false }));
+        setSavedSuccessRows((prev) => ({ ...prev, [submissionId]: true }));
+
+        setTimeout(() => {
+          setSavedSuccessRows((prev) => ({ ...prev, [submissionId]: false }));
+        }, 3000);
+
+        // Update local dataset
         setData((prev) => {
           const updatedSubmissions = prev.submissions.map((sub) => {
             if (sub.id !== submissionId) return sub;
 
             const myNewScore = res.totalScore!;
-            const otherScores = sub.otherJudgesEvaluations
-              .filter((o) => o.totalScore !== null)
-              .map((o) => o.totalScore as number);
+            const peerScores = sub.otherJudgesEvaluations
+              .filter((p) => p.totalScore !== null)
+              .map((p) => p.totalScore as number);
 
-            const allScores = [myNewScore, ...otherScores];
-            const judgesCount = allScores.length;
-            const avgScore = Number((allScores.reduce((a, b) => a + b, 0) / judgesCount).toFixed(2));
+            const allScores = [myNewScore, ...peerScores];
+            const avgScore = Number((allScores.reduce((a, b) => a + b, 0) / allScores.length).toFixed(2));
             const finalScore = Number((avgScore + sub.socialMediaScore).toFixed(2));
 
             return {
               ...sub,
               myEvaluation: {
-                criteriaScores: editCriteriaScores,
+                ...sub.myEvaluation,
+                criteriaScores: rowCriteria,
                 totalScore: myNewScore,
-                feedback: editFeedback.trim() || null,
                 isEvaluated: true,
                 updatedAt: new Date(),
               },
               averageJudgeScore: avgScore,
               finalScore,
-              judgesCount,
+              judgesCount: allScores.length,
             };
           });
 
           return { ...prev, submissions: updatedSubmissions };
         });
-
-        setEditingSubmissionId(null);
       } else {
-        toast.error(res.error || "Failed to save score");
+        toast.error(res.error || "Failed to save row");
       }
     } catch (err: any) {
       toast.error(err.message || "An unexpected error occurred");
     } finally {
-      setIsSaving(false);
+      setSavingRows((prev) => ({ ...prev, [submissionId]: false }));
     }
   };
 
-  const filteredSubmissions = data.submissions.filter((s) =>
-    s.school.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.teamName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredSubmissions = useMemo(() => {
+    return data.submissions.filter((s) =>
+      s.school.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.teamName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [data.submissions, searchTerm]);
 
-  const calculateLiveEditTotal = () => {
-    if (!data.rubric) return 0;
-    return data.rubric.criteria.reduce((sum, c) => sum + (Number(editCriteriaScores[c.id]) || 0), 0);
-  };
+  // Summary statistics for footer row
+  const stats = useMemo(() => {
+    if (data.submissions.length === 0) return { avgJudgeTotal: 0, avgFinal: 0, highestFinal: 0, evaluatedCount: 0 };
+    const myTotals = data.submissions.map((s) => getRowMyTotal(s.id));
+    const finals = data.submissions.map((s) => getRowFinalScore(s));
+    const avgJudge = myTotals.reduce((a, b) => a + b, 0) / myTotals.length;
+    const avgFinal = finals.reduce((a, b) => a + b, 0) / finals.length;
+    const highest = Math.max(...finals, 0);
+    const evaluated = data.submissions.filter((s) => s.myEvaluation.isEvaluated).length;
+
+    return {
+      avgJudgeTotal: Number(avgJudge.toFixed(2)),
+      avgFinal: Number(avgFinal.toFixed(2)),
+      highestFinal: Number(highest.toFixed(2)),
+      evaluatedCount: evaluated,
+    };
+  }, [data.submissions, cellScores]);
 
   if (data.events.length === 0) {
     return null;
   }
 
+  const peerJudges = data.assignedJudges.filter((j) => j.id !== data.currentJudgeId);
+
   return (
-    <Card className="rounded-[2rem] border-border/80 shadow-xl overflow-hidden bg-card mt-10">
-      <CardHeader className="pb-4 border-b border-border/60 bg-secondary/20">
+    <Card className="rounded-[2rem] border-2 border-border/90 shadow-2xl overflow-hidden bg-card mt-10">
+      {/* Top Spreadsheet Header */}
+      <CardHeader className="pb-4 border-b border-border/80 bg-gradient-to-r from-secondary/40 via-secondary/20 to-transparent">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-primary" />
-              <CardTitle className="text-xl font-black tracking-tight text-foreground uppercase">
-                Consolidated Scoring Summary
-              </CardTitle>
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
+                <FileSpreadsheet className="w-4 h-4" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-black tracking-tight text-foreground uppercase flex items-center gap-2">
+                  Consolidated Scoring Sheet
+                </CardTitle>
+                <CardDescription className="text-xs font-medium text-muted-foreground">
+                  Excel-style matrix: Type criteria points directly into cells. Peer judge scores are locked for reference.
+                </CardDescription>
+              </div>
             </div>
-            <CardDescription className="text-xs font-medium text-muted-foreground">
-              Review and update your criteria scores inline. View peer judge scores for transparency.
-            </CardDescription>
           </div>
 
           {/* Event Switcher Tabs */}
           {data.events.length > 1 && (
-            <div className="flex items-center gap-1.5 p-1 bg-background rounded-2xl border border-border/80 overflow-x-auto max-w-full">
+            <div className="flex items-center gap-1.5 p-1.5 bg-background rounded-2xl border border-border/80 overflow-x-auto max-w-full">
               {data.events.map((ev) => (
                 <button
                   key={ev.id}
                   onClick={() => handleSwitchEvent(ev.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
                     ev.id === selectedEventId
-                      ? "bg-primary text-white shadow-sm"
+                      ? "bg-primary text-white shadow-sm font-black"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
                   }`}
                 >
@@ -246,12 +312,12 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
           )}
         </div>
 
-        {/* Search Bar & Stats */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 mt-2 border-t border-border/40">
+        {/* Toolbar & Excel Metadata */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 mt-3 border-t border-border/60">
           <div className="relative w-full sm:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Filter by school or team..."
+              placeholder="Search school or team..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 h-9 rounded-xl bg-background border-border/80 text-xs font-medium"
@@ -259,308 +325,340 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline" className="bg-background text-xs font-bold border-border/80">
-              Evaluator: <strong className="ml-1 text-primary">{data.currentJudgeName}</strong>
-            </Badge>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-primary/10 border border-primary/20 text-xs font-bold text-primary">
+              <span>Active Evaluator:</span>
+              <strong className="underline decoration-primary underline-offset-2">{data.currentJudgeName}</strong>
+            </div>
             {data.rubric && (
-              <Badge variant="outline" className="bg-background text-[11px] font-bold border-border/80">
-                Rubric Cap: <strong className="ml-1 text-primary">{data.rubric.judgeMaxTotal} pts</strong>
+              <Badge variant="outline" className="bg-background text-xs font-bold border-border/80 py-1">
+                Judge Cap: <strong className="ml-1 text-primary">{data.rubric.judgeMaxTotal} pts</strong>
               </Badge>
             )}
+            <Badge variant="outline" className="bg-background text-xs font-bold border-border/80 py-1">
+              Evaluated: <strong className="ml-1 text-emerald-600 dark:text-emerald-400">{stats.evaluatedCount} / {data.submissions.length}</strong>
+            </Badge>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="p-0">
         {isPending ? (
-          <div className="py-16 text-center">
+          <div className="py-20 text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
-            <p className="text-xs font-bold text-muted-foreground mt-2">Loading consolidated scores...</p>
+            <p className="text-xs font-bold text-muted-foreground mt-2">Loading spreadsheet formula matrix...</p>
           </div>
         ) : filteredSubmissions.length === 0 ? (
-          <div className="text-center py-16 px-4">
+          <div className="text-center py-20 px-4">
             <Trophy className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
             <h4 className="text-sm font-black text-foreground">No submissions found</h4>
             <p className="text-xs text-muted-foreground mt-1">
-              {searchTerm ? "No submissions match your search." : "No uploaded entries available for this competition."}
+              {searchTerm ? "No entries match your search." : "No uploaded entries available for this competition."}
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <Table className="min-w-[900px] md:min-w-full">
-              <TableHeader>
-                <TableRow className="bg-secondary/30 border-b border-border/60 hover:bg-transparent">
-                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-muted-foreground h-12 px-6 w-[28%]">
-                    School & Entry
-                  </TableHead>
-                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-muted-foreground h-12 px-6 w-[34%]">
-                    My Evaluation (Editable)
-                  </TableHead>
-                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-muted-foreground h-12 px-6 w-[22%]">
-                    Other Judges (Read-Only)
-                  </TableHead>
-                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-muted-foreground h-12 px-6 text-center w-[8%]">
-                    Social Media
-                  </TableHead>
-                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-muted-foreground h-12 px-6 text-right w-[8%]">
-                    Overall
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredSubmissions.map((sub) => {
-                  const isEditingThis = editingSubmissionId === sub.id;
-                  const liveTotal = calculateLiveEditTotal();
+            <table className="w-full border-collapse text-left text-xs">
+              {/* Multi-Tier Excel Header */}
+              <thead>
+                {/* Tier 1: Grouped Section Headers */}
+                <tr className="border-b border-border/80 text-[10px] font-black uppercase tracking-wider text-muted-foreground bg-secondary/60">
+                  <th colSpan={2} className="px-4 py-2 border-r border-border/80 text-center bg-secondary/80 text-foreground">
+                    1. Entry Identifiers
+                  </th>
+                  {data.rubric && (
+                    <th
+                      colSpan={data.rubric.criteria.length + 1}
+                      className="px-4 py-2 border-r border-border/80 text-center bg-primary/10 text-primary font-black"
+                    >
+                      2. My Evaluation (In-Cell Input) — Cap: {data.rubric.judgeMaxTotal} pts
+                    </th>
+                  )}
+                  <th
+                    colSpan={Math.max(1, peerJudges.length)}
+                    className="px-4 py-2 border-r border-border/80 text-center bg-secondary/50 text-muted-foreground"
+                  >
+                    3. Peer Judges (Protected 🔒)
+                  </th>
+                  <th className="px-3 py-2 border-r border-border/80 text-center bg-secondary/70">
+                    4. Social
+                  </th>
+                  <th className="px-3 py-2 border-r border-border/80 text-center bg-primary/15 text-primary font-black">
+                    5. Final
+                  </th>
+                  <th className="px-3 py-2 text-center bg-secondary/80">
+                    Action
+                  </th>
+                </tr>
+
+                {/* Tier 2: Individual Column Names */}
+                <tr className="border-b-2 border-border text-[11px] font-black uppercase tracking-tight text-foreground bg-secondary/40">
+                  {/* Entry Identifiers */}
+                  <th className="px-4 py-3 border-r border-border/80 min-w-[180px]">
+                    School Name
+                  </th>
+                  <th className="px-3 py-3 border-r border-border/80 min-w-[130px]">
+                    Team & Link
+                  </th>
+
+                  {/* My Criteria Sub-Columns */}
+                  {data.rubric &&
+                    data.rubric.criteria.map((c) => (
+                      <th
+                        key={c.id}
+                        className="px-2 py-3 border-r border-border/80 text-center min-w-[100px] bg-primary/[0.04]"
+                      >
+                        <div className="flex flex-col items-center">
+                          <span className="truncate max-w-[90px]">{c.name}</span>
+                          <span className="text-[10px] font-bold text-primary">/{c.maxScore}</span>
+                        </div>
+                      </th>
+                    ))}
+
+                  {/* My Total */}
+                  <th className="px-3 py-3 border-r border-border/80 text-center min-w-[85px] bg-primary/10 font-black text-primary">
+                    My Total
+                  </th>
+
+                  {/* Peer Judges Columns */}
+                  {peerJudges.length === 0 ? (
+                    <th className="px-3 py-3 border-r border-border/80 text-center text-muted-foreground min-w-[120px]">
+                      Peer Scores
+                    </th>
+                  ) : (
+                    peerJudges.map((peer) => (
+                      <th
+                        key={peer.id}
+                        className="px-3 py-3 border-r border-border/80 text-center min-w-[100px] text-muted-foreground"
+                      >
+                        <div className="flex flex-col items-center">
+                          <span className="truncate max-w-[90px]">{peer.name}</span>
+                          <span className="text-[10px] font-bold text-muted-foreground/80">/95</span>
+                        </div>
+                      </th>
+                    ))
+                  )}
+
+                  {/* Social Media Column */}
+                  <th className="px-3 py-3 border-r border-border/80 text-center min-w-[75px]">
+                    Voting (/5)
+                  </th>
+
+                  {/* Final Score */}
+                  <th className="px-3 py-3 border-r border-border/80 text-center min-w-[85px] bg-primary/15 font-black text-primary">
+                    Total (/100)
+                  </th>
+
+                  {/* Row Save Action */}
+                  <th className="px-3 py-3 text-center min-w-[90px]">
+                    Save
+                  </th>
+                </tr>
+              </thead>
+
+              {/* Table Data Rows */}
+              <tbody className="divide-y divide-border/60">
+                {filteredSubmissions.map((sub, idx) => {
+                  const myRowTotal = getRowMyTotal(sub.id);
+                  const rowFinalScore = getRowFinalScore(sub);
+                  const isDirty = !!dirtyRows[sub.id];
+                  const isSaving = !!savingRows[sub.id];
+                  const isSavedSuccess = !!savedSuccessRows[sub.id];
 
                   return (
-                    <TableRow
+                    <tr
                       key={sub.id}
-                      className={`border-b border-border/50 transition-colors ${
-                        isEditingThis
-                          ? "bg-primary/[0.03] border-primary/40"
-                          : "hover:bg-secondary/20"
-                      }`}
+                      className={`transition-colors font-medium ${
+                        idx % 2 === 0 ? "bg-card" : "bg-secondary/[0.15]"
+                      } hover:bg-primary/[0.02]`}
                     >
-                      {/* Column 1: School & Entry */}
-                      <TableCell className="py-5 px-6 align-top">
-                        <div className="space-y-1.5">
-                          <div className="flex items-start gap-2">
-                            <SchoolIcon className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                            <div>
-                              <h4 className="text-sm font-black text-foreground leading-snug">
-                                {sub.school}
-                              </h4>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge
-                                  variant="outline"
-                                  className="bg-secondary/60 text-foreground border-border/80 font-bold text-[10px] px-2 py-0.5"
-                                >
-                                  {sub.teamName}
-                                </Badge>
-                              </div>
-                            </div>
-                          </div>
+                      {/* 1. School Name */}
+                      <td className="px-4 py-3 border-r border-border/80 align-middle">
+                        <div className="flex items-center gap-2">
+                          <SchoolIcon className="w-3.5 h-3.5 text-primary shrink-0" />
+                          <span className="font-bold text-foreground text-xs line-clamp-2">{sub.school}</span>
+                        </div>
+                      </td>
 
+                      {/* 2. Team & Submission Link */}
+                      <td className="px-3 py-3 border-r border-border/80 align-middle">
+                        <div className="flex flex-col gap-1">
+                          <Badge
+                            variant="outline"
+                            className="bg-secondary/60 text-foreground border-border/80 font-bold text-[10px] px-2 py-0.5 w-fit"
+                          >
+                            {sub.teamName}
+                          </Badge>
                           {sub.entryUrl && (
-                            <div className="pt-1">
-                              <a
-                                href={sub.entryUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
-                              >
-                                View Submission <ExternalLink className="w-3 h-3" />
-                              </a>
-                            </div>
+                            <a
+                              href={sub.entryUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                            >
+                              View Submission <ExternalLink className="w-3 h-3" />
+                            </a>
                           )}
                         </div>
-                      </TableCell>
+                      </td>
 
-                      {/* Column 2: My Evaluation (Editable) */}
-                      <TableCell className="py-5 px-6 align-top">
-                        {isEditingThis && data.rubric ? (
-                          <div className="space-y-3 bg-card p-4 rounded-2xl border-2 border-primary/40 shadow-md">
-                            <div className="flex items-center justify-between border-b border-border/60 pb-2">
-                              <span className="text-xs font-black uppercase text-primary flex items-center gap-1.5">
-                                <Pencil className="w-3.5 h-3.5" /> Edit Criteria Scores
-                              </span>
-                              <Badge className="bg-primary text-white font-black text-xs">
-                                Total: {liveTotal.toFixed(1)} / {data.rubric.judgeMaxTotal} pts
-                              </Badge>
-                            </div>
+                      {/* 3. Editable Criteria Cells */}
+                      {data.rubric &&
+                        data.rubric.criteria.map((c) => {
+                          const currentScore = cellScores[sub.id]?.[c.id] ?? 0;
 
-                            {/* Inputs for each criterion */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                              {data.rubric.criteria.map((c) => (
-                                <div
-                                  key={c.id}
-                                  className="p-2.5 rounded-xl bg-secondary/40 border border-border/60 space-y-1"
-                                >
-                                  <div className="flex items-center justify-between text-[11px] font-bold">
-                                    <span className="text-foreground truncate max-w-[120px]">{c.name}</span>
-                                    <span className="text-muted-foreground text-[10px]">Max: {c.maxScore}</span>
-                                  </div>
-                                  <div className="flex items-center gap-1.5">
-                                    <Input
-                                      type="number"
-                                      step="0.5"
-                                      min="0"
-                                      max={c.maxScore}
-                                      value={editCriteriaScores[c.id] === 0 ? "0" : editCriteriaScores[c.id] || ""}
-                                      onChange={(e) => handleScoreChange(c.id, c.maxScore, e.target.value)}
-                                      className="h-8 rounded-lg bg-background text-xs font-black text-center"
-                                    />
-                                    <span className="text-xs font-bold text-muted-foreground">/{c.maxScore}</span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-
-                            {/* Save / Cancel buttons */}
-                            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/60">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={handleCancelEdit}
-                                disabled={isSaving}
-                                className="rounded-xl h-8 text-xs font-bold"
-                              >
-                                <X className="w-3.5 h-3.5 mr-1" /> Cancel
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() => handleSaveMyScore(sub.id)}
-                                disabled={isSaving}
-                                className="rounded-xl h-8 px-4 bg-primary hover:bg-primary/90 text-white font-black text-xs shadow-md shadow-primary/20"
-                              >
-                                {isSaving ? (
-                                  <>
-                                    <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> Saving...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Save className="w-3.5 h-3.5 mr-1" /> Save Score
-                                  </>
-                                )}
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="space-y-2.5">
-                            {sub.myEvaluation.isEvaluated ? (
-                              <>
-                                <div className="flex items-center justify-between">
-                                  <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 font-black text-xs px-2.5 py-1 flex items-center gap-1.5">
-                                    <CheckCircle2 className="w-3.5 h-3.5" />
-                                    Scored: {sub.myEvaluation.totalScore?.toFixed(1)} / {data.rubric?.judgeMaxTotal || 95} pts
-                                  </Badge>
-
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleStartEdit(sub)}
-                                    className="h-7 px-2.5 rounded-lg text-xs font-bold gap-1 border-border/80 hover:border-primary/40 text-foreground hover:text-primary"
-                                  >
-                                    <Pencil className="w-3 h-3 text-primary" /> Edit
-                                  </Button>
-                                </div>
-
-                                {/* Criteria breakdown tags */}
-                                {data.rubric && (
-                                  <div className="flex flex-wrap gap-1.5 pt-1">
-                                    {data.rubric.criteria.map((c) => {
-                                      const scoreVal = sub.myEvaluation.criteriaScores?.[c.id] ?? 0;
-                                      return (
-                                        <Badge
-                                          key={c.id}
-                                          variant="secondary"
-                                          className="text-[10px] font-bold px-2 py-0.5 bg-secondary/80 text-foreground border-border/60"
-                                        >
-                                          {c.name.split(" ")[0]}: <strong className="ml-1 text-primary">{scoreVal}/{c.maxScore}</strong>
-                                        </Badge>
-                                      );
-                                    })}
-                                  </div>
-                                )}
-                              </>
-                            ) : (
-                              <div className="flex items-center justify-between py-1">
-                                <Badge variant="outline" className="border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold text-xs flex items-center gap-1">
-                                  <Clock className="w-3 h-3" /> Pending Evaluation
-                                </Badge>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleStartEdit(sub)}
-                                  className="h-7 px-3 rounded-lg bg-primary hover:bg-primary/90 text-white font-black text-xs shadow-sm shadow-primary/20"
-                                >
-                                  + Score Now
-                                </Button>
+                          return (
+                            <td
+                              key={c.id}
+                              className="px-2 py-2 border-r border-border/80 text-center align-middle bg-primary/[0.02]"
+                            >
+                              <div className="relative">
+                                <Input
+                                  type="number"
+                                  step="0.5"
+                                  min="0"
+                                  max={c.maxScore}
+                                  value={currentScore === 0 ? "0" : currentScore || ""}
+                                  onChange={(e) => handleCellChange(sub.id, c.id, c.maxScore, e.target.value)}
+                                  className="h-8 w-16 mx-auto text-center font-black font-mono text-xs rounded-lg border-border/80 bg-background focus:border-primary focus:ring-1 focus:ring-primary shadow-inner"
+                                />
                               </div>
-                            )}
-                          </div>
-                        )}
-                      </TableCell>
+                            </td>
+                          );
+                        })}
 
-                      {/* Column 3: Other Judges (Read-Only) */}
-                      <TableCell className="py-5 px-6 align-top">
-                        {sub.otherJudgesEvaluations.length === 0 ? (
-                          <span className="text-xs text-muted-foreground italic">No other judges assigned</span>
-                        ) : (
-                          <div className="space-y-1.5">
-                            {sub.otherJudgesEvaluations.map((peer) => (
-                              <div key={peer.judgeId} className="flex items-center justify-between text-xs">
-                                <span className="font-bold text-muted-foreground truncate max-w-[110px]">
-                                  {peer.judgeName}:
-                                </span>
+                      {/* 4. Live Calculated Judge Total */}
+                      <td className="px-3 py-3 border-r border-border/80 text-center align-middle bg-primary/5 font-black text-xs font-mono text-primary">
+                        {myRowTotal.toFixed(1)}
+                      </td>
 
-                                {peer.isEvaluated ? (
-                                  <Popover>
-                                    <PopoverTrigger asChild>
-                                      <button className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary text-foreground hover:bg-secondary/80 font-black text-[11px] border border-border/60 transition-colors">
-                                        <span>{peer.totalScore?.toFixed(1)} pts</span>
-                                        <Eye className="w-3 h-3 text-muted-foreground" />
-                                      </button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-64 p-3.5 rounded-2xl bg-card border border-border shadow-xl space-y-2">
-                                      <div className="flex items-center justify-between border-b border-border/60 pb-1.5">
-                                        <span className="text-xs font-black text-foreground">{peer.judgeName}</span>
-                                        <Badge variant="outline" className="text-[10px] font-bold text-muted-foreground">
-                                          <Lock className="w-2.5 h-2.5 mr-1" /> Read-Only
-                                        </Badge>
+                      {/* 5. Peer Judges Cells (Protected / Read-Only) */}
+                      {peerJudges.length === 0 ? (
+                        <td className="px-3 py-3 border-r border-border/80 text-center align-middle text-muted-foreground italic text-[11px]">
+                          None
+                        </td>
+                      ) : (
+                        peerJudges.map((peer) => {
+                          const peerEval = sub.otherJudgesEvaluations.find((p) => p.judgeId === peer.id);
+
+                          return (
+                            <td
+                              key={peer.id}
+                              className="px-2 py-2 border-r border-border/80 text-center align-middle bg-secondary/30"
+                            >
+                              {peerEval && peerEval.isEvaluated ? (
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <button className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-secondary text-foreground hover:bg-secondary/80 font-black font-mono text-xs border border-border/60 transition-colors shadow-sm">
+                                      <span>{peerEval.totalScore?.toFixed(1)}</span>
+                                      <Lock className="w-2.5 h-2.5 text-muted-foreground" />
+                                    </button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-64 p-3.5 rounded-2xl bg-card border border-border shadow-2xl space-y-2">
+                                    <div className="flex items-center justify-between border-b border-border/60 pb-1.5">
+                                      <span className="text-xs font-black text-foreground">{peer.name}</span>
+                                      <Badge variant="outline" className="text-[10px] font-bold text-muted-foreground">
+                                        <Lock className="w-2.5 h-2.5 mr-1" /> Protected Cell
+                                      </Badge>
+                                    </div>
+                                    {data.rubric && (
+                                      <div className="space-y-1 text-xs">
+                                        {data.rubric.criteria.map((c) => (
+                                          <div key={c.id} className="flex items-center justify-between text-[11px]">
+                                            <span className="text-muted-foreground">{c.name}:</span>
+                                            <span className="font-black text-foreground font-mono">
+                                              {peerEval.criteriaScores[c.id] ?? 0} / {c.maxScore}
+                                            </span>
+                                          </div>
+                                        ))}
                                       </div>
-                                      {data.rubric && (
-                                        <div className="space-y-1 text-xs">
-                                          {data.rubric.criteria.map((c) => (
-                                            <div key={c.id} className="flex items-center justify-between text-[11px]">
-                                              <span className="text-muted-foreground">{c.name}:</span>
-                                              <span className="font-black text-foreground">
-                                                {peer.criteriaScores[c.id] ?? 0} / {c.maxScore}
-                                              </span>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      )}
-                                      <div className="pt-1.5 border-t border-border/60 flex items-center justify-between text-xs font-black text-primary">
-                                        <span>Total Score:</span>
-                                        <span>{peer.totalScore?.toFixed(1)} / {data.rubric?.judgeMaxTotal} pts</span>
-                                      </div>
-                                    </PopoverContent>
-                                  </Popover>
-                                ) : (
-                                  <span className="text-[11px] font-bold text-amber-600/80 italic">Pending</span>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </TableCell>
+                                    )}
+                                    <div className="pt-1.5 border-t border-border/60 flex items-center justify-between text-xs font-black text-primary font-mono">
+                                      <span>Judge Total:</span>
+                                      <span>{peerEval.totalScore?.toFixed(1)} / {data.rubric?.judgeMaxTotal} pts</span>
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
+                              ) : (
+                                <span className="text-[10px] font-bold text-amber-600/70 italic">Pending</span>
+                              )}
+                            </td>
+                          );
+                        })
+                      )}
 
-                      {/* Column 4: Social Media Voting */}
-                      <TableCell className="py-5 px-6 align-top text-center">
-                        <Badge
-                          variant="outline"
-                          className="font-black text-xs px-2.5 py-1 bg-secondary/40 text-foreground border-border/80"
+                      {/* 6. Social Media Score */}
+                      <td className="px-3 py-3 border-r border-border/80 text-center align-middle font-mono font-bold text-xs text-muted-foreground">
+                        {sub.socialMediaScore.toFixed(1)}
+                      </td>
+
+                      {/* 7. Final Calculated Total */}
+                      <td className="px-3 py-3 border-r border-border/80 text-center align-middle bg-primary/10 font-black font-mono text-xs text-primary">
+                        {rowFinalScore.toFixed(1)}
+                      </td>
+
+                      {/* 8. Save Action Button */}
+                      <td className="px-3 py-3 text-center align-middle">
+                        <Button
+                          size="sm"
+                          onClick={() => handleSaveRow(sub.id)}
+                          disabled={isSaving}
+                          className={`h-8 px-3 rounded-xl font-bold text-xs transition-all shadow-sm ${
+                            isSavedSuccess
+                              ? "bg-emerald-600 text-white"
+                              : isDirty
+                              ? "bg-primary text-white shadow-primary/20 animate-pulse font-black"
+                              : "bg-secondary text-foreground hover:bg-secondary/80 border border-border/80"
+                          }`}
                         >
-                          {sub.socialMediaScore.toFixed(1)} / 5
-                        </Badge>
-                      </TableCell>
-
-                      {/* Column 5: Overall Final Score */}
-                      <TableCell className="py-5 px-6 align-top text-right">
-                        <div className="flex flex-col items-end">
-                          <span className="text-sm font-black text-primary">
-                            {sub.finalScore.toFixed(1)}
-                          </span>
-                          <span className="text-[10px] font-bold text-muted-foreground">
-                            / 100 pts
-                          </span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                          {isSaving ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : isSavedSuccess ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 mr-1" /> Saved
+                            </>
+                          ) : isDirty ? (
+                            <>
+                              <Save className="w-3.5 h-3.5 mr-1" /> Save
+                            </>
+                          ) : (
+                            "Saved"
+                          )}
+                        </Button>
+                      </td>
+                    </tr>
                   );
                 })}
-              </TableBody>
-            </Table>
+              </tbody>
+
+              {/* Excel Summary Footer Row */}
+              <tfoot>
+                <tr className="border-t-2 border-border font-black text-xs uppercase bg-secondary/70 text-foreground">
+                  <td colSpan={2} className="px-4 py-3 border-r border-border/80 flex items-center gap-1.5">
+                    <Calculator className="w-4 h-4 text-primary" />
+                    <span>Spreadsheet Average ({filteredSubmissions.length} Entries)</span>
+                  </td>
+                  {data.rubric && (
+                    <td
+                      colSpan={data.rubric.criteria.length + 1}
+                      className="px-4 py-3 border-r border-border/80 text-center font-mono text-primary font-black bg-primary/10"
+                    >
+                      Avg Judge Score: {stats.avgJudgeTotal} pts
+                    </td>
+                  )}
+                  <td colSpan={Math.max(1, peerJudges.length) + 1} className="px-4 py-3 border-r border-border/80 text-center text-muted-foreground text-[11px]">
+                    Top Final: <strong className="text-foreground ml-1">{stats.highestFinal} / 100</strong>
+                  </td>
+                  <td className="px-3 py-3 border-r border-border/80 text-center font-mono text-primary font-black bg-primary/15">
+                    {stats.avgFinal}
+                  </td>
+                  <td className="px-3 py-3 text-center">
+                    <Badge variant="outline" className="text-[10px] font-black bg-background">
+                      {stats.evaluatedCount}/{data.submissions.length}
+                    </Badge>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
         )}
       </CardContent>

@@ -63,13 +63,14 @@ export default function RubricEvaluationForm({
 }: RubricEvaluationFormProps) {
   const router = useRouter();
 
-  // Initialize criteria scores from existingScore or default to 0
-  const initialScores: Record<string, number> = {};
+  // Initialize criteria scores from existingScore or default to empty string
+  const initialScores: Record<string, string | number> = {};
   rubric.criteria.forEach((c) => {
-    initialScores[c.id] = existingScore?.criteriaScores?.[c.id] ?? 0;
+    const existing = existingScore?.criteriaScores?.[c.id];
+    initialScores[c.id] = existing !== undefined ? existing : "";
   });
 
-  const [criteriaScores, setCriteriaScores] = useState<Record<string, number>>(initialScores);
+  const [criteriaScores, setCriteriaScores] = useState<Record<string, string | number>>(initialScores);
   const [feedback, setFeedback] = useState<string>(existingScore?.feedback || "");
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -78,22 +79,29 @@ export default function RubricEvaluationForm({
 
   // Calculate live total
   const liveTotalScore = rubric.criteria.reduce((sum, c) => {
-    const val = Number(criteriaScores[c.id]) || 0;
-    return sum + val;
+    const val = parseFloat(String(criteriaScores[c.id]));
+    return sum + (isNaN(val) ? 0 : val);
   }, 0);
 
   const handleScoreChange = (criterionId: string, maxVal: number, rawValue: string) => {
-    let val = parseFloat(rawValue);
-    if (isNaN(val)) val = 0;
-    if (val < 0) val = 0;
-    if (val > maxVal) val = maxVal;
+    if (rawValue === "" || rawValue === null) {
+      setCriteriaScores((prev) => ({
+        ...prev,
+        [criterionId]: "",
+      }));
+      return;
+    }
 
-    // Round to 1 decimal place if needed
-    val = Math.round(val * 10) / 10;
+    let valStr = rawValue;
+    const parsed = parseFloat(valStr);
+    if (!isNaN(parsed)) {
+      if (parsed < 0) valStr = "0";
+      else if (parsed > maxVal) valStr = String(maxVal);
+    }
 
     setCriteriaScores((prev) => ({
       ...prev,
-      [criterionId]: val,
+      [criterionId]: valStr,
     }));
   };
 
@@ -107,8 +115,9 @@ export default function RubricEvaluationForm({
 
   const validateAll = () => {
     for (const c of rubric.criteria) {
-      const val = criteriaScores[c.id];
-      if (val === undefined || isNaN(val) || val < 0 || val > c.maxScore) {
+      const raw = criteriaScores[c.id];
+      const val = typeof raw === "number" ? raw : parseFloat(String(raw));
+      if (raw === "" || raw === undefined || isNaN(val) || val < 0 || val > c.maxScore) {
         setErrorMsg(`Please provide a valid score between 0 and ${c.maxScore} for "${c.name}".`);
         return false;
       }
@@ -127,9 +136,16 @@ export default function RubricEvaluationForm({
     setIsSubmitting(true);
     setErrorMsg(null);
 
+    const numericScores: Record<string, number> = {};
+    rubric.criteria.forEach((c) => {
+      const raw = criteriaScores[c.id];
+      const val = typeof raw === "number" ? raw : parseFloat(String(raw));
+      numericScores[c.id] = Math.round((isNaN(val) ? 0 : val) * 10) / 10;
+    });
+
     const res = await submitJudgeScore({
       registrationId: registration.id,
-      criteriaScores,
+      criteriaScores: numericScores,
       feedback,
     });
 
@@ -282,7 +298,7 @@ export default function RubricEvaluationForm({
           {/* Criteria Cards */}
           <div className="space-y-4">
             {rubric.criteria.map((criterion, idx) => {
-              const currentScore = criteriaScores[criterion.id] ?? 0;
+              const currentScore = parseFloat(String(criteriaScores[criterion.id])) || 0;
               const percentFilled = (currentScore / criterion.maxScore) * 100;
 
               return (
@@ -341,7 +357,9 @@ export default function RubricEvaluationForm({
                           step="0.5"
                           min="0"
                           max={criterion.maxScore}
-                          value={criteriaScores[criterion.id] === 0 ? "0" : criteriaScores[criterion.id] || ""}
+                          placeholder="0"
+                          value={criteriaScores[criterion.id] ?? ""}
+                          onFocus={(e) => e.target.select()}
                           onChange={(e) =>
                             handleScoreChange(criterion.id, criterion.maxScore, e.target.value)
                           }
@@ -437,7 +455,7 @@ export default function RubricEvaluationForm({
                 <div key={c.id} className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground font-medium">{c.name}</span>
                   <span className="font-black text-foreground">
-                    {(criteriaScores[c.id] ?? 0).toFixed(1)} / {c.maxScore}
+                    {(parseFloat(String(criteriaScores[c.id])) || 0).toFixed(1)} / {c.maxScore}
                   </span>
                 </div>
               ))}

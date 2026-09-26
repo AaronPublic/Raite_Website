@@ -77,13 +77,14 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
   const [isPending, startTransition] = useTransition();
 
   // In-cell working scores state per submission id
-  const [cellScores, setCellScores] = useState<Record<string, Record<string, number>>>(() => {
-    const map: Record<string, Record<string, number>> = {};
+  const [cellScores, setCellScores] = useState<Record<string, Record<string, string | number>>>(() => {
+    const map: Record<string, Record<string, string | number>> = {};
     initialData.submissions.forEach((sub) => {
-      const criteriaMap: Record<string, number> = {};
+      const criteriaMap: Record<string, string | number> = {};
       if (initialData.rubric) {
         initialData.rubric.criteria.forEach((c) => {
-          criteriaMap[c.id] = sub.myEvaluation.criteriaScores?.[c.id] ?? 0;
+          const existing = sub.myEvaluation.criteriaScores?.[c.id];
+          criteriaMap[c.id] = sub.myEvaluation.isEvaluated && existing !== undefined ? existing : "";
         });
       }
       map[sub.id] = criteriaMap;
@@ -106,12 +107,13 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
         setData(res);
 
         // Reset cell scores
-        const map: Record<string, Record<string, number>> = {};
+        const map: Record<string, Record<string, string | number>> = {};
         res.submissions.forEach((sub) => {
-          const criteriaMap: Record<string, number> = {};
+          const criteriaMap: Record<string, string | number> = {};
           if (res.rubric) {
             res.rubric.criteria.forEach((c) => {
-              criteriaMap[c.id] = sub.myEvaluation.criteriaScores?.[c.id] ?? 0;
+              const existing = sub.myEvaluation.criteriaScores?.[c.id];
+              criteriaMap[c.id] = sub.myEvaluation.isEvaluated && existing !== undefined ? existing : "";
             });
           }
           map[sub.id] = criteriaMap;
@@ -124,17 +126,40 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
   };
 
   const handleCellChange = (submissionId: string, criterionId: string, maxScore: number, rawVal: string) => {
-    let val = parseFloat(rawVal);
-    if (isNaN(val)) val = 0;
-    if (val < 0) val = 0;
-    if (val > maxScore) val = maxScore;
-    val = Math.round(val * 10) / 10;
+    if (rawVal === "" || rawVal === null) {
+      setCellScores((prev) => ({
+        ...prev,
+        [submissionId]: {
+          ...(prev[submissionId] || {}),
+          [criterionId]: "",
+        },
+      }));
+      setDirtyRows((prev) => ({
+        ...prev,
+        [submissionId]: true,
+      }));
+      setSavedSuccessRows((prev) => ({
+        ...prev,
+        [submissionId]: false,
+      }));
+      return;
+    }
+
+    let valStr = rawVal;
+    const parsed = parseFloat(valStr);
+    if (!isNaN(parsed)) {
+      if (parsed < 0) {
+        valStr = "0";
+      } else if (parsed > maxScore) {
+        valStr = String(maxScore);
+      }
+    }
 
     setCellScores((prev) => ({
       ...prev,
       [submissionId]: {
         ...(prev[submissionId] || {}),
-        [criterionId]: val,
+        [criterionId]: valStr,
       },
     }));
 
@@ -153,7 +178,10 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
   const getRowMyTotal = (submissionId: string) => {
     if (!data.rubric) return 0;
     const scores = cellScores[submissionId] || {};
-    return data.rubric.criteria.reduce((sum, c) => sum + (Number(scores[c.id]) || 0), 0);
+    return data.rubric.criteria.reduce((sum, c) => {
+      const val = parseFloat(String(scores[c.id]));
+      return sum + (isNaN(val) ? 0 : val);
+    }, 0);
   };
 
   const getRowFinalScore = (sub: ConsolidatedSubmission) => {
@@ -170,15 +198,18 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
   const handleSaveRow = async (submissionId: string) => {
     if (!data.rubric) return;
 
-    const rowCriteria = cellScores[submissionId] || {};
+    const rowCriteriaRaw = cellScores[submissionId] || {};
+    const rowCriteria: Record<string, number> = {};
 
     // Validate
     for (const c of data.rubric.criteria) {
-      const val = rowCriteria[c.id];
-      if (val === undefined || isNaN(val) || val < 0 || val > c.maxScore) {
+      const raw = rowCriteriaRaw[c.id];
+      const val = typeof raw === "number" ? raw : parseFloat(String(raw));
+      if (raw === "" || raw === undefined || isNaN(val) || val < 0 || val > c.maxScore) {
         toast.error(`Please provide a valid score between 0 and ${c.maxScore} for "${c.name}".`);
         return;
       }
+      rowCriteria[c.id] = Math.round(val * 10) / 10;
     }
 
     setSavingRows((prev) => ({ ...prev, [submissionId]: true }));
@@ -512,7 +543,7 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
                       {/* 3. Editable Criteria Cells */}
                       {data.rubric &&
                         data.rubric.criteria.map((c) => {
-                          const currentScore = cellScores[sub.id]?.[c.id] ?? 0;
+                          const currentScore = cellScores[sub.id]?.[c.id] ?? "";
 
                           return (
                             <td
@@ -525,7 +556,9 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
                                   step="0.5"
                                   min="0"
                                   max={c.maxScore}
-                                  value={currentScore === 0 ? "0" : currentScore || ""}
+                                  placeholder="0"
+                                  value={currentScore}
+                                  onFocus={(e) => e.target.select()}
                                   onChange={(e) => handleCellChange(sub.id, c.id, c.maxScore, e.target.value)}
                                   className="h-8 w-20 mx-auto text-center font-black font-mono text-xs rounded-lg border-border/80 bg-background focus:border-primary focus:ring-1 focus:ring-primary shadow-inner"
                                 />

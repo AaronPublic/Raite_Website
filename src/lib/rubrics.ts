@@ -153,6 +153,51 @@ export const COMPETITION_RUBRICS: Record<string, CompetitionRubric> = {
       },
     ],
   },
+  "Hackathon Programming": {
+    title: "Hackathon Programming",
+    socialMediaLabel: "N/A",
+    socialMediaMax: 0,
+    judgeMaxTotal: 100,
+    grandTotal: 100,
+    criteria: [
+      {
+        id: "innovation_creativity",
+        name: "Innovation & Creativity",
+        maxScore: 25,
+        description: "Novelty of the solution, original conceptualization, and creative problem-solving approach.",
+      },
+      {
+        id: "educational_impact",
+        name: "Educational Impact",
+        maxScore: 25,
+        description: "Relevance to academic challenges, pedagogical value, and potential to enhance teaching or learning.",
+      },
+      {
+        id: "ai_integration",
+        name: "AI Integration",
+        maxScore: 20,
+        description: "Effective, practical, and meaningful utilization of Artificial Intelligence technologies, models, or architectures.",
+      },
+      {
+        id: "technical_implementation",
+        name: "Technical Implementation",
+        maxScore: 15,
+        description: "System architecture, code structure and quality, functionality, stability, and deployment readiness.",
+      },
+      {
+        id: "user_experience",
+        name: "User Experience",
+        maxScore: 10,
+        description: "Intuitive user interface, accessibility, responsiveness, polish, and overall ease of navigation.",
+      },
+      {
+        id: "presentation_demo",
+        name: "Presentation & Demo",
+        maxScore: 5,
+        description: "Clarity of project pitch, live system demonstration, defense of panel questions, and presentation polish.",
+      },
+    ],
+  },
 };
 
 /**
@@ -168,6 +213,7 @@ export function getRubricForEvent(eventTitle: string): CompetitionRubric | null 
     if (cleanTitle.includes("short film") && key.includes("Short Film")) return rubric;
     if (cleanTitle.includes("techtok") && key.includes("TechTok")) return rubric;
     if (cleanTitle.includes("infographic") && key.includes("Infographics")) return rubric;
+    if ((cleanTitle.includes("hackat") || cleanTitle.includes("hackath")) && key.includes("Hackathon")) return rubric;
   }
 
   return null;

@@ -10,14 +10,20 @@ export default async function AdminScoresPage({
 }) {
   const params = await searchParams;
 
-  // Fetch all online competitions
-  const onlineEvents = await db.event.findMany({
-    where: { subcategory: "ONLINE" },
+  // Fetch all evaluated competitions (Online + Hackathon)
+  const scoringEvents = await db.event.findMany({
+    where: {
+      OR: [
+        { subcategory: "ONLINE" },
+        { title: { contains: "Hackat", mode: "insensitive" } },
+        { title: { contains: "Hackath", mode: "insensitive" } },
+      ],
+    },
     select: { id: true, title: true, category: true },
     orderBy: { title: "asc" },
   });
 
-  const activeEventId = params.eventId || (onlineEvents[0]?.id ?? "");
+  const activeEventId = params.eventId || (scoringEvents[0]?.id ?? "");
 
   let leaderboardData = {
     rubric: null as any,
@@ -41,7 +47,7 @@ export default async function AdminScoresPage({
       </div>
 
       <AdminScoringClient
-        events={onlineEvents}
+        events={scoringEvents}
         activeEventId={activeEventId}
         rubric={leaderboardData.rubric}
         assignedJudges={leaderboardData.assignedJudges}

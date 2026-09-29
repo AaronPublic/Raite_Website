@@ -1007,15 +1007,26 @@ function SearchableParticipantPicker({
 
   const displayedList = useMemo(() => {
     const baseList = filterMode === "relevant" && relevantParticipants.length > 0 ? relevantParticipants : participantsList;
-    if (!searchQuery.trim()) return baseList;
-    const q = searchQuery.toLowerCase();
-    return baseList.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.school.toLowerCase().includes(q) ||
-        p.teamName.toLowerCase().includes(q) ||
-        (p.email && p.email.toLowerCase().includes(q))
-    );
+    const filtered = !searchQuery.trim()
+      ? baseList
+      : baseList.filter((p) => {
+          const q = searchQuery.toLowerCase();
+          return (
+            p.name.toLowerCase().includes(q) ||
+            p.school.toLowerCase().includes(q) ||
+            p.teamName.toLowerCase().includes(q) ||
+            (p.email && p.email.toLowerCase().includes(q))
+          );
+        });
+
+    // Ensure unique participants in dropdown
+    const seen = new Set<string>();
+    return filtered.filter((p) => {
+      const key = `${p.name.trim().toLowerCase()}::${p.school.trim().toLowerCase()}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }, [filterMode, relevantParticipants, participantsList, searchQuery]);
 
   if (isManualMode) {

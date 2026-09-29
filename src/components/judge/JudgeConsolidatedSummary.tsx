@@ -410,11 +410,13 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
                   >
                     3. Peer Judges (Protected 🔒)
                   </th>
-                  <th className="px-3 py-2 border-r border-border/80 text-center bg-secondary/70">
-                    4. Social
-                  </th>
+                  {data.rubric?.socialMediaMax !== undefined && data.rubric.socialMediaMax > 0 && (
+                    <th className="px-3 py-2 border-r border-border/80 text-center bg-secondary/70">
+                      4. Social
+                    </th>
+                  )}
                   <th className="px-3 py-2 border-r border-border/80 text-center bg-primary/15 text-primary font-black">
-                    5. Final
+                    {data.rubric?.socialMediaMax !== undefined && data.rubric.socialMediaMax > 0 ? "5. Final" : "4. Final"}
                   </th>
                   <th className="px-3 py-2 text-center bg-secondary/80">
                     Action
@@ -478,13 +480,15 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
                   )}
 
                   {/* Social Media Column */}
-                  <th className="px-3 py-3 border-r border-border/80 text-center min-w-[80px]">
-                    Voting (/5)
-                  </th>
+                  {data.rubric?.socialMediaMax !== undefined && data.rubric.socialMediaMax > 0 && (
+                    <th className="px-3 py-3 border-r border-border/80 text-center min-w-[80px]">
+                      Voting (/{data.rubric.socialMediaMax})
+                    </th>
+                  )}
 
                   {/* Final Score */}
                   <th className="px-3 py-3 border-r border-border/80 text-center min-w-[90px] bg-primary/15 font-black text-primary">
-                    Total (/100)
+                    Total (/{data.rubric?.grandTotal || 100})
                   </th>
 
                   {/* Row Save Action */}
@@ -628,9 +632,11 @@ export default function JudgeConsolidatedSummary({ initialData }: JudgeConsolida
                       )}
 
                       {/* 6. Social Media Score */}
-                      <td className="px-3 py-3 border-r border-border/80 text-center align-middle font-mono font-bold text-xs text-muted-foreground">
-                        {sub.socialMediaScore.toFixed(1)}
-                      </td>
+                      {data.rubric?.socialMediaMax !== undefined && data.rubric.socialMediaMax > 0 && (
+                        <td className="px-3 py-3 border-r border-border/80 text-center align-middle font-mono font-bold text-xs text-muted-foreground">
+                          {sub.socialMediaScore.toFixed(1)}
+                        </td>
+                      )}
 
                       {/* 7. Final Calculated Total */}
                       <td className="px-3 py-3 border-r border-border/80 text-center align-middle bg-primary/10 font-black font-mono text-xs text-primary">

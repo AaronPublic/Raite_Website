@@ -251,12 +251,14 @@ export default function AdminScoringClient({
       // Add each assigned judge's score
       assignedJudges.forEach((j) => {
         const scoreObj = r.judgeScores.find((js) => js.judgeId === j.id);
-        baseObj[`Judge (${j.name}) /95`] = scoreObj ? scoreObj.totalScore : "Pending";
+        baseObj[`Judge (${j.name}) /${rubric?.judgeMaxTotal || 95}`] = scoreObj ? scoreObj.totalScore : "Pending";
       });
 
-      baseObj["Average Judge Score (/95)"] = r.averageJudgeScore;
-      baseObj[`${rubric?.socialMediaLabel || "Social Media"} (/5)`] = r.socialMediaScore;
-      baseObj["Final Score (/100)"] = r.finalScore;
+      baseObj[`Average Judge Score (/${rubric?.judgeMaxTotal || 95})`] = r.averageJudgeScore;
+      if (rubric?.socialMediaMax && rubric.socialMediaMax > 0) {
+        baseObj[`${rubric.socialMediaLabel} (/${rubric.socialMediaMax})`] = r.socialMediaScore;
+      }
+      baseObj[`Final Score (/${rubric?.grandTotal || 100})`] = r.finalScore;
 
       return baseObj;
     });
@@ -399,20 +401,22 @@ export default function AdminScoringClient({
                   Judge Scores (Click to Edit)
                 </TableHead>
                 <TableHead className="font-black text-[10px] uppercase tracking-widest text-muted-foreground text-center">
-                  Judge Avg (/95)
+                  Judge Avg (/{rubric?.judgeMaxTotal || 95})
                 </TableHead>
-                <TableHead className="font-black text-[10px] uppercase tracking-widest text-muted-foreground text-center w-36">
-                  {rubric?.socialMediaLabel || "Social Media"} (/5)
-                </TableHead>
+                {rubric?.socialMediaMax !== undefined && rubric.socialMediaMax > 0 && (
+                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-muted-foreground text-center w-36">
+                    {rubric?.socialMediaLabel || "Social Media"} (/{rubric.socialMediaMax})
+                  </TableHead>
+                )}
                 <TableHead className="font-black text-[10px] uppercase tracking-widest text-muted-foreground text-right pr-6">
-                  Final Score (/100)
+                  Final Score (/{rubric?.grandTotal || 100})
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rankings.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground font-medium text-sm">
+                  <TableCell colSpan={rubric?.socialMediaMax && rubric.socialMediaMax > 0 ? 7 : 6} className="text-center py-12 text-muted-foreground font-medium text-sm">
                     No submitted entries found for this competition.
                   </TableCell>
                 </TableRow>
@@ -508,33 +512,35 @@ export default function AdminScoringClient({
                       </TableCell>
 
                       {/* Admin Social Media Score Input */}
-                      <TableCell className="text-center py-4">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <Input
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            max="5"
-                            value={socialScores[row.registrationId] ?? 0}
-                            onChange={(e) => handleSocialScoreChange(row.registrationId, e.target.value)}
-                            className="w-16 h-8 text-center font-bold text-xs rounded-xl bg-background border-border/80"
-                          />
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleSaveSocialScore(row.registrationId)}
-                            disabled={savingRegId === row.registrationId || isPending}
-                            className="h-8 w-8 p-0 rounded-xl text-emerald-600 hover:bg-emerald-50/20"
-                            title="Save social media score"
-                          >
-                            {savingRegId === row.registrationId ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                              <Save className="w-3.5 h-3.5" />
-                            )}
-                          </Button>
-                        </div>
-                      </TableCell>
+                      {rubric?.socialMediaMax !== undefined && rubric.socialMediaMax > 0 && (
+                        <TableCell className="text-center py-4">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <Input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              max={rubric.socialMediaMax}
+                              value={socialScores[row.registrationId] ?? 0}
+                              onChange={(e) => handleSocialScoreChange(row.registrationId, e.target.value)}
+                              className="w-16 h-8 text-center font-bold text-xs rounded-xl bg-background border-border/80"
+                            />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleSaveSocialScore(row.registrationId)}
+                              disabled={savingRegId === row.registrationId || isPending}
+                              className="h-8 w-8 p-0 rounded-xl text-emerald-600 hover:bg-emerald-50/20"
+                              title="Save social media score"
+                            >
+                              {savingRegId === row.registrationId ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Save className="w-3.5 h-3.5" />
+                              )}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      )}
 
                       {/* Final Total Score */}
                       <TableCell className="text-right pr-6 py-4">

@@ -143,8 +143,28 @@ export async function getTabulationData() {
 
     registeredSchools.forEach((s) => allKnownSchoolNames.add(s.name));
 
-    // Also collect participant list for individual awards
+    // Also collect participant list for individual awards (deduplicated per event)
     const participantsList: ParticipantOption[] = [];
+    const seenParticipantKeys = new Set<string>();
+
+    const addParticipantIfNotSeen = (p: ParticipantOption) => {
+      const normName = p.name.trim().toLowerCase();
+      const normSchool = p.school.trim().toLowerCase();
+      const normEmail = p.email ? p.email.trim().toLowerCase() : "";
+      
+      const keyByName = `${p.eventId}::name::${normName}::${normSchool}`;
+      const keyByEmail = normEmail ? `${p.eventId}::email::${normEmail}` : null;
+
+      if (seenParticipantKeys.has(keyByName) || (keyByEmail && seenParticipantKeys.has(keyByEmail))) {
+        return;
+      }
+
+      seenParticipantKeys.add(keyByName);
+      if (keyByEmail) {
+        seenParticipantKeys.add(keyByEmail);
+      }
+      participantsList.push(p);
+    };
 
     registrations.forEach((reg) => {
       const school = reg.user.school || "N/A";
@@ -157,10 +177,47 @@ export async function getTabulationData() {
       }
 
       const teamName = reg.teamName || "Individual";
+      const hasTeamMembers = Boolean(reg.members && Array.isArray(reg.members) && reg.members.length > 0);
 
-      // 1. Primary Registrant
+      // 1. If Team Members exist, add the actual roster members first
+      if (hasTeamMembers) {
+        (reg.members as any[]).forEach((m: any, mIdx: number) => {
+          if (typeof m === "string" && m.includes("@")) {
+            const cleanEmail = m.trim().toLowerCase();
+            const resolvedUser = memberUserMap.get(cleanEmail);
+            const memberName = resolvedUser?.name || m.split("@")[0];
+            const memberSchool = resolvedUser?.school || school;
+
+            addParticipantIfNotSeen({
+              id: `${reg.id}-mem-${mIdx}-${cleanEmail}`,
+              name: memberName,
+              email: cleanEmail,
+              school: memberSchool,
+              teamName,
+              eventId: reg.eventId,
+              eventTitle: reg.event.title,
+            });
+          } else if (m && typeof m === "object" && (m.name || m.fullName || m.email)) {
+            const memberName = m.name || m.fullName || (m.email ? m.email.split("@")[0] : "Participant");
+            const memberEmail = m.email ? String(m.email).trim().toLowerCase() : undefined;
+            const memberSchool = m.school || school;
+
+            addParticipantIfNotSeen({
+              id: `${reg.id}-mem-${mIdx}`,
+              name: memberName,
+              email: memberEmail,
+              school: memberSchool,
+              teamName,
+              eventId: reg.eventId,
+              eventTitle: reg.event.title,
+            });
+          }
+        });
+      }
+
+      // 2. Primary Registrant (added for individual events or if not already captured in team roster)
       if (reg.user.name) {
-        participantsList.push({
+        addParticipantIfNotSeen({
           id: `${reg.id}-${reg.user.id}`,
           name: reg.user.name,
           email: reg.user.email,
@@ -168,38 +225,6 @@ export async function getTabulationData() {
           teamName,
           eventId: reg.eventId,
           eventTitle: reg.event.title,
-        });
-      }
-
-      // 2. Team Members
-      if (reg.members && Array.isArray(reg.members)) {
-        reg.members.forEach((m: any, mIdx: number) => {
-          if (typeof m === "string" && m.includes("@")) {
-            const resolvedUser = memberUserMap.get(m.trim().toLowerCase());
-            const memberName = resolvedUser?.name || m.split("@")[0];
-            const memberSchool = resolvedUser?.school || school;
-
-            participantsList.push({
-              id: `${reg.id}-mem-${mIdx}-${m}`,
-              name: memberName,
-              email: m,
-              school: memberSchool,
-              teamName,
-              eventId: reg.eventId,
-              eventTitle: reg.event.title,
-            });
-          } else if (m && typeof m === "object" && (m.name || m.fullName || m.email)) {
-            const memberName = m.name || m.fullName || m.email;
-            participantsList.push({
-              id: `${reg.id}-mem-${mIdx}`,
-              name: memberName,
-              email: m.email,
-              school: m.school || school,
-              teamName,
-              eventId: reg.eventId,
-              eventTitle: reg.event.title,
-            });
-          }
         });
       }
     });

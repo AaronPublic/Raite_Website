@@ -121,10 +121,12 @@ export default function CompetitionSubmissionsClient({
               </h3>
             </div>
             <span className="text-xs font-bold text-muted-foreground">
-              Social Media: {rubric.socialMediaMax} pts ({rubric.socialMediaLabel}) = {rubric.grandTotal} Total Pts
+              {rubric.socialMediaMax > 0
+                ? `Social Media: ${rubric.socialMediaMax} pts (${rubric.socialMediaLabel}) = ${rubric.grandTotal} Total Pts`
+                : `Total Score: ${rubric.grandTotal} Pts`}
             </span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
             {rubric.criteria.map((c) => (
               <div
                 key={c.id}

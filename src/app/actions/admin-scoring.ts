@@ -37,8 +37,14 @@ export async function getJudges() {
     orderBy: { createdAt: "desc" },
   });
 
-  const allOnlineEvents = await db.event.findMany({
-    where: { subcategory: "ONLINE" },
+  const allScoringEvents = await db.event.findMany({
+    where: {
+      OR: [
+        { subcategory: "ONLINE" },
+        { title: { contains: "Hackat", mode: "insensitive" } },
+        { title: { contains: "Hackath", mode: "insensitive" } },
+      ],
+    },
     select: { id: true, title: true, category: true },
     orderBy: { title: "asc" },
   });
@@ -94,7 +100,7 @@ export async function getJudges() {
         createdAt: j.createdAt,
       };
     }),
-    availableEvents: allOnlineEvents,
+    availableEvents: allScoringEvents,
   };
 }
 
@@ -386,11 +392,12 @@ export async function getCompetitionLeaderboard(eventId: string) {
   const rubric = getRubricForEvent(event.title);
 
   // Fetch all registrations with submissions for this event
+  const isOnlineOnly = event.subcategory === "ONLINE";
   const registrations = await db.registration.findMany({
     where: {
       eventId,
-      entryUrl: { not: null },
-      NOT: { entryUrl: "" },
+      status: { not: "REJECTED" },
+      ...(isOnlineOnly ? { entryUrl: { not: null }, NOT: { entryUrl: "" } } : {}),
     },
     include: {
       user: true,

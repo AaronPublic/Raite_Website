@@ -281,10 +281,12 @@ export default function RubricEvaluationForm({
                 <span>Judge Total Cap:</span>
                 <span className="text-primary font-black">{rubric.judgeMaxTotal} pts</span>
               </div>
-              <div className="flex justify-between font-bold text-muted-foreground text-[11px]">
-                <span>Social Media ({rubric.socialMediaLabel}):</span>
-                <span>{rubric.socialMediaMax} pts</span>
-              </div>
+              {rubric.socialMediaMax > 0 && (
+                <div className="flex justify-between font-bold text-muted-foreground text-[11px]">
+                  <span>Social Media ({rubric.socialMediaLabel}):</span>
+                  <span>{rubric.socialMediaMax} pts</span>
+                </div>
+              )}
               <div className="flex justify-between font-bold text-muted-foreground text-[11px] pt-1 border-t border-border/40">
                 <span>Overall Final Max:</span>
                 <span>{rubric.grandTotal} pts</span>

@@ -31,7 +31,13 @@ export async function getJudgeCompetitions() {
   let events: any[] = [];
   if (user.role === "ADMIN") {
     events = await db.event.findMany({
-      where: { subcategory: "ONLINE" },
+      where: {
+        OR: [
+          { subcategory: "ONLINE" },
+          { title: { contains: "Hackat", mode: "insensitive" } },
+          { title: { contains: "Hackath", mode: "insensitive" } },
+        ],
+      },
       orderBy: { title: "asc" },
     });
   } else {
@@ -41,11 +47,12 @@ export async function getJudgeCompetitions() {
   // Calculate submission counts & evaluated counts per competition for this judge
   const eventSummaries = await Promise.all(
     events.map(async (event) => {
+      const isOnline = event.subcategory === "ONLINE";
       const totalSubmissions = await db.registration.count({
         where: {
           eventId: event.id,
-          entryUrl: { not: null },
-          NOT: { entryUrl: "" },
+          status: { not: "REJECTED" },
+          ...(isOnline ? { entryUrl: { not: null }, NOT: { entryUrl: "" } } : {}),
         },
       });
 
@@ -91,11 +98,12 @@ export async function getJudgeCompetitionSubmissions(eventId: string) {
 
   if (!event) throw new Error("Event not found");
 
+  const isOnline = event.subcategory === "ONLINE";
   const registrations = await db.registration.findMany({
     where: {
       eventId,
-      entryUrl: { not: null },
-      NOT: { entryUrl: "" },
+      status: { not: "REJECTED" },
+      ...(isOnline ? { entryUrl: { not: null }, NOT: { entryUrl: "" } } : {}),
     },
     include: {
       user: true,
@@ -269,12 +277,18 @@ export async function getJudgeConsolidatedSummary(targetEventId?: string) {
 
   let assignedEvents: Array<{ id: string; title: string }> = [];
   if (user.role === "ADMIN") {
-    const allOnlineEvents = await db.event.findMany({
-      where: { subcategory: "ONLINE" },
+    const allScoringEvents = await db.event.findMany({
+      where: {
+        OR: [
+          { subcategory: "ONLINE" },
+          { title: { contains: "Hackat", mode: "insensitive" } },
+          { title: { contains: "Hackath", mode: "insensitive" } },
+        ],
+      },
       orderBy: { title: "asc" },
       select: { id: true, title: true },
     });
-    assignedEvents = allOnlineEvents;
+    assignedEvents = allScoringEvents;
   } else {
     assignedEvents = user.judgeAssignments.map((ja) => ({
       id: ja.event.id,
@@ -316,11 +330,12 @@ export async function getJudgeConsolidatedSummary(targetEventId?: string) {
 
   const rubric = getRubricForEvent(event.title);
 
+  const isOnline = event.subcategory === "ONLINE";
   const registrations = await db.registration.findMany({
     where: {
       eventId: selectedEventId,
-      entryUrl: { not: null },
-      NOT: { entryUrl: "" },
+      status: { not: "REJECTED" },
+      ...(isOnline ? { entryUrl: { not: null }, NOT: { entryUrl: "" } } : {}),
     },
     include: {
       user: true,

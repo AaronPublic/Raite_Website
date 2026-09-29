@@ -44,7 +44,7 @@ export default function AdminLayout({
       </Suspense>
 
       <main className="flex-1 overflow-y-auto bg-gray-50/50 dark:bg-gray-950 scroll-smooth">
-        <div className="p-4 md:p-8 lg:p-16 max-w-7xl mx-auto w-full">
+        <div className="p-4 md:p-6 lg:p-8 max-w-[1750px] mx-auto w-full">
           {children}
         </div>
       </main>

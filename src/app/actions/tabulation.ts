@@ -59,31 +59,59 @@ export async function getTabulationData() {
       throw new Error("Forbidden: Admin access required");
     }
 
-    // 1. Fetch all events
-    const events = await db.event.findMany({
-      orderBy: [{ subcategory: "asc" }, { title: "asc" }],
-      include: {
-        placement: true,
-      },
-    });
+    // 1. Fetch all data in parallel for optimal latency
+    const [events, registeredSchools, registrations, rawSpecialAwards] = await Promise.all([
+      db.event.findMany({
+        orderBy: [{ subcategory: "asc" }, { title: "asc" }],
+        select: {
+          id: true,
+          title: true,
+          category: true,
+          subcategory: true,
+          placement: {
+            select: {
+              championSchool: true,
+              firstRunnerUp: true,
+              secondRunnerUp: true,
+            },
+          },
+        },
+      }),
+      db.school.findMany({
+        select: { id: true, name: true, abbreviation: true },
+        orderBy: { name: "asc" },
+      }),
+      db.registration.findMany({
+        where: {
+          status: { not: "REJECTED" },
+        },
+        select: {
+          id: true,
+          eventId: true,
+          teamName: true,
+          members: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              school: true,
+            },
+          },
+          event: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+      }),
+      db.specialAward.findMany({
+        orderBy: [{ category: "asc" }, { awardTitle: "asc" }],
+      }),
+    ]);
 
-    // 2. Fetch all registered schools
-    const registeredSchools = await db.school.findMany({
-      orderBy: { name: "asc" },
-    });
-
-    // 3. Fetch all registrations to determine participation and participant options
-    const registrations = await db.registration.findMany({
-      where: {
-        status: { not: "REJECTED" },
-      },
-      include: {
-        user: true,
-        event: true,
-      },
-    });
-
-    // Gather all member emails from team registrations to resolve their full names
+    // Gather all member emails from team registrations to resolve their full names in a single batch
     const allMemberEmails = new Set<string>();
     registrations.forEach((r) => {
       if (r.members && Array.isArray(r.members)) {
@@ -258,7 +286,6 @@ export async function getTabulationData() {
     });
 
     // Assign dense ranks
-    let currentRank = 1;
     schoolRows.forEach((row, idx) => {
       if (idx > 0) {
         const prev = schoolRows[idx - 1];
@@ -277,11 +304,7 @@ export async function getTabulationData() {
       }
     });
 
-    // 5. Fetch Special Awards
-    const rawSpecialAwards = await db.specialAward.findMany({
-      orderBy: [{ category: "asc" }, { awardTitle: "asc" }],
-    });
-
+    // 5. Map Special Awards with strict type safety
     const specialAwards: SpecialAwardEntry[] = rawSpecialAwards.map((a) => ({
       id: a.id,
       category: a.category,

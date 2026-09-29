@@ -29,7 +29,9 @@ import {
   UserCheck,
   Building2,
   FileSpreadsheet,
-  Star
+  Star,
+  Ticket,
+  Edit3
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -376,8 +378,8 @@ export default function TabulationClient({
             <Card className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-gradient-to-b from-slate-100/60 to-transparent dark:from-slate-900/40 shadow-lg relative overflow-hidden">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <Badge className="bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 font-black text-[10px] uppercase tracking-wider">
-                    2nd Overall (1st Runner Up)
+                  <Badge className="bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5">
+                    <Medal className="w-3 h-3 text-slate-500" /> 2nd Overall (1st Runner Up)
                   </Badge>
                   <Medal className="w-7 h-7 text-slate-400" />
                 </div>
@@ -389,8 +391,10 @@ export default function TabulationClient({
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-2 flex items-baseline justify-between border-t border-border/40">
-                <div className="text-xs font-bold text-muted-foreground">
-                  🥇 {podium.second?.championsCount || 0} | 🥈 {podium.second?.firstRunnerUpCount || 0} | 🥉 {podium.second?.secondRunnerUpCount || 0}
+                <div className="flex items-center gap-2.5 text-xs font-bold text-muted-foreground">
+                  <span className="flex items-center gap-0.5 text-amber-600"><Trophy className="w-3.5 h-3.5" /> {podium.second?.championsCount || 0}</span>
+                  <span className="flex items-center gap-0.5 text-slate-500"><Medal className="w-3.5 h-3.5" /> {podium.second?.firstRunnerUpCount || 0}</span>
+                  <span className="flex items-center gap-0.5 text-amber-800"><Medal className="w-3.5 h-3.5" /> {podium.second?.secondRunnerUpCount || 0}</span>
                 </div>
                 <div className="text-2xl font-black font-mono text-slate-700 dark:text-slate-300">
                   {podium.second?.totalPoints || 0} <span className="text-xs font-bold text-muted-foreground">pts</span>
@@ -403,8 +407,8 @@ export default function TabulationClient({
               <div className="absolute top-0 right-0 left-0 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500" />
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <Badge className="bg-amber-500 text-white font-black text-[10px] uppercase tracking-wider shadow-sm">
-                    🏆 Overall Champion
+                  <Badge className="bg-amber-500 text-white font-black text-[10px] uppercase tracking-wider shadow-sm flex items-center gap-1.5">
+                    <Crown className="w-3.5 h-3.5" /> Overall Champion
                   </Badge>
                   <Crown className="w-8 h-8 text-amber-500" />
                 </div>
@@ -416,8 +420,10 @@ export default function TabulationClient({
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-2 flex items-baseline justify-between border-t border-amber-200 dark:border-amber-900/50">
-                <div className="text-xs font-bold text-muted-foreground">
-                  🥇 {podium.first?.championsCount || 0} | 🥈 {podium.first?.firstRunnerUpCount || 0} | 🥉 {podium.first?.secondRunnerUpCount || 0}
+                <div className="flex items-center gap-2.5 text-xs font-bold text-muted-foreground">
+                  <span className="flex items-center gap-0.5 text-amber-600 font-black"><Trophy className="w-3.5 h-3.5" /> {podium.first?.championsCount || 0}</span>
+                  <span className="flex items-center gap-0.5 text-slate-500"><Medal className="w-3.5 h-3.5" /> {podium.first?.firstRunnerUpCount || 0}</span>
+                  <span className="flex items-center gap-0.5 text-amber-800"><Medal className="w-3.5 h-3.5" /> {podium.first?.secondRunnerUpCount || 0}</span>
                 </div>
                 <div className="text-3xl font-black font-mono text-amber-600 dark:text-amber-400">
                   {podium.first?.totalPoints || 0} <span className="text-xs font-bold text-muted-foreground">pts</span>
@@ -429,8 +435,8 @@ export default function TabulationClient({
             <Card className="rounded-3xl border-2 border-amber-800/40 dark:border-amber-900/60 bg-gradient-to-b from-amber-950/10 to-transparent shadow-lg relative overflow-hidden">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <Badge className="bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 border-amber-300 font-black text-[10px] uppercase tracking-wider">
-                    3rd Overall (2nd Runner Up)
+                  <Badge className="bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 border-amber-300 font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5">
+                    <Medal className="w-3 h-3 text-amber-700" /> 3rd Overall (2nd Runner Up)
                   </Badge>
                   <Medal className="w-7 h-7 text-amber-700 dark:text-amber-500" />
                 </div>
@@ -442,8 +448,10 @@ export default function TabulationClient({
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-2 flex items-baseline justify-between border-t border-border/40">
-                <div className="text-xs font-bold text-muted-foreground">
-                  🥇 {podium.third?.championsCount || 0} | 🥈 {podium.third?.firstRunnerUpCount || 0} | 🥉 {podium.third?.secondRunnerUpCount || 0}
+                <div className="flex items-center gap-2.5 text-xs font-bold text-muted-foreground">
+                  <span className="flex items-center gap-0.5 text-amber-600"><Trophy className="w-3.5 h-3.5" /> {podium.third?.championsCount || 0}</span>
+                  <span className="flex items-center gap-0.5 text-slate-500"><Medal className="w-3.5 h-3.5" /> {podium.third?.firstRunnerUpCount || 0}</span>
+                  <span className="flex items-center gap-0.5 text-amber-800"><Medal className="w-3.5 h-3.5" /> {podium.third?.secondRunnerUpCount || 0}</span>
                 </div>
                 <div className="text-2xl font-black font-mono text-amber-800 dark:text-amber-500">
                   {podium.third?.totalPoints || 0} <span className="text-xs font-bold text-muted-foreground">pts</span>
@@ -453,7 +461,7 @@ export default function TabulationClient({
           </div>
 
           {/* Tabulation Matrix Card */}
-          <Card className="rounded-[2rem] border-2 border-border/80 shadow-2xl overflow-hidden bg-card">
+          <Card className="rounded-[2rem] border-2 border-border/80 shadow-2xl overflow-hidden bg-card w-full">
             <CardHeader className="pb-4 border-b border-border/80 bg-secondary/30">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
@@ -478,42 +486,54 @@ export default function TabulationClient({
             </CardHeader>
 
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto w-full">
                 <table className="w-full border-collapse text-left text-xs">
                   <thead>
                     <tr className="border-b-2 border-border text-[10px] font-black uppercase tracking-wider text-muted-foreground bg-secondary/60">
-                      <th className="px-4 py-3 border-r border-border/80 min-w-[70px] text-center">
+                      <th className="px-3 py-3 border-r border-border/80 min-w-[75px] text-center">
                         Rank
                       </th>
-                      <th className="px-4 py-3 border-r border-border/80 min-w-[220px]">
+                      <th className="px-4 py-3 border-r border-border/80 min-w-[200px]">
                         School Institution
                       </th>
                       {events.map((ev) => (
                         <th
                           key={ev.id}
-                          className="px-3 py-3 border-r border-border/80 text-center min-w-[130px] max-w-[170px]"
+                          className="px-2.5 py-3 border-r border-border/80 text-center min-w-[120px] max-w-[160px]"
                         >
-                          <div className="flex flex-col items-center">
-                            <span className="text-[11px] font-black text-foreground line-clamp-2 leading-tight">
+                          <div className="flex flex-col items-center justify-center text-center gap-0.5">
+                            <span className="text-[11px] font-black text-foreground whitespace-normal break-words leading-tight">
                               {ev.title}
                             </span>
-                            <span className="text-[9px] font-bold text-muted-foreground mt-0.5">
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase">
                               {ev.category || "Event"}
                             </span>
                           </div>
                         </th>
                       ))}
-                      <th className="px-3 py-3 border-r border-border/80 text-center min-w-[80px] bg-secondary/80">
-                        🥇 Gold
+                      <th className="px-2.5 py-3 border-r border-border/80 text-center min-w-[70px] bg-secondary/80">
+                        <div className="flex items-center justify-center gap-1">
+                          <Trophy className="w-3.5 h-3.5 text-amber-500" />
+                          <span>Gold</span>
+                        </div>
                       </th>
-                      <th className="px-3 py-3 border-r border-border/80 text-center min-w-[80px] bg-secondary/80">
-                        🥈 Silver
+                      <th className="px-2.5 py-3 border-r border-border/80 text-center min-w-[70px] bg-secondary/80">
+                        <div className="flex items-center justify-center gap-1">
+                          <Medal className="w-3.5 h-3.5 text-slate-400" />
+                          <span>Silver</span>
+                        </div>
                       </th>
-                      <th className="px-3 py-3 border-r border-border/80 text-center min-w-[80px] bg-secondary/80">
-                        🥉 Bronze
+                      <th className="px-2.5 py-3 border-r border-border/80 text-center min-w-[70px] bg-secondary/80">
+                        <div className="flex items-center justify-center gap-1">
+                          <Medal className="w-3.5 h-3.5 text-amber-700" />
+                          <span>Bronze</span>
+                        </div>
                       </th>
-                      <th className="px-3 py-3 border-r border-border/80 text-center min-w-[80px] bg-secondary/80">
-                        🎟️ Parts.
+                      <th className="px-2.5 py-3 border-r border-border/80 text-center min-w-[70px] bg-secondary/80">
+                        <div className="flex items-center justify-center gap-1">
+                          <Ticket className="w-3.5 h-3.5 text-muted-foreground" />
+                          <span>Parts.</span>
+                        </div>
                       </th>
                       <th className="px-4 py-3 text-center min-w-[100px] bg-primary/10 text-primary font-black">
                         Total Points
@@ -550,18 +570,18 @@ export default function TabulationClient({
                             } hover:bg-primary/[0.04]`}
                           >
                             {/* Rank */}
-                            <td className="px-4 py-3 border-r border-border/80 text-center align-middle">
+                            <td className="px-3 py-3 border-r border-border/80 text-center align-middle">
                               {isGold ? (
-                                <Badge className="bg-amber-500 text-white font-black text-xs px-2.5 py-0.5 shadow-sm">
-                                  1st 🏆
+                                <Badge className="bg-amber-500 text-white font-black text-xs px-2.5 py-0.5 shadow-sm inline-flex items-center gap-1">
+                                  <Trophy className="w-3 h-3" /> 1st
                                 </Badge>
                               ) : isSilver ? (
-                                <Badge className="bg-slate-400 dark:bg-slate-600 text-white font-black text-xs px-2.5 py-0.5 shadow-sm">
-                                  2nd 🥈
+                                <Badge className="bg-slate-400 dark:bg-slate-600 text-white font-black text-xs px-2.5 py-0.5 shadow-sm inline-flex items-center gap-1">
+                                  <Medal className="w-3 h-3" /> 2nd
                                 </Badge>
                               ) : isBronze ? (
-                                <Badge className="bg-amber-700 text-white font-black text-xs px-2.5 py-0.5 shadow-sm">
-                                  3rd 🥉
+                                <Badge className="bg-amber-700 text-white font-black text-xs px-2.5 py-0.5 shadow-sm inline-flex items-center gap-1">
+                                  <Medal className="w-3 h-3" /> 3rd
                                 </Badge>
                               ) : (
                                 <span className="font-mono font-bold text-xs text-muted-foreground">
@@ -585,23 +605,23 @@ export default function TabulationClient({
                               return (
                                 <td
                                   key={ev.id}
-                                  className="px-3 py-3 border-r border-border/80 text-center align-middle font-mono text-xs"
+                                  className="px-2.5 py-3 border-r border-border/80 text-center align-middle font-mono text-xs"
                                 >
                                   {cell.label === "Champion" ? (
-                                    <Badge className="bg-amber-500 text-white font-black text-[11px] px-2 py-0.5 shadow-sm">
-                                      +10 🥇
+                                    <Badge className="bg-amber-500 text-white font-black text-[11px] px-2 py-0.5 shadow-sm inline-flex items-center gap-1">
+                                      <Trophy className="w-2.5 h-2.5" /> +10
                                     </Badge>
                                   ) : cell.label === "1st Runner Up" ? (
-                                    <Badge className="bg-slate-400 dark:bg-slate-600 text-white font-black text-[11px] px-2 py-0.5 shadow-sm">
-                                      +7 🥈
+                                    <Badge className="bg-slate-400 dark:bg-slate-600 text-white font-black text-[11px] px-2 py-0.5 shadow-sm inline-flex items-center gap-1">
+                                      <Medal className="w-2.5 h-2.5" /> +7
                                     </Badge>
                                   ) : cell.label === "2nd Runner Up" ? (
-                                    <Badge className="bg-amber-700 text-white font-black text-[11px] px-2 py-0.5 shadow-sm">
-                                      +4 🥉
+                                    <Badge className="bg-amber-700 text-white font-black text-[11px] px-2 py-0.5 shadow-sm inline-flex items-center gap-1">
+                                      <Medal className="w-2.5 h-2.5" /> +4
                                     </Badge>
                                   ) : cell.label === "Participation" ? (
-                                    <Badge variant="outline" className="bg-secondary/60 text-muted-foreground font-bold text-[10px] px-1.5 py-0.5">
-                                      +1 pt
+                                    <Badge variant="outline" className="bg-secondary/60 text-muted-foreground font-bold text-[10px] px-1.5 py-0.5 inline-flex items-center gap-1">
+                                      <Ticket className="w-2.5 h-2.5" /> +1 pt
                                     </Badge>
                                   ) : (
                                     <span className="text-muted-foreground/30 font-sans">-</span>
@@ -611,16 +631,16 @@ export default function TabulationClient({
                             })}
 
                             {/* Summary Counts */}
-                            <td className="px-3 py-3 border-r border-border/80 text-center align-middle font-mono font-bold text-amber-600">
+                            <td className="px-2.5 py-3 border-r border-border/80 text-center align-middle font-mono font-bold text-amber-600">
                               {row.championsCount}
                             </td>
-                            <td className="px-3 py-3 border-r border-border/80 text-center align-middle font-mono font-bold text-slate-500">
+                            <td className="px-2.5 py-3 border-r border-border/80 text-center align-middle font-mono font-bold text-slate-500">
                               {row.firstRunnerUpCount}
                             </td>
-                            <td className="px-3 py-3 border-r border-border/80 text-center align-middle font-mono font-bold text-amber-800">
+                            <td className="px-2.5 py-3 border-r border-border/80 text-center align-middle font-mono font-bold text-amber-800">
                               {row.secondRunnerUpCount}
                             </td>
-                            <td className="px-3 py-3 border-r border-border/80 text-center align-middle font-mono text-muted-foreground">
+                            <td className="px-2.5 py-3 border-r border-border/80 text-center align-middle font-mono text-muted-foreground">
                               {row.participationCount}
                             </td>
 
@@ -1204,9 +1224,10 @@ function SearchableParticipantPicker({
             <button
               type="button"
               onClick={() => setIsManualMode(true)}
-              className="text-xs font-bold text-muted-foreground hover:text-primary hover:underline"
+              className="text-xs font-bold text-muted-foreground hover:text-primary hover:underline flex items-center gap-1"
             >
-              ✍️ Write in name manually
+              <Edit3 className="w-3 h-3 text-primary" />
+              <span>Write in name manually</span>
             </button>
             <button
               type="button"

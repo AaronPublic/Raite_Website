@@ -42,8 +42,10 @@ export interface SpecialAwardEntry {
 export interface ParticipantOption {
   id: string;
   name: string;
+  email?: string;
   school: string;
   teamName: string;
+  eventId: string;
   eventTitle: string;
 }
 
@@ -81,6 +83,32 @@ export async function getTabulationData() {
       },
     });
 
+    // Gather all member emails from team registrations to resolve their full names
+    const allMemberEmails = new Set<string>();
+    registrations.forEach((r) => {
+      if (r.members && Array.isArray(r.members)) {
+        r.members.forEach((m: any) => {
+          if (typeof m === "string" && m.includes("@")) {
+            allMemberEmails.add(m.trim().toLowerCase());
+          } else if (m && typeof m === "object" && m.email) {
+            allMemberEmails.add(String(m.email).trim().toLowerCase());
+          }
+        });
+      }
+    });
+
+    const memberUsers = allMemberEmails.size > 0
+      ? await db.user.findMany({
+          where: {
+            email: { in: Array.from(allMemberEmails) },
+          },
+          select: { id: true, name: true, email: true, school: true },
+        })
+      : [];
+
+    const memberUserMap = new Map<string, { id: string; name: string | null; email: string; school: string | null }>();
+    memberUsers.forEach((u) => memberUserMap.set(u.email.toLowerCase(), u));
+
     // Map schools by event
     const eventSchoolsMap: Record<string, Set<string>> = {};
     const allKnownSchoolNames = new Set<string>();
@@ -91,38 +119,59 @@ export async function getTabulationData() {
     const participantsList: ParticipantOption[] = [];
 
     registrations.forEach((reg) => {
-      const school = reg.user.school;
-      if (school) {
-        allKnownSchoolNames.add(school);
+      const school = reg.user.school || "N/A";
+      if (reg.user.school) {
+        allKnownSchoolNames.add(reg.user.school);
         if (!eventSchoolsMap[reg.eventId]) {
           eventSchoolsMap[reg.eventId] = new Set<string>();
         }
-        eventSchoolsMap[reg.eventId].add(school);
+        eventSchoolsMap[reg.eventId].add(reg.user.school);
       }
 
-      // Collect team members if any, or primary registrant
       const teamName = reg.teamName || "Individual";
-      if (reg.members && Array.isArray(reg.members)) {
-        reg.members.forEach((m: any) => {
-          if (m && typeof m === "object" && (m.name || m.fullName)) {
-            participantsList.push({
-              id: `${reg.id}-${m.name || m.fullName}`,
-              name: m.name || m.fullName,
-              school: school || "N/A",
-              teamName,
-              eventTitle: reg.event.title,
-            });
-          }
+
+      // 1. Primary Registrant
+      if (reg.user.name) {
+        participantsList.push({
+          id: `${reg.id}-${reg.user.id}`,
+          name: reg.user.name,
+          email: reg.user.email,
+          school,
+          teamName,
+          eventId: reg.eventId,
+          eventTitle: reg.event.title,
         });
       }
 
-      if (reg.user.name) {
-        participantsList.push({
-          id: `${reg.id}-${reg.user.name}`,
-          name: reg.user.name,
-          school: school || "N/A",
-          teamName,
-          eventTitle: reg.event.title,
+      // 2. Team Members
+      if (reg.members && Array.isArray(reg.members)) {
+        reg.members.forEach((m: any, mIdx: number) => {
+          if (typeof m === "string" && m.includes("@")) {
+            const resolvedUser = memberUserMap.get(m.trim().toLowerCase());
+            const memberName = resolvedUser?.name || m.split("@")[0];
+            const memberSchool = resolvedUser?.school || school;
+
+            participantsList.push({
+              id: `${reg.id}-mem-${mIdx}-${m}`,
+              name: memberName,
+              email: m,
+              school: memberSchool,
+              teamName,
+              eventId: reg.eventId,
+              eventTitle: reg.event.title,
+            });
+          } else if (m && typeof m === "object" && (m.name || m.fullName || m.email)) {
+            const memberName = m.name || m.fullName || m.email;
+            participantsList.push({
+              id: `${reg.id}-mem-${mIdx}`,
+              name: memberName,
+              email: m.email,
+              school: m.school || school,
+              teamName,
+              eventId: reg.eventId,
+              eventTitle: reg.event.title,
+            });
+          }
         });
       }
     });

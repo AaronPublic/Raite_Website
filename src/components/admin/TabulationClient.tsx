@@ -829,45 +829,31 @@ export default function TabulationClient({
                     <CardHeader className="pb-3 bg-purple-50/50 dark:bg-purple-950/20 border-b border-border/60">
                       <div className="flex items-center justify-between">
                         <Badge className="bg-purple-600 text-white font-bold text-[10px]">
-                          Individual Award
+                          Individual MVP Award
                         </Badge>
                         <Star className="w-4 h-4 text-purple-500" />
                       </div>
                       <CardTitle className="text-base font-black text-foreground mt-1">
                         {award.awardTitle}
                       </CardTitle>
+                      <CardDescription className="text-xs text-muted-foreground">
+                        Search and select the MVP from registered {award.awardTitle.includes("Mobile") ? "Mobile Legends" : "Valorant"} competitors.
+                      </CardDescription>
                     </CardHeader>
 
-                    <CardContent className="pt-4 space-y-3">
-                      <div className="space-y-1">
-                        <label className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
-                          <UserCheck className="w-3.5 h-3.5 text-primary" /> MVP Recipient Name
-                        </label>
-                        <Input
-                          placeholder="e.g. Juan Dela Cruz / In-Game Name"
-                          value={state.winnerName}
-                          onChange={(e) => handleAwardChange(award.awardTitle, "winnerName", e.target.value)}
-                          className="h-10 rounded-xl bg-background border-border text-xs font-bold"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
-                          <Building2 className="w-3.5 h-3.5 text-primary" /> Winning School
-                        </label>
-                        <select
-                          value={state.schoolName}
-                          onChange={(e) => handleAwardChange(award.awardTitle, "schoolName", e.target.value)}
-                          className="w-full h-10 px-3 rounded-xl bg-background border border-border text-xs font-bold text-foreground focus:ring-1 focus:ring-primary shadow-sm"
-                        >
-                          <option value="">-- Select School --</option>
-                          {schools.map((s) => (
-                            <option key={s} value={s}>
-                              {s}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                    <CardContent className="pt-4 space-y-4">
+                      <SearchableParticipantPicker
+                        awardTitle={award.awardTitle}
+                        category={award.category}
+                        selectedWinner={state.winnerName}
+                        selectedSchool={state.schoolName}
+                        participantsList={participantsList}
+                        schools={schools}
+                        onSelect={(winnerName, schoolName) => {
+                          handleAwardChange(award.awardTitle, "winnerName", winnerName);
+                          handleAwardChange(award.awardTitle, "schoolName", schoolName);
+                        }}
+                      />
                     </CardContent>
                   </Card>
                 );
@@ -889,6 +875,10 @@ export default function TabulationClient({
                 const state = specialAwardsState[award.awardTitle] || { winnerName: "", schoolName: "" };
                 const isIndividual = award.awardType === "INDIVIDUAL";
 
+                const microFilmEvent = events.find(
+                  (e) => e.title.toLowerCase().includes("micro") || e.title.toLowerCase().includes("short film")
+                );
+
                 return (
                   <Card key={award.awardTitle} className="rounded-3xl border border-border/80 bg-card shadow-md flex flex-col justify-between">
                     <div>
@@ -907,44 +897,463 @@ export default function TabulationClient({
                         </CardTitle>
                       </CardHeader>
 
-                      <CardContent className="pt-4 space-y-3">
-                        {isIndividual && (
-                          <div className="space-y-1">
-                            <label className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
-                              <UserCheck className="w-3.5 h-3.5 text-primary" /> Actor / Actress Name
-                            </label>
-                            <Input
-                              placeholder="e.g. Maria Santos"
-                              value={state.winnerName}
-                              onChange={(e) => handleAwardChange(award.awardTitle, "winnerName", e.target.value)}
-                              className="h-10 rounded-xl bg-background border-border text-xs font-bold"
-                            />
-                          </div>
+                      <CardContent className="pt-4 space-y-4">
+                        {isIndividual ? (
+                          <SearchableParticipantPicker
+                            awardTitle={award.awardTitle}
+                            category={award.category}
+                            selectedWinner={state.winnerName}
+                            selectedSchool={state.schoolName}
+                            participantsList={participantsList}
+                            schools={schools}
+                            onSelect={(winnerName, schoolName) => {
+                              handleAwardChange(award.awardTitle, "winnerName", winnerName);
+                              handleAwardChange(award.awardTitle, "schoolName", schoolName);
+                            }}
+                          />
+                        ) : (
+                          <SearchableSchoolPicker
+                            awardTitle={award.awardTitle}
+                            selectedSchool={state.schoolName}
+                            schools={schools}
+                            participatingSchools={microFilmEvent?.participatingSchools}
+                            onSelect={(schoolName) => {
+                              handleAwardChange(award.awardTitle, "schoolName", schoolName);
+                            }}
+                          />
                         )}
-
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
-                            <Building2 className="w-3.5 h-3.5 text-primary" /> Awarded School
-                          </label>
-                          <select
-                            value={state.schoolName}
-                            onChange={(e) => handleAwardChange(award.awardTitle, "schoolName", e.target.value)}
-                            className="w-full h-10 px-3 rounded-xl bg-background border border-border text-xs font-bold text-foreground focus:ring-1 focus:ring-primary shadow-sm"
-                          >
-                            <option value="">-- Select School --</option>
-                            {schools.map((s) => (
-                              <option key={s} value={s}>
-                                {s}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
                       </CardContent>
                     </div>
                   </Card>
                 );
               })}
             </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Searchable Participant Picker Component with filter & search
+function SearchableParticipantPicker({
+  awardTitle,
+  category,
+  selectedWinner,
+  selectedSchool,
+  participantsList,
+  schools,
+  onSelect,
+}: {
+  awardTitle: string;
+  category: string;
+  selectedWinner: string;
+  selectedSchool: string;
+  participantsList: ParticipantOption[];
+  schools: string[];
+  onSelect: (winnerName: string, schoolName: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterMode, setFilterMode] = useState<"relevant" | "all">("relevant");
+  const [isManualMode, setIsManualMode] = useState(false);
+  const [manualName, setManualName] = useState(selectedWinner);
+  const [manualSchool, setManualSchool] = useState(selectedSchool);
+
+  // Filter participants based on award title & category
+  const relevantParticipants = useMemo(() => {
+    const lower = awardTitle.toLowerCase();
+    if (lower.includes("mobile legends") || lower.includes("ml")) {
+      return participantsList.filter(
+        (p) =>
+          p.eventTitle.toLowerCase().includes("mobile") ||
+          p.eventTitle.toLowerCase().includes("legends") ||
+          p.eventTitle.toLowerCase().includes("ml")
+      );
+    }
+    if (lower.includes("valorant")) {
+      return participantsList.filter((p) => p.eventTitle.toLowerCase().includes("valorant"));
+    }
+    if (lower.includes("actor") || lower.includes("actress") || category === "Micro Short Film") {
+      return participantsList.filter(
+        (p) =>
+          p.eventTitle.toLowerCase().includes("micro") ||
+          p.eventTitle.toLowerCase().includes("short film") ||
+          p.eventTitle.toLowerCase().includes("film")
+      );
+    }
+    return participantsList;
+  }, [awardTitle, category, participantsList]);
+
+  const displayedList = useMemo(() => {
+    const baseList = filterMode === "relevant" && relevantParticipants.length > 0 ? relevantParticipants : participantsList;
+    if (!searchQuery.trim()) return baseList;
+    const q = searchQuery.toLowerCase();
+    return baseList.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.school.toLowerCase().includes(q) ||
+        p.teamName.toLowerCase().includes(q) ||
+        (p.email && p.email.toLowerCase().includes(q))
+    );
+  }, [filterMode, relevantParticipants, participantsList, searchQuery]);
+
+  if (isManualMode) {
+    return (
+      <div className="space-y-3 p-3 bg-secondary/30 rounded-2xl border border-border/80">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-black text-foreground">Manual Write-In Mode</span>
+          <button
+            type="button"
+            onClick={() => setIsManualMode(false)}
+            className="text-[10px] font-bold text-primary hover:underline"
+          >
+            ← Back to Searchable List
+          </button>
+        </div>
+        <div className="space-y-1">
+          <label className="text-[11px] font-bold text-muted-foreground">Participant Full Name</label>
+          <Input
+            placeholder="Type participant name..."
+            value={manualName}
+            onChange={(e) => {
+              setManualName(e.target.value);
+              onSelect(e.target.value, manualSchool);
+            }}
+            className="h-9 rounded-xl bg-background border-border text-xs font-bold"
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-[11px] font-bold text-muted-foreground">School</label>
+          <select
+            value={manualSchool}
+            onChange={(e) => {
+              setManualSchool(e.target.value);
+              onSelect(manualName, e.target.value);
+            }}
+            className="w-full h-9 px-3 rounded-xl bg-background border border-border text-xs font-bold text-foreground"
+          >
+            <option value="">-- Select School --</option>
+            {schools.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {/* Current Selection Display Box */}
+      {selectedWinner ? (
+        <div className="p-3 rounded-2xl border-2 border-primary/30 bg-primary/5 dark:bg-primary/10 flex items-center justify-between gap-2 transition-all">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 shadow-sm">
+              <UserCheck className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-black text-foreground truncate">{selectedWinner}</span>
+              <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1 truncate">
+                <Building2 className="w-3 h-3 text-primary shrink-0" />
+                {selectedSchool || "School unassigned"}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 shrink-0">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setIsOpen(!isOpen)}
+              className="h-7 px-2.5 rounded-lg text-[10px] font-bold border-border/80"
+            >
+              Change
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => onSelect("", "")}
+              className="h-7 px-2 rounded-lg text-[10px] font-bold text-muted-foreground hover:text-red-500"
+            >
+              Clear
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full p-3 rounded-2xl border-2 border-dashed border-border/80 hover:border-primary/60 bg-secondary/20 hover:bg-secondary/40 text-xs font-bold text-muted-foreground hover:text-foreground flex items-center justify-between transition-all"
+        >
+          <div className="flex items-center gap-2">
+            <Search className="w-4 h-4 text-primary" />
+            <span>Search & select participant...</span>
+          </div>
+          <Badge variant="outline" className="text-[10px] font-bold bg-background">
+            {relevantParticipants.length > 0 ? `${relevantParticipants.length} in Event` : "Browse"}
+          </Badge>
+        </button>
+      )}
+
+      {/* Searchable Picker Dropdown / Panel */}
+      {isOpen && (
+        <div className="p-3 bg-card rounded-2xl border-2 border-primary/20 shadow-xl space-y-3 mt-2 animate-in fade-in-0 zoom-in-95">
+          <div className="flex items-center justify-between gap-2 border-b border-border/60 pb-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+              <Input
+                autoFocus
+                placeholder="Search participant or school..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 h-8 rounded-xl bg-background border-border text-xs font-bold"
+              />
+            </div>
+            {relevantParticipants.length > 0 && (
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setFilterMode("relevant")}
+                  className={`px-2 py-1 rounded-lg text-[9px] font-black transition-colors ${
+                    filterMode === "relevant"
+                      ? "bg-primary text-white"
+                      : "bg-secondary text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Event ({relevantParticipants.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterMode("all")}
+                  className={`px-2 py-1 rounded-lg text-[9px] font-black transition-colors ${
+                    filterMode === "all"
+                      ? "bg-primary text-white"
+                      : "bg-secondary text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  All ({participantsList.length})
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Scrollable participant items list */}
+          <div className="max-h-56 overflow-y-auto space-y-1.5 custom-scrollbar pr-1">
+            {displayedList.length === 0 ? (
+              <div className="text-center py-6 space-y-2">
+                <p className="text-xs text-muted-foreground font-semibold">No participants found matching &ldquo;{searchQuery}&rdquo;</p>
+                <button
+                  type="button"
+                  onClick={() => setIsManualMode(true)}
+                  className="text-xs font-bold text-primary hover:underline"
+                >
+                  Write in manually instead →
+                </button>
+              </div>
+            ) : (
+              displayedList.map((p) => {
+                const isSelected = selectedWinner === p.name && selectedSchool === p.school;
+
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => {
+                      onSelect(p.name, p.school);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full text-left p-2.5 rounded-xl transition-all flex items-center justify-between group border ${
+                      isSelected
+                        ? "bg-primary/10 border-primary font-black"
+                        : "hover:bg-secondary/80 border-transparent hover:border-border"
+                    }`}
+                  >
+                    <div className="flex flex-col min-w-0 pr-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors truncate">
+                          {p.name}
+                        </span>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-primary shrink-0" />}
+                      </div>
+                      <span className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1 truncate mt-0.5">
+                        <Building2 className="w-3 h-3 text-muted-foreground shrink-0" />
+                        {p.school}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col items-end shrink-0 gap-0.5">
+                      <Badge variant="outline" className="text-[9px] font-bold bg-background">
+                        {p.teamName}
+                      </Badge>
+                      <span className="text-[8px] text-muted-foreground font-semibold truncate max-w-[100px]">
+                        {p.eventTitle}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
+
+          <div className="pt-2 border-t border-border/60 flex items-center justify-between text-[11px]">
+            <button
+              type="button"
+              onClick={() => setIsManualMode(true)}
+              className="text-xs font-bold text-muted-foreground hover:text-primary hover:underline"
+            >
+              ✍️ Write in name manually
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="text-xs font-bold text-muted-foreground hover:text-foreground"
+            >
+              Done / Close
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Searchable School Picker Component
+function SearchableSchoolPicker({
+  awardTitle,
+  selectedSchool,
+  schools,
+  participatingSchools = [],
+  onSelect,
+}: {
+  awardTitle: string;
+  selectedSchool: string;
+  schools: string[];
+  participatingSchools?: string[];
+  onSelect: (schoolName: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredSchools = useMemo(() => {
+    const sorted = [...schools].sort((a, b) => {
+      const aPart = participatingSchools.includes(a);
+      const bPart = participatingSchools.includes(b);
+      if (aPart && !bPart) return -1;
+      if (!aPart && bPart) return 1;
+      return a.localeCompare(b);
+    });
+
+    if (!searchQuery.trim()) return sorted;
+    return sorted.filter((s) => s.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [schools, participatingSchools, searchQuery]);
+
+  return (
+    <div className="space-y-2">
+      {selectedSchool ? (
+        <div className="p-3 rounded-2xl border-2 border-blue-500/30 bg-blue-50/10 dark:bg-blue-950/20 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <Building2 className="w-4 h-4 text-blue-600 shrink-0" />
+            <span className="text-xs font-black text-foreground truncate">{selectedSchool}</span>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setIsOpen(!isOpen)}
+              className="h-7 px-2.5 rounded-lg text-[10px] font-bold border-border/80"
+            >
+              Change
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => onSelect("")}
+              className="h-7 px-2 rounded-lg text-[10px] font-bold text-muted-foreground hover:text-red-500"
+            >
+              Clear
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full p-3 rounded-2xl border-2 border-dashed border-border/80 hover:border-blue-500/60 bg-secondary/20 hover:bg-secondary/40 text-xs font-bold text-muted-foreground hover:text-foreground flex items-center justify-between transition-all"
+        >
+          <div className="flex items-center gap-2">
+            <Search className="w-4 h-4 text-blue-600" />
+            <span>Select awarded school...</span>
+          </div>
+          <Badge variant="outline" className="text-[10px] font-bold bg-background">
+            {schools.length} Schools
+          </Badge>
+        </button>
+      )}
+
+      {isOpen && (
+        <div className="p-3 bg-card rounded-2xl border-2 border-blue-500/20 shadow-xl space-y-3 mt-2 animate-in fade-in-0 zoom-in-95">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <Input
+              autoFocus
+              placeholder="Search school name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 h-8 rounded-xl bg-background border-border text-xs font-bold"
+            />
+          </div>
+
+          <div className="max-h-52 overflow-y-auto space-y-1 custom-scrollbar pr-1">
+            {filteredSchools.length === 0 ? (
+              <p className="text-xs text-center text-muted-foreground py-4">No schools found.</p>
+            ) : (
+              filteredSchools.map((s) => {
+                const isSelected = selectedSchool === s;
+                const isParticipating = participatingSchools.includes(s);
+
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => {
+                      onSelect(s);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full text-left p-2 rounded-xl transition-all flex items-center justify-between group border ${
+                      isSelected
+                        ? "bg-blue-50 dark:bg-blue-950/40 border-blue-500 font-black text-blue-700 dark:text-blue-300"
+                        : "hover:bg-secondary/80 border-transparent hover:border-border text-foreground"
+                    }`}
+                  >
+                    <span className="text-xs font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate pr-2">
+                      {s}
+                    </span>
+                    {isParticipating && (
+                      <Badge variant="outline" className="text-[9px] font-bold bg-blue-50 text-blue-700 border-blue-200 shrink-0">
+                        Participated
+                      </Badge>
+                    )}
+                  </button>
+                );
+              })
+            )}
+          </div>
+
+          <div className="pt-2 border-t border-border/60 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="text-xs font-bold text-muted-foreground hover:text-foreground"
+            >
+              Done / Close
+            </button>
           </div>
         </div>
       )}

@@ -28,7 +28,8 @@ import {
   CreditCard,
   Shirt,
   Award,
-  Gavel
+  Gavel,
+  Calculator
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
@@ -93,6 +94,7 @@ export default function MobileMenu({ userId, userRole, userApproved }: MobileMen
     { name: "Billing", href: "/admin/billing", icon: CreditCard, role: "ADMIN" },
     { name: "Judges", href: "/admin/judges", icon: Gavel, role: "ADMIN" },
     { name: "Scores & Rankings", href: "/admin/scores", icon: Award, role: "ADMIN" },
+    { name: "Overall Tabulation & Awards", href: "/admin/tabulation", icon: Calculator, role: "ADMIN" },
     { name: "Shirt Sizes & Kit", href: "/admin/shirt-sizes", icon: Shirt, role: "ADMIN" },
     { name: "Settings", href: "/admin/settings", icon: Settings, role: "ADMIN" },
     { name: "Judging Portal", href: "/judge/competitions", icon: Award, role: "JUDGE" },

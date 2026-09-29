@@ -73,6 +73,7 @@ model Event {
   subAdmin                       User?             @relation("SubAdminEvents", fields: [subAdminId], references: [id])
   registrations                  Registration[]
   judgeAssignments               JudgeAssignment[]
+  placement                      EventPlacement?
 
   @@index([status])
   @@index([subcategory])
@@ -178,6 +179,28 @@ model CompetitionWinner {
   secondRunnerUp  String
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model EventPlacement {
+  id             String   @id @default(cuid())
+  eventId        String   @unique
+  event          Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  championSchool String?
+  firstRunnerUp  String?
+  secondRunnerUp String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model SpecialAward {
+  id         String   @id @default(cuid())
+  category   String   // "E-Games", "Micro Short Film", etc.
+  awardTitle String   @unique
+  awardType  String   // "INDIVIDUAL" | "SCHOOL"
+  winnerName String   @default("")
+  schoolName String   @default("")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 enum EventSubcategory {

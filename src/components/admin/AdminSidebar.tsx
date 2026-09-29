@@ -18,7 +18,8 @@ import {
   UserCheck,
   Shirt,
   Gavel,
-  Award
+  Award,
+  Calculator
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SafeUserButton } from "@/components/SafeUserButton";
@@ -31,6 +32,7 @@ export function AdminSidebar({ user }: { user: { name: string | null; role: stri
     { href: "/admin/competitions", label: "Competitions", icon: Trophy },
     { href: "/admin/judges", label: "Judges", icon: Gavel },
     { href: "/admin/scores", label: "Scores & Rankings", icon: Award },
+    { href: "/admin/tabulation", label: "Overall Tabulation & Awards", icon: Calculator },
     { href: "/admin/users", label: "Users", icon: Users },
     { href: "/admin/schools", label: "Manage Schools", icon: School },
     { href: "/admin/coaches", label: "Faculty Coaches", icon: UserCheck },

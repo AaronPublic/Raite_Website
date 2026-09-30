@@ -3,8 +3,8 @@ import SecretOverallRankingsClient from "@/components/admin/SecretOverallRanking
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Consolidated Overall Rankings | RAITE 2026 Admin",
-  description: "Official password-protected consolidated overall rankings and points matrix.",
+  title: "Overall Rankings | RAITE 2026 Admin",
+  description: "Official consolidated overall rankings and points matrix.",
 };
 
 export default async function OverallRankingsPage() {

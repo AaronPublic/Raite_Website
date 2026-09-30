@@ -338,7 +338,7 @@ export default function TabulationClient({
               className="rounded-xl font-black text-xs h-10 px-4 border-amber-400/50 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 shadow-sm"
             >
               <Lock className="w-3.5 h-3.5 mr-1.5 text-amber-600" />
-              View Secret Overall Rankings Matrix
+              View Overall Rankings
             </Button>
           </Link>
 

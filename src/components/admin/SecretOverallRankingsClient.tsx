@@ -138,10 +138,10 @@ export default function SecretOverallRankingsClient({
               <Lock className="w-8 h-8 text-primary animate-pulse" />
             </div>
             <h2 className="text-2xl font-black tracking-tight text-foreground">
-              Consolidated Overall Ranking Matrix
+              Overall Rankings
             </h2>
             <p className="text-xs text-muted-foreground font-medium max-w-sm mx-auto">
-              Restricted Area: Enter the administrator master security password to reveal the final official rankings and points matrix.
+              Restricted Area: Enter the administrator security password to reveal the final official rankings and points matrix.
             </p>
           </div>
 
@@ -186,7 +186,7 @@ export default function SecretOverallRankingsClient({
                 className="w-full h-12 rounded-xl font-black text-sm bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25 transition-all"
               >
                 <Unlock className="w-4 h-4 mr-2" />
-                Unlock Overall Rankings Matrix
+                Unlock Overall Rankings
               </Button>
             </form>
           </CardContent>
@@ -215,7 +215,7 @@ export default function SecretOverallRankingsClient({
             </Badge>
           </div>
           <h1 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
-            <Trophy className="w-6 h-6 text-amber-500" /> Consolidated Overall Ranking & Point Matrix
+            <Trophy className="w-6 h-6 text-amber-500" /> Overall Rankings
           </h1>
         </div>
 

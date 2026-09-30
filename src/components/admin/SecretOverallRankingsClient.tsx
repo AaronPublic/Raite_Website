@@ -25,9 +25,9 @@ import {
   FileSpreadsheet, 
   Ticket, 
   ArrowLeft,
-  Award,
   Building2,
-  AlertCircle
+  AlertCircle,
+  Users
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -94,13 +94,26 @@ export default function SecretOverallRankingsClient({
     );
   }, [leaderboard, searchTerm]);
 
-  // Top 3 Podium
-  const podium = useMemo(() => {
+  // Grouped Podiums for Multiple Tied Winners
+  const podiumGroups = useMemo(() => {
+    const champions = leaderboard.filter((r) => r.rank === 1 && r.totalPoints > 0);
+    const firstRunnersUp = leaderboard.filter((r) => r.rank === 2 && r.totalPoints > 0);
+    const secondRunnersUp = leaderboard.filter((r) => r.rank === 3 && r.totalPoints > 0);
+
     return {
-      first: leaderboard.find((r) => r.rank === 1 && r.totalPoints > 0) || null,
-      second: leaderboard.find((r) => r.rank === 2 && r.totalPoints > 0) || null,
-      third: leaderboard.find((r) => r.rank === 3 && r.totalPoints > 0) || null,
+      champions,
+      firstRunnersUp,
+      secondRunnersUp,
     };
+  }, [leaderboard]);
+
+  // Rank frequency map for ties in matrix table
+  const rankCounts = useMemo(() => {
+    const counts: Record<number, number> = {};
+    leaderboard.forEach((r) => {
+      counts[r.rank] = (counts[r.rank] || 0) + 1;
+    });
+    return counts;
   }, [leaderboard]);
 
   if (!mounted) return null;
@@ -115,7 +128,7 @@ export default function SecretOverallRankingsClient({
             className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Tabulation & Awards
+            Back to Tabulation Setup
           </Link>
         </div>
 
@@ -128,7 +141,7 @@ export default function SecretOverallRankingsClient({
               Consolidated Overall Ranking Matrix
             </h2>
             <p className="text-xs text-muted-foreground font-medium max-w-sm mx-auto">
-              This page contains the final consolidated competition scores, podium results, and official institution rankings.
+              Restricted Area: Enter the administrator master security password to reveal the final official rankings and points matrix.
             </p>
           </div>
 
@@ -136,14 +149,14 @@ export default function SecretOverallRankingsClient({
             <form onSubmit={handleUnlock} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-primary" /> Admin Security Password
+                  <ShieldCheck className="w-3.5 h-3.5 text-primary" /> Security Password
                 </label>
 
                 <div className="relative">
                   <Input
                     autoFocus
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter secret rankings password..."
+                    placeholder="Type password..."
                     value={passwordInput}
                     onChange={(e) => {
                       setPasswordInput(e.target.value);
@@ -173,7 +186,7 @@ export default function SecretOverallRankingsClient({
                 className="w-full h-12 rounded-xl font-black text-sm bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25 transition-all"
               >
                 <Unlock className="w-4 h-4 mr-2" />
-                Unlock Overall Rankings
+                Unlock Overall Rankings Matrix
               </Button>
             </form>
           </CardContent>
@@ -198,7 +211,7 @@ export default function SecretOverallRankingsClient({
             </Link>
             <span className="text-muted-foreground">•</span>
             <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 font-black text-[10px] uppercase tracking-wider flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3" /> Secret Access Unlocked
+              <ShieldCheck className="w-3 h-3" /> Master Access Granted
             </Badge>
           </div>
           <h1 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
@@ -223,100 +236,187 @@ export default function SecretOverallRankingsClient({
         </div>
       </div>
 
-      {/* Podium Highlight Banner */}
+      {/* Podium Highlight Grid with Support for Multiple Tied Schools */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {/* 2nd Place Silver */}
-        <Card className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-gradient-to-b from-slate-100/60 to-transparent dark:from-slate-900/40 shadow-lg relative overflow-hidden">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <Badge className="bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5">
-                <Medal className="w-3 h-3 text-slate-500" /> 2nd Overall (1st Runner Up)
-              </Badge>
-              <Medal className="w-7 h-7 text-slate-400" />
-            </div>
-            <CardTitle className="text-xl font-black tracking-tight text-foreground line-clamp-1 mt-2">
-              {podium.second?.schoolName || "TBD"}
-            </CardTitle>
-            <CardDescription className="text-xs font-semibold text-muted-foreground">
-              {podium.second?.schoolAbbr || "Pending Placements"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-2 flex items-baseline justify-between border-t border-border/40">
-            <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-              <span className="flex items-center gap-0.5 text-amber-600"><Trophy className="w-3.5 h-3.5" /> {podium.second?.championsCount || 0}</span>
-              <span className="flex items-center gap-0.5 text-slate-500"><Medal className="w-3.5 h-3.5" /> {podium.second?.firstRunnerUpCount || 0}</span>
-              <span className="flex items-center gap-0.5 text-amber-800"><Medal className="w-3.5 h-3.5" /> {podium.second?.secondRunnerUpCount || 0}</span>
-              {(podium.second?.specialAwardsCount || 0) > 0 && (
-                <span className="flex items-center gap-0.5 text-primary"><Sparkles className="w-3.5 h-3.5" /> +{podium.second?.specialAwardsPoints} pts</span>
+        {/* 2nd Place Silver Podium Card */}
+        <Card className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-gradient-to-b from-slate-100/60 to-transparent dark:from-slate-900/40 shadow-lg relative overflow-hidden flex flex-col justify-between">
+          <div>
+            <CardHeader className="pb-3 border-b border-border/40">
+              <div className="flex items-center justify-between">
+                <Badge className="bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5">
+                  <Medal className="w-3 h-3 text-slate-500" /> 2nd Overall (1st Runner Up)
+                </Badge>
+                {podiumGroups.firstRunnersUp.length > 1 && (
+                  <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300 font-bold text-[10px] flex items-center gap-1">
+                    <Users className="w-3 h-3" /> Tied ({podiumGroups.firstRunnersUp.length} Schools)
+                  </Badge>
+                )}
+                <Medal className="w-7 h-7 text-slate-400 shrink-0" />
+              </div>
+            </CardHeader>
+
+            <CardContent className="pt-3 space-y-3">
+              {podiumGroups.firstRunnersUp.length === 0 ? (
+                <div className="py-4 text-center text-xs font-semibold text-muted-foreground">
+                  Pending Placements
+                </div>
+              ) : (
+                podiumGroups.firstRunnersUp.map((school, sIdx) => (
+                  <div
+                    key={school.schoolName}
+                    className={`p-3 rounded-2xl bg-background/80 border border-slate-200 dark:border-slate-800 space-y-2 ${
+                      sIdx > 0 ? "mt-2" : ""
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="text-base font-black text-foreground line-clamp-1">
+                          {school.schoolName}
+                        </h4>
+                        <p className="text-[11px] font-bold text-muted-foreground">
+                          {school.schoolAbbr}
+                        </p>
+                      </div>
+                      <div className="text-xl font-black font-mono text-slate-700 dark:text-slate-300 shrink-0">
+                        {school.totalPoints} <span className="text-[10px] font-bold text-muted-foreground">pts</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1 border-t border-border/40 text-[11px] font-bold text-muted-foreground flex-wrap">
+                      <span className="flex items-center gap-0.5 text-amber-600"><Trophy className="w-3 h-3" /> {school.championsCount}</span>
+                      <span className="flex items-center gap-0.5 text-slate-500"><Medal className="w-3 h-3" /> {school.firstRunnerUpCount}</span>
+                      <span className="flex items-center gap-0.5 text-amber-800"><Medal className="w-3 h-3" /> {school.secondRunnerUpCount}</span>
+                      <span className="flex items-center gap-0.5 text-muted-foreground"><Ticket className="w-3 h-3" /> {school.participationCount}</span>
+                      {school.specialAwardsCount > 0 && (
+                        <span className="flex items-center gap-0.5 text-primary"><Sparkles className="w-3 h-3" /> +{school.specialAwardsPoints} pts</span>
+                      )}
+                    </div>
+                  </div>
+                ))
               )}
-            </div>
-            <div className="text-2xl font-black font-mono text-slate-700 dark:text-slate-300">
-              {podium.second?.totalPoints || 0} <span className="text-xs font-bold text-muted-foreground">pts</span>
-            </div>
-          </CardContent>
+            </CardContent>
+          </div>
         </Card>
 
-        {/* 1st Place Champion Gold */}
-        <Card className="rounded-3xl border-2 border-amber-400 dark:border-amber-600 bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-transparent shadow-xl relative overflow-hidden md:-translate-y-2">
+        {/* 1st Place Champion Gold Podium Card */}
+        <Card className="rounded-3xl border-2 border-amber-400 dark:border-amber-600 bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-transparent shadow-xl relative overflow-hidden md:-translate-y-2 flex flex-col justify-between">
           <div className="absolute top-0 right-0 left-0 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500" />
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <Badge className="bg-amber-500 text-white font-black text-[10px] uppercase tracking-wider shadow-sm flex items-center gap-1.5">
-                <Crown className="w-3.5 h-3.5" /> Overall Champion
-              </Badge>
-              <Crown className="w-8 h-8 text-amber-500" />
-            </div>
-            <CardTitle className="text-2xl font-black tracking-tight text-foreground line-clamp-1 mt-2">
-              {podium.first?.schoolName || "TBD"}
-            </CardTitle>
-            <CardDescription className="text-xs font-semibold text-amber-700 dark:text-amber-400">
-              {podium.first?.schoolAbbr || "Pending Placements"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-2 flex items-baseline justify-between border-t border-amber-200 dark:border-amber-900/50">
-            <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-              <span className="flex items-center gap-0.5 text-amber-600 font-black"><Trophy className="w-3.5 h-3.5" /> {podium.first?.championsCount || 0}</span>
-              <span className="flex items-center gap-0.5 text-slate-500"><Medal className="w-3.5 h-3.5" /> {podium.first?.firstRunnerUpCount || 0}</span>
-              <span className="flex items-center gap-0.5 text-amber-800"><Medal className="w-3.5 h-3.5" /> {podium.first?.secondRunnerUpCount || 0}</span>
-              {(podium.first?.specialAwardsCount || 0) > 0 && (
-                <span className="flex items-center gap-0.5 text-primary"><Sparkles className="w-3.5 h-3.5" /> +{podium.first?.specialAwardsPoints} pts</span>
+          <div>
+            <CardHeader className="pb-3 border-b border-amber-200 dark:border-amber-900/50">
+              <div className="flex items-center justify-between">
+                <Badge className="bg-amber-500 text-white font-black text-[10px] uppercase tracking-wider shadow-sm flex items-center gap-1.5">
+                  <Crown className="w-3.5 h-3.5" /> Overall Champion
+                </Badge>
+                {podiumGroups.champions.length > 1 && (
+                  <Badge className="bg-amber-600 text-white font-bold text-[10px] flex items-center gap-1">
+                    <Users className="w-3 h-3" /> Co-Champions ({podiumGroups.champions.length} Schools)
+                  </Badge>
+                )}
+                <Crown className="w-8 h-8 text-amber-500 shrink-0" />
+              </div>
+            </CardHeader>
+
+            <CardContent className="pt-3 space-y-3">
+              {podiumGroups.champions.length === 0 ? (
+                <div className="py-4 text-center text-xs font-semibold text-muted-foreground">
+                  Pending Placements
+                </div>
+              ) : (
+                podiumGroups.champions.map((school, sIdx) => (
+                  <div
+                    key={school.schoolName}
+                    className={`p-3.5 rounded-2xl bg-background/90 border-2 border-amber-300 dark:border-amber-700/60 shadow-md space-y-2 ${
+                      sIdx > 0 ? "mt-2" : ""
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="text-lg font-black text-foreground line-clamp-1">
+                          {school.schoolName}
+                        </h4>
+                        <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                          {school.schoolAbbr}
+                        </p>
+                      </div>
+                      <div className="text-2xl font-black font-mono text-amber-600 dark:text-amber-400 shrink-0">
+                        {school.totalPoints} <span className="text-xs font-bold text-muted-foreground">pts</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 pt-1.5 border-t border-amber-200 dark:border-amber-900/50 text-xs font-bold text-muted-foreground flex-wrap">
+                      <span className="flex items-center gap-0.5 text-amber-600 font-black"><Trophy className="w-3.5 h-3.5" /> {school.championsCount}</span>
+                      <span className="flex items-center gap-0.5 text-slate-500"><Medal className="w-3.5 h-3.5" /> {school.firstRunnerUpCount}</span>
+                      <span className="flex items-center gap-0.5 text-amber-800"><Medal className="w-3.5 h-3.5" /> {school.secondRunnerUpCount}</span>
+                      <span className="flex items-center gap-0.5 text-muted-foreground"><Ticket className="w-3.5 h-3.5" /> {school.participationCount}</span>
+                      {school.specialAwardsCount > 0 && (
+                        <span className="flex items-center gap-0.5 text-primary font-black"><Sparkles className="w-3.5 h-3.5" /> +{school.specialAwardsPoints} pts</span>
+                      )}
+                    </div>
+                  </div>
+                ))
               )}
-            </div>
-            <div className="text-3xl font-black font-mono text-amber-600 dark:text-amber-400">
-              {podium.first?.totalPoints || 0} <span className="text-xs font-bold text-muted-foreground">pts</span>
-            </div>
-          </CardContent>
+            </CardContent>
+          </div>
         </Card>
 
-        {/* 3rd Place Bronze */}
-        <Card className="rounded-3xl border-2 border-amber-800/40 dark:border-amber-900/60 bg-gradient-to-b from-amber-950/10 to-transparent shadow-lg relative overflow-hidden">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <Badge className="bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 border-amber-300 font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5">
-                <Medal className="w-3 h-3 text-amber-700" /> 3rd Overall (2nd Runner Up)
-              </Badge>
-              <Medal className="w-7 h-7 text-amber-700 dark:text-amber-500" />
-            </div>
-            <CardTitle className="text-xl font-black tracking-tight text-foreground line-clamp-1 mt-2">
-              {podium.third?.schoolName || "TBD"}
-            </CardTitle>
-            <CardDescription className="text-xs font-semibold text-muted-foreground">
-              {podium.third?.schoolAbbr || "Pending Placements"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-2 flex items-baseline justify-between border-t border-border/40">
-            <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-              <span className="flex items-center gap-0.5 text-amber-600"><Trophy className="w-3.5 h-3.5" /> {podium.third?.championsCount || 0}</span>
-              <span className="flex items-center gap-0.5 text-slate-500"><Medal className="w-3.5 h-3.5" /> {podium.third?.firstRunnerUpCount || 0}</span>
-              <span className="flex items-center gap-0.5 text-amber-800"><Medal className="w-3.5 h-3.5" /> {podium.third?.secondRunnerUpCount || 0}</span>
-              {(podium.third?.specialAwardsCount || 0) > 0 && (
-                <span className="flex items-center gap-0.5 text-primary"><Sparkles className="w-3.5 h-3.5" /> +{podium.third?.specialAwardsPoints} pts</span>
+        {/* 3rd Place Bronze Podium Card */}
+        <Card className="rounded-3xl border-2 border-amber-800/40 dark:border-amber-900/60 bg-gradient-to-b from-amber-950/10 to-transparent shadow-lg relative overflow-hidden flex flex-col justify-between">
+          <div>
+            <CardHeader className="pb-3 border-b border-border/40">
+              <div className="flex items-center justify-between">
+                <Badge className="bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 border-amber-300 font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5">
+                  <Medal className="w-3 h-3 text-amber-700" /> 3rd Overall (2nd Runner Up)
+                </Badge>
+                {podiumGroups.secondRunnersUp.length > 1 && (
+                  <Badge variant="outline" className="bg-amber-50 text-amber-900 border-amber-300 font-bold text-[10px] flex items-center gap-1">
+                    <Users className="w-3 h-3" /> Tied ({podiumGroups.secondRunnersUp.length} Schools)
+                  </Badge>
+                )}
+                <Medal className="w-7 h-7 text-amber-700 dark:text-amber-500 shrink-0" />
+              </div>
+            </CardHeader>
+
+            <CardContent className="pt-3 space-y-3">
+              {podiumGroups.secondRunnersUp.length === 0 ? (
+                <div className="py-4 text-center text-xs font-semibold text-muted-foreground">
+                  Pending Placements
+                </div>
+              ) : (
+                podiumGroups.secondRunnersUp.map((school, sIdx) => (
+                  <div
+                    key={school.schoolName}
+                    className={`p-3 rounded-2xl bg-background/80 border border-amber-200 dark:border-amber-900/40 space-y-2 ${
+                      sIdx > 0 ? "mt-2" : ""
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="text-base font-black text-foreground line-clamp-1">
+                          {school.schoolName}
+                        </h4>
+                        <p className="text-[11px] font-bold text-muted-foreground">
+                          {school.schoolAbbr}
+                        </p>
+                      </div>
+                      <div className="text-xl font-black font-mono text-amber-800 dark:text-amber-500 shrink-0">
+                        {school.totalPoints} <span className="text-[10px] font-bold text-muted-foreground">pts</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1 border-t border-border/40 text-[11px] font-bold text-muted-foreground flex-wrap">
+                      <span className="flex items-center gap-0.5 text-amber-600"><Trophy className="w-3 h-3" /> {school.championsCount}</span>
+                      <span className="flex items-center gap-0.5 text-slate-500"><Medal className="w-3 h-3" /> {school.firstRunnerUpCount}</span>
+                      <span className="flex items-center gap-0.5 text-amber-800"><Medal className="w-3 h-3" /> {school.secondRunnerUpCount}</span>
+                      <span className="flex items-center gap-0.5 text-muted-foreground"><Ticket className="w-3 h-3" /> {school.participationCount}</span>
+                      {school.specialAwardsCount > 0 && (
+                        <span className="flex items-center gap-0.5 text-primary"><Sparkles className="w-3 h-3" /> +{school.specialAwardsPoints} pts</span>
+                      )}
+                    </div>
+                  </div>
+                ))
               )}
-            </div>
-            <div className="text-2xl font-black font-mono text-amber-800 dark:text-amber-500">
-              {podium.third?.totalPoints || 0} <span className="text-xs font-bold text-muted-foreground">pts</span>
-            </div>
-          </CardContent>
+            </CardContent>
+          </div>
         </Card>
       </div>
 
@@ -329,7 +429,7 @@ export default function SecretOverallRankingsClient({
                 <FileSpreadsheet className="w-5 h-5 text-primary" /> Consolidated Overall Point Matrix ({leaderboard.length} Participating Schools)
               </CardTitle>
               <CardDescription className="text-xs font-medium text-muted-foreground">
-                Basis: Champion = 10 pts, 1st Runner Up = 7 pts, 2nd Runner Up = 4 pts, Participation = 1 pt (automatic for registered schools), Special Awards = +2 pts each.
+                Tabulation Basis: Champion = 10 pts, 1st Runner Up = 7 pts, 2nd Runner Up = 4 pts, Participation = 1 pt (automatic for registered schools), Special Awards = +2 pts each.
               </CardDescription>
             </div>
 
@@ -419,6 +519,7 @@ export default function SecretOverallRankingsClient({
                     const isGold = row.rank === 1 && row.totalPoints > 0;
                     const isSilver = row.rank === 2 && row.totalPoints > 0;
                     const isBronze = row.rank === 3 && row.totalPoints > 0;
+                    const isTied = (rankCounts[row.rank] || 0) > 1;
 
                     return (
                       <tr
@@ -435,23 +536,23 @@ export default function SecretOverallRankingsClient({
                             : "bg-secondary/[0.15]"
                         } hover:bg-primary/[0.04]`}
                       >
-                        {/* Rank */}
+                        {/* Rank with Tie support */}
                         <td className="px-3 py-3 border-r border-border/80 text-center align-middle">
                           {isGold ? (
                             <Badge className="bg-amber-500 text-white font-black text-xs px-2.5 py-0.5 shadow-sm inline-flex items-center gap-1">
-                              <Trophy className="w-3 h-3" /> 1st
+                              <Trophy className="w-3 h-3" /> {isTied ? "T-1st" : "1st"}
                             </Badge>
                           ) : isSilver ? (
                             <Badge className="bg-slate-400 dark:bg-slate-600 text-white font-black text-xs px-2.5 py-0.5 shadow-sm inline-flex items-center gap-1">
-                              <Medal className="w-3 h-3" /> 2nd
+                              <Medal className="w-3 h-3" /> {isTied ? "T-2nd" : "2nd"}
                             </Badge>
                           ) : isBronze ? (
                             <Badge className="bg-amber-700 text-white font-black text-xs px-2.5 py-0.5 shadow-sm inline-flex items-center gap-1">
-                              <Medal className="w-3 h-3" /> 3rd
+                              <Medal className="w-3 h-3" /> {isTied ? "T-3rd" : "3rd"}
                             </Badge>
                           ) : (
                             <span className="font-mono font-bold text-xs text-muted-foreground">
-                              #{row.rank}
+                              {isTied ? `T-#${row.rank}` : `#${row.rank}`}
                             </span>
                           )}
                         </td>

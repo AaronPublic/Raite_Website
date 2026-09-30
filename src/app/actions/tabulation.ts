@@ -27,6 +27,8 @@ export interface SchoolTabulationRow {
   firstRunnerUpCount: number;
   secondRunnerUpCount: number;
   participationCount: number;
+  specialAwardsCount: number;
+  specialAwardsPoints: number;
   rank: number;
 }
 
@@ -137,11 +139,9 @@ export async function getTabulationData() {
     const memberUserMap = new Map<string, { id: string; name: string | null; email: string; school: string | null }>();
     memberUsers.forEach((u) => memberUserMap.set(u.email.toLowerCase(), u));
 
-    // Map schools by event
+    // Map schools by event and collect participating schools (schools with actual registrations)
     const eventSchoolsMap: Record<string, Set<string>> = {};
-    const allKnownSchoolNames = new Set<string>();
-
-    registeredSchools.forEach((s) => allKnownSchoolNames.add(s.name));
+    const schoolsWithRegistrations = new Set<string>();
 
     // Also collect participant list for individual awards (deduplicated per event)
     const participantsList: ParticipantOption[] = [];
@@ -168,12 +168,13 @@ export async function getTabulationData() {
 
     registrations.forEach((reg) => {
       const school = reg.user.school || "N/A";
-      if (reg.user.school) {
-        allKnownSchoolNames.add(reg.user.school);
+      if (reg.user.school && reg.user.school.trim() && reg.user.school !== "N/A") {
+        const cleanSchool = reg.user.school.trim();
+        schoolsWithRegistrations.add(cleanSchool);
         if (!eventSchoolsMap[reg.eventId]) {
           eventSchoolsMap[reg.eventId] = new Set<string>();
         }
-        eventSchoolsMap[reg.eventId].add(reg.user.school);
+        eventSchoolsMap[reg.eventId].add(cleanSchool);
       }
 
       const teamName = reg.teamName || "Individual";
@@ -254,8 +255,25 @@ export async function getTabulationData() {
       schoolAbbrMap[s.name] = s.abbreviation;
     });
 
-    // 4. Calculate tabulation rows for all schools
-    const schoolRows: SchoolTabulationRow[] = Array.from(allKnownSchoolNames).map((schoolName) => {
+    // Map Special Awards with strict type safety & compute special awards count per school (+2 pts each)
+    const specialAwardsCountMap: Record<string, number> = {};
+    const specialAwards: SpecialAwardEntry[] = rawSpecialAwards.map((a) => {
+      if (a.schoolName && a.schoolName.trim()) {
+        const sName = a.schoolName.trim();
+        specialAwardsCountMap[sName] = (specialAwardsCountMap[sName] || 0) + 1;
+      }
+      return {
+        id: a.id,
+        category: a.category,
+        awardTitle: a.awardTitle,
+        awardType: (a.awardType === "SCHOOL" ? "SCHOOL" : "INDIVIDUAL") as "INDIVIDUAL" | "SCHOOL",
+        winnerName: a.winnerName,
+        schoolName: a.schoolName,
+      };
+    });
+
+    // 4. Calculate tabulation rows ONLY for schools that have active registrations
+    const schoolRows: SchoolTabulationRow[] = Array.from(schoolsWithRegistrations).map((schoolName) => {
       const eventScores: SchoolTabulationRow["eventScores"] = {};
       let totalPoints = 0;
       let championsCount = 0;
@@ -288,6 +306,11 @@ export async function getTabulationData() {
         }
       });
 
+      // Award +2 points per special award won
+      const specialAwardsCount = specialAwardsCountMap[schoolName] || 0;
+      const specialAwardsPoints = specialAwardsCount * 2;
+      totalPoints += specialAwardsPoints;
+
       return {
         schoolName,
         schoolAbbr: schoolAbbrMap[schoolName] || schoolName,
@@ -297,6 +320,8 @@ export async function getTabulationData() {
         firstRunnerUpCount,
         secondRunnerUpCount,
         participationCount,
+        specialAwardsCount,
+        specialAwardsPoints,
         rank: 0,
       };
     });
@@ -307,6 +332,7 @@ export async function getTabulationData() {
       if (b.championsCount !== a.championsCount) return b.championsCount - a.championsCount;
       if (b.firstRunnerUpCount !== a.firstRunnerUpCount) return b.firstRunnerUpCount - a.firstRunnerUpCount;
       if (b.secondRunnerUpCount !== a.secondRunnerUpCount) return b.secondRunnerUpCount - a.secondRunnerUpCount;
+      if (b.specialAwardsCount !== a.specialAwardsCount) return b.specialAwardsCount - a.specialAwardsCount;
       return a.schoolName.localeCompare(b.schoolName);
     });
 
@@ -318,7 +344,8 @@ export async function getTabulationData() {
           row.totalPoints === prev.totalPoints &&
           row.championsCount === prev.championsCount &&
           row.firstRunnerUpCount === prev.firstRunnerUpCount &&
-          row.secondRunnerUpCount === prev.secondRunnerUpCount
+          row.secondRunnerUpCount === prev.secondRunnerUpCount &&
+          row.specialAwardsCount === prev.specialAwardsCount
         ) {
           row.rank = prev.rank;
         } else {
@@ -329,19 +356,9 @@ export async function getTabulationData() {
       }
     });
 
-    // 5. Map Special Awards with strict type safety
-    const specialAwards: SpecialAwardEntry[] = rawSpecialAwards.map((a) => ({
-      id: a.id,
-      category: a.category,
-      awardTitle: a.awardTitle,
-      awardType: (a.awardType === "SCHOOL" ? "SCHOOL" : "INDIVIDUAL") as "INDIVIDUAL" | "SCHOOL",
-      winnerName: a.winnerName,
-      schoolName: a.schoolName,
-    }));
-
     return {
       events: formattedEvents,
-      schools: Array.from(allKnownSchoolNames).sort(),
+      schools: Array.from(schoolsWithRegistrations).sort(),
       registeredSchools,
       leaderboard: schoolRows,
       specialAwards,

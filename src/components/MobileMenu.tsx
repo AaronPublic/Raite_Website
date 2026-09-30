@@ -29,7 +29,8 @@ import {
   Shirt,
   Award,
   Gavel,
-  Calculator
+  Calculator,
+  Lock
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
@@ -95,6 +96,7 @@ export default function MobileMenu({ userId, userRole, userApproved }: MobileMen
     { name: "Judges", href: "/admin/judges", icon: Gavel, role: "ADMIN" },
     { name: "Scores & Rankings", href: "/admin/scores", icon: Award, role: "ADMIN" },
     { name: "Overall Tabulation & Awards", href: "/admin/tabulation", icon: Calculator, role: "ADMIN" },
+    { name: "Overall Rankings (Secret 🔒)", href: "/admin/overall-rankings", icon: Lock, role: "ADMIN" },
     { name: "Shirt Sizes & Kit", href: "/admin/shirt-sizes", icon: Shirt, role: "ADMIN" },
     { name: "Settings", href: "/admin/settings", icon: Settings, role: "ADMIN" },
     { name: "Judging Portal", href: "/judge/competitions", icon: Award, role: "JUDGE" },

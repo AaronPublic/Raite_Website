@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useMemo } from "react";
+import Link from "next/link";
 import { 
   TabulationEventInfo, 
   SchoolTabulationRow, 
@@ -31,7 +32,8 @@ import {
   FileSpreadsheet,
   Star,
   Ticket,
-  Edit3
+  Edit3,
+  Lock
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -47,8 +49,8 @@ const DEFAULT_SPECIAL_AWARDS = [
   { category: "E-Games", awardTitle: "Mobile Legends MVP Award", awardType: "INDIVIDUAL" as const },
   { category: "E-Games", awardTitle: "Valorant MVP Award", awardType: "INDIVIDUAL" as const },
   { category: "Micro Short Film", awardTitle: "Best Screenplay", awardType: "SCHOOL" as const },
-  { category: "Micro Short Film", awardTitle: "Best Actor", awardType: "INDIVIDUAL" as const },
-  { category: "Micro Short Film", awardTitle: "Best Actress", awardType: "INDIVIDUAL" as const },
+  { category: "Micro Short Film", awardTitle: "Best Actor", awardType: "SCHOOL" as const },
+  { category: "Micro Short Film", awardTitle: "Best Actress", awardType: "SCHOOL" as const },
   { category: "Micro Short Film", awardTitle: "Best Editing", awardType: "SCHOOL" as const },
   { category: "Micro Short Film", awardTitle: "Best Social Impact Film", awardType: "SCHOOL" as const },
   { category: "Micro Short Film", awardTitle: "Best Visual Effects", awardType: "SCHOOL" as const },
@@ -62,7 +64,7 @@ export default function TabulationClient({
   initialSpecialAwards,
   participantsList,
 }: TabulationClientProps) {
-  const [activeTab, setActiveTab] = useState<"tabulation" | "placements" | "awards">("tabulation");
+  const [activeTab, setActiveTab] = useState<"placements" | "awards">("placements");
   const [events, setEvents] = useState<TabulationEventInfo[]>(initialEvents);
   const [schools] = useState<string[]>(initialSchools);
   const [leaderboard, setLeaderboard] = useState<SchoolTabulationRow[]>(initialLeaderboard);
@@ -102,8 +104,16 @@ export default function TabulationClient({
   const [isPlacementsDirty, setIsPlacementsDirty] = useState(false);
   const [isAwardsDirty, setIsAwardsDirty] = useState(false);
 
-  // Recalculate leaderboard dynamically based on local placementsState
+  // Recalculate leaderboard dynamically based on local placementsState & specialAwardsState (+2 pts each)
   const liveLeaderboard = useMemo(() => {
+    const specialAwardsCountMap: Record<string, number> = {};
+    DEFAULT_SPECIAL_AWARDS.forEach((def) => {
+      const sName = specialAwardsState[def.awardTitle]?.schoolName;
+      if (sName && sName.trim()) {
+        specialAwardsCountMap[sName.trim()] = (specialAwardsCountMap[sName.trim()] || 0) + 1;
+      }
+    });
+
     const rows = schools.map((schoolName) => {
       const eventScores: SchoolTabulationRow["eventScores"] = {};
       let totalPoints = 0;
@@ -137,6 +147,11 @@ export default function TabulationClient({
         }
       });
 
+      // Special awards (+2 pts each)
+      const specialAwardsCount = specialAwardsCountMap[schoolName] || 0;
+      const specialAwardsPoints = specialAwardsCount * 2;
+      totalPoints += specialAwardsPoints;
+
       const existingRow = leaderboard.find((r) => r.schoolName === schoolName);
 
       return {
@@ -148,6 +163,8 @@ export default function TabulationClient({
         firstRunnerUpCount,
         secondRunnerUpCount,
         participationCount,
+        specialAwardsCount,
+        specialAwardsPoints,
         rank: 0,
       };
     });
@@ -158,6 +175,7 @@ export default function TabulationClient({
       if (b.championsCount !== a.championsCount) return b.championsCount - a.championsCount;
       if (b.firstRunnerUpCount !== a.firstRunnerUpCount) return b.firstRunnerUpCount - a.firstRunnerUpCount;
       if (b.secondRunnerUpCount !== a.secondRunnerUpCount) return b.secondRunnerUpCount - a.secondRunnerUpCount;
+      if (b.specialAwardsCount !== a.specialAwardsCount) return b.specialAwardsCount - a.specialAwardsCount;
       return a.schoolName.localeCompare(b.schoolName);
     });
 
@@ -169,7 +187,8 @@ export default function TabulationClient({
           row.totalPoints === prev.totalPoints &&
           row.championsCount === prev.championsCount &&
           row.firstRunnerUpCount === prev.firstRunnerUpCount &&
-          row.secondRunnerUpCount === prev.secondRunnerUpCount
+          row.secondRunnerUpCount === prev.secondRunnerUpCount &&
+          row.specialAwardsCount === prev.specialAwardsCount
         ) {
           row.rank = prev.rank;
         } else {
@@ -181,7 +200,7 @@ export default function TabulationClient({
     });
 
     return rows;
-  }, [schools, events, placementsState, leaderboard]);
+  }, [schools, events, placementsState, specialAwardsState, leaderboard]);
 
   const filteredLeaderboard = useMemo(() => {
     return liveLeaderboard.filter((r) =>
@@ -277,31 +296,19 @@ export default function TabulationClient({
 
   return (
     <div className="space-y-8">
-      {/* Top Navigation Tabs */}
+      {/* Top Navigation & Actions Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-4">
         <div className="flex items-center gap-2 overflow-x-auto p-1 bg-secondary/50 rounded-2xl border border-border/60">
           <button
-            onClick={() => setActiveTab("tabulation")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
-              activeTab === "tabulation"
-                ? "bg-primary text-white shadow-md shadow-primary/20"
-                : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-            }`}
-          >
-            <Trophy className="w-4 h-4" />
-            <span>Overall Tabulation Matrix</span>
-          </button>
-
-          <button
             onClick={() => setActiveTab("placements")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all ${
               activeTab === "placements"
                 ? "bg-primary text-white shadow-md shadow-primary/20"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary"
             }`}
           >
             <Crown className="w-4 h-4" />
-            <span>Competition Placements</span>
+            <span>1. Competition Placements</span>
             {isPlacementsDirty && (
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
             )}
@@ -309,22 +316,32 @@ export default function TabulationClient({
 
           <button
             onClick={() => setActiveTab("awards")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all ${
               activeTab === "awards"
                 ? "bg-primary text-white shadow-md shadow-primary/20"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary"
             }`}
           >
             <Sparkles className="w-4 h-4" />
-            <span>Special Awards</span>
+            <span>2. Special Awards</span>
             {isAwardsDirty && (
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
             )}
           </button>
         </div>
 
-        {/* Global Save Indicator / Action */}
+        {/* Global Save Indicator / Action & Secret Page Link */}
         <div className="flex items-center gap-3">
+          <Link href="/admin/overall-rankings">
+            <Button
+              variant="outline"
+              className="rounded-xl font-black text-xs h-10 px-4 border-amber-400/50 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 shadow-sm"
+            >
+              <Lock className="w-3.5 h-3.5 mr-1.5 text-amber-600" />
+              View Secret Overall Rankings Matrix
+            </Button>
+          </Link>
+
           {activeTab === "placements" && (
             <Button
               onClick={handleSavePlacements}
@@ -368,297 +385,6 @@ export default function TabulationClient({
           )}
         </div>
       </div>
-
-      {/* TAB 1: OVERALL TABULATION MATRIX */}
-      {activeTab === "tabulation" && (
-        <div className="space-y-8">
-          {/* Podium Highlight Banner */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {/* 2nd Place Silver */}
-            <Card className="rounded-3xl border-2 border-slate-300 dark:border-slate-700 bg-gradient-to-b from-slate-100/60 to-transparent dark:from-slate-900/40 shadow-lg relative overflow-hidden">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <Badge className="bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5">
-                    <Medal className="w-3 h-3 text-slate-500" /> 2nd Overall (1st Runner Up)
-                  </Badge>
-                  <Medal className="w-7 h-7 text-slate-400" />
-                </div>
-                <CardTitle className="text-xl font-black tracking-tight text-foreground line-clamp-1 mt-2">
-                  {podium.second?.schoolName || "TBD"}
-                </CardTitle>
-                <CardDescription className="text-xs font-semibold text-muted-foreground">
-                  {podium.second?.schoolAbbr || "Pending Placements"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-2 flex items-baseline justify-between border-t border-border/40">
-                <div className="flex items-center gap-2.5 text-xs font-bold text-muted-foreground">
-                  <span className="flex items-center gap-0.5 text-amber-600"><Trophy className="w-3.5 h-3.5" /> {podium.second?.championsCount || 0}</span>
-                  <span className="flex items-center gap-0.5 text-slate-500"><Medal className="w-3.5 h-3.5" /> {podium.second?.firstRunnerUpCount || 0}</span>
-                  <span className="flex items-center gap-0.5 text-amber-800"><Medal className="w-3.5 h-3.5" /> {podium.second?.secondRunnerUpCount || 0}</span>
-                </div>
-                <div className="text-2xl font-black font-mono text-slate-700 dark:text-slate-300">
-                  {podium.second?.totalPoints || 0} <span className="text-xs font-bold text-muted-foreground">pts</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 1st Place Champion Gold */}
-            <Card className="rounded-3xl border-2 border-amber-400 dark:border-amber-600 bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-transparent shadow-xl relative overflow-hidden md:-translate-y-2">
-              <div className="absolute top-0 right-0 left-0 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500" />
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <Badge className="bg-amber-500 text-white font-black text-[10px] uppercase tracking-wider shadow-sm flex items-center gap-1.5">
-                    <Crown className="w-3.5 h-3.5" /> Overall Champion
-                  </Badge>
-                  <Crown className="w-8 h-8 text-amber-500" />
-                </div>
-                <CardTitle className="text-2xl font-black tracking-tight text-foreground line-clamp-1 mt-2">
-                  {podium.first?.schoolName || "TBD"}
-                </CardTitle>
-                <CardDescription className="text-xs font-semibold text-amber-700 dark:text-amber-400">
-                  {podium.first?.schoolAbbr || "Pending Placements"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-2 flex items-baseline justify-between border-t border-amber-200 dark:border-amber-900/50">
-                <div className="flex items-center gap-2.5 text-xs font-bold text-muted-foreground">
-                  <span className="flex items-center gap-0.5 text-amber-600 font-black"><Trophy className="w-3.5 h-3.5" /> {podium.first?.championsCount || 0}</span>
-                  <span className="flex items-center gap-0.5 text-slate-500"><Medal className="w-3.5 h-3.5" /> {podium.first?.firstRunnerUpCount || 0}</span>
-                  <span className="flex items-center gap-0.5 text-amber-800"><Medal className="w-3.5 h-3.5" /> {podium.first?.secondRunnerUpCount || 0}</span>
-                </div>
-                <div className="text-3xl font-black font-mono text-amber-600 dark:text-amber-400">
-                  {podium.first?.totalPoints || 0} <span className="text-xs font-bold text-muted-foreground">pts</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 3rd Place Bronze */}
-            <Card className="rounded-3xl border-2 border-amber-800/40 dark:border-amber-900/60 bg-gradient-to-b from-amber-950/10 to-transparent shadow-lg relative overflow-hidden">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <Badge className="bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-300 border-amber-300 font-black text-[10px] uppercase tracking-wider flex items-center gap-1.5">
-                    <Medal className="w-3 h-3 text-amber-700" /> 3rd Overall (2nd Runner Up)
-                  </Badge>
-                  <Medal className="w-7 h-7 text-amber-700 dark:text-amber-500" />
-                </div>
-                <CardTitle className="text-xl font-black tracking-tight text-foreground line-clamp-1 mt-2">
-                  {podium.third?.schoolName || "TBD"}
-                </CardTitle>
-                <CardDescription className="text-xs font-semibold text-muted-foreground">
-                  {podium.third?.schoolAbbr || "Pending Placements"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-2 flex items-baseline justify-between border-t border-border/40">
-                <div className="flex items-center gap-2.5 text-xs font-bold text-muted-foreground">
-                  <span className="flex items-center gap-0.5 text-amber-600"><Trophy className="w-3.5 h-3.5" /> {podium.third?.championsCount || 0}</span>
-                  <span className="flex items-center gap-0.5 text-slate-500"><Medal className="w-3.5 h-3.5" /> {podium.third?.firstRunnerUpCount || 0}</span>
-                  <span className="flex items-center gap-0.5 text-amber-800"><Medal className="w-3.5 h-3.5" /> {podium.third?.secondRunnerUpCount || 0}</span>
-                </div>
-                <div className="text-2xl font-black font-mono text-amber-800 dark:text-amber-500">
-                  {podium.third?.totalPoints || 0} <span className="text-xs font-bold text-muted-foreground">pts</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Tabulation Matrix Card */}
-          <Card className="rounded-[2rem] border-2 border-border/80 shadow-2xl overflow-hidden bg-card w-full">
-            <CardHeader className="pb-4 border-b border-border/80 bg-secondary/30">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <CardTitle className="text-xl font-black tracking-tight text-foreground uppercase flex items-center gap-2.5">
-                    <FileSpreadsheet className="w-5 h-5 text-primary" /> Consolidated Overall Point Matrix
-                  </CardTitle>
-                  <CardDescription className="text-xs font-medium text-muted-foreground">
-                    Tabulation Basis: Champion = 10 pts, 1st Runner Up = 7 pts, 2nd Runner Up = 4 pts, Participation = 1 pt (automatic for schools with entries).
-                  </CardDescription>
-                </div>
-
-                <div className="relative w-full sm:w-72">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search school name..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9 h-9 rounded-xl bg-background border-border/80 text-xs font-medium"
-                  />
-                </div>
-              </div>
-            </CardHeader>
-
-            <CardContent className="p-0">
-              <div className="overflow-x-auto w-full">
-                <table className="w-full border-collapse text-left text-xs">
-                  <thead>
-                    <tr className="border-b-2 border-border text-[10px] font-black uppercase tracking-wider text-muted-foreground bg-secondary/60">
-                      <th className="px-3 py-3 border-r border-border/80 min-w-[75px] text-center">
-                        Rank
-                      </th>
-                      <th className="px-4 py-3 border-r border-border/80 min-w-[200px]">
-                        School Institution
-                      </th>
-                      {events.map((ev) => (
-                        <th
-                          key={ev.id}
-                          className="px-2.5 py-3 border-r border-border/80 text-center min-w-[120px] max-w-[160px]"
-                        >
-                          <div className="flex flex-col items-center justify-center text-center gap-0.5">
-                            <span className="text-[11px] font-black text-foreground whitespace-normal break-words leading-tight">
-                              {ev.title}
-                            </span>
-                            <span className="text-[9px] font-bold text-muted-foreground uppercase">
-                              {ev.category || "Event"}
-                            </span>
-                          </div>
-                        </th>
-                      ))}
-                      <th className="px-2.5 py-3 border-r border-border/80 text-center min-w-[70px] bg-secondary/80">
-                        <div className="flex items-center justify-center gap-1">
-                          <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                          <span>Gold</span>
-                        </div>
-                      </th>
-                      <th className="px-2.5 py-3 border-r border-border/80 text-center min-w-[70px] bg-secondary/80">
-                        <div className="flex items-center justify-center gap-1">
-                          <Medal className="w-3.5 h-3.5 text-slate-400" />
-                          <span>Silver</span>
-                        </div>
-                      </th>
-                      <th className="px-2.5 py-3 border-r border-border/80 text-center min-w-[70px] bg-secondary/80">
-                        <div className="flex items-center justify-center gap-1">
-                          <Medal className="w-3.5 h-3.5 text-amber-700" />
-                          <span>Bronze</span>
-                        </div>
-                      </th>
-                      <th className="px-2.5 py-3 border-r border-border/80 text-center min-w-[70px] bg-secondary/80">
-                        <div className="flex items-center justify-center gap-1">
-                          <Ticket className="w-3.5 h-3.5 text-muted-foreground" />
-                          <span>Parts.</span>
-                        </div>
-                      </th>
-                      <th className="px-4 py-3 text-center min-w-[100px] bg-primary/10 text-primary font-black">
-                        Total Points
-                      </th>
-                    </tr>
-                  </thead>
-
-                  <tbody className="divide-y divide-border/60">
-                    {filteredLeaderboard.length === 0 ? (
-                      <tr>
-                        <td colSpan={events.length + 7} className="text-center py-16 text-muted-foreground">
-                          No schools found matching your search.
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredLeaderboard.map((row, idx) => {
-                        const isGold = row.rank === 1 && row.totalPoints > 0;
-                        const isSilver = row.rank === 2 && row.totalPoints > 0;
-                        const isBronze = row.rank === 3 && row.totalPoints > 0;
-
-                        return (
-                          <tr
-                            key={row.schoolName}
-                            className={`transition-colors font-medium ${
-                              isGold
-                                ? "bg-amber-500/10 hover:bg-amber-500/15"
-                                : isSilver
-                                ? "bg-slate-200/40 dark:bg-slate-800/30 hover:bg-slate-200/60"
-                                : isBronze
-                                ? "bg-amber-900/10 hover:bg-amber-900/15"
-                                : idx % 2 === 0
-                                ? "bg-card"
-                                : "bg-secondary/[0.15]"
-                            } hover:bg-primary/[0.04]`}
-                          >
-                            {/* Rank */}
-                            <td className="px-3 py-3 border-r border-border/80 text-center align-middle">
-                              {isGold ? (
-                                <Badge className="bg-amber-500 text-white font-black text-xs px-2.5 py-0.5 shadow-sm inline-flex items-center gap-1">
-                                  <Trophy className="w-3 h-3" /> 1st
-                                </Badge>
-                              ) : isSilver ? (
-                                <Badge className="bg-slate-400 dark:bg-slate-600 text-white font-black text-xs px-2.5 py-0.5 shadow-sm inline-flex items-center gap-1">
-                                  <Medal className="w-3 h-3" /> 2nd
-                                </Badge>
-                              ) : isBronze ? (
-                                <Badge className="bg-amber-700 text-white font-black text-xs px-2.5 py-0.5 shadow-sm inline-flex items-center gap-1">
-                                  <Medal className="w-3 h-3" /> 3rd
-                                </Badge>
-                              ) : (
-                                <span className="font-mono font-bold text-xs text-muted-foreground">
-                                  #{row.rank}
-                                </span>
-                              )}
-                            </td>
-
-                            {/* School Name */}
-                            <td className="px-4 py-3 border-r border-border/80 align-middle">
-                              <div className="flex flex-col">
-                                <span className="font-bold text-foreground text-xs">{row.schoolName}</span>
-                                <span className="text-[10px] font-semibold text-muted-foreground">{row.schoolAbbr}</span>
-                              </div>
-                            </td>
-
-                            {/* Event Cells */}
-                            {events.map((ev) => {
-                              const cell = row.eventScores[ev.id] || { points: 0, label: "None" };
-
-                              return (
-                                <td
-                                  key={ev.id}
-                                  className="px-2.5 py-3 border-r border-border/80 text-center align-middle font-mono text-xs"
-                                >
-                                  {cell.label === "Champion" ? (
-                                    <Badge className="bg-amber-500 text-white font-black text-[11px] px-2 py-0.5 shadow-sm inline-flex items-center gap-1">
-                                      <Trophy className="w-2.5 h-2.5" /> +10
-                                    </Badge>
-                                  ) : cell.label === "1st Runner Up" ? (
-                                    <Badge className="bg-slate-400 dark:bg-slate-600 text-white font-black text-[11px] px-2 py-0.5 shadow-sm inline-flex items-center gap-1">
-                                      <Medal className="w-2.5 h-2.5" /> +7
-                                    </Badge>
-                                  ) : cell.label === "2nd Runner Up" ? (
-                                    <Badge className="bg-amber-700 text-white font-black text-[11px] px-2 py-0.5 shadow-sm inline-flex items-center gap-1">
-                                      <Medal className="w-2.5 h-2.5" /> +4
-                                    </Badge>
-                                  ) : cell.label === "Participation" ? (
-                                    <Badge variant="outline" className="bg-secondary/60 text-muted-foreground font-bold text-[10px] px-1.5 py-0.5 inline-flex items-center gap-1">
-                                      <Ticket className="w-2.5 h-2.5" /> +1 pt
-                                    </Badge>
-                                  ) : (
-                                    <span className="text-muted-foreground/30 font-sans">-</span>
-                                  )}
-                                </td>
-                              );
-                            })}
-
-                            {/* Summary Counts */}
-                            <td className="px-2.5 py-3 border-r border-border/80 text-center align-middle font-mono font-bold text-amber-600">
-                              {row.championsCount}
-                            </td>
-                            <td className="px-2.5 py-3 border-r border-border/80 text-center align-middle font-mono font-bold text-slate-500">
-                              {row.firstRunnerUpCount}
-                            </td>
-                            <td className="px-2.5 py-3 border-r border-border/80 text-center align-middle font-mono font-bold text-amber-800">
-                              {row.secondRunnerUpCount}
-                            </td>
-                            <td className="px-2.5 py-3 border-r border-border/80 text-center align-middle font-mono text-muted-foreground">
-                              {row.participationCount}
-                            </td>
-
-                            {/* Total Points */}
-                            <td className="px-4 py-3 text-center align-middle bg-primary/10 font-black font-mono text-sm text-primary">
-                              {row.totalPoints}
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
 
       {/* TAB 2: COMPETITION PLACEMENTS FORM */}
       {activeTab === "placements" && (

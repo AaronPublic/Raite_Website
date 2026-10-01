@@ -61,6 +61,24 @@ export async function getTabulationData() {
       throw new Error("Forbidden: Admin access required");
     }
 
+    return await fetchTabulationDataInternal();
+  } catch (error: any) {
+    console.error("getTabulationData error:", error);
+    throw new Error(error.message || "Failed to load tabulation data");
+  }
+}
+
+export async function getPublicOverallRankingsData() {
+  try {
+    return await fetchTabulationDataInternal();
+  } catch (error: any) {
+    console.error("getPublicOverallRankingsData error:", error);
+    throw new Error(error.message || "Failed to load overall rankings data");
+  }
+}
+
+async function fetchTabulationDataInternal() {
+  try {
     // 1. Fetch all data in parallel for optimal latency
     const [events, registeredSchools, registrations, rawSpecialAwards] = await Promise.all([
       db.event.findMany({
@@ -365,7 +383,7 @@ export async function getTabulationData() {
       participantsList,
     };
   } catch (error: any) {
-    console.error("getTabulationData error:", error);
+    console.error("fetchTabulationDataInternal error:", error);
     throw new Error(error.message || "Failed to load tabulation data");
   }
 }

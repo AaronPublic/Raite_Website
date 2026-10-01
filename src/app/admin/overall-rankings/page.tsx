@@ -1,5 +1,5 @@
 import { getTabulationData } from "@/app/actions/tabulation";
-import SecretOverallRankingsClient from "@/components/admin/SecretOverallRankingsClient";
+import AdminOverallRankingsClient from "@/components/admin/AdminOverallRankingsClient";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -12,7 +12,7 @@ export default async function OverallRankingsPage() {
 
   return (
     <div className="space-y-6">
-      <SecretOverallRankingsClient
+      <AdminOverallRankingsClient
         events={data.events}
         schools={data.schools}
         leaderboard={data.leaderboard}

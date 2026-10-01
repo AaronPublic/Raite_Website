@@ -37,7 +37,6 @@ interface PublicOverallRankingsClientProps {
 }
 
 const PUBLIC_PASSWORD = "RAITE2026-RANKINGS";
-const STORAGE_KEY = "raite_public_overall_rankings_unlocked";
 
 export default function PublicOverallRankingsClient({
   events,
@@ -54,10 +53,6 @@ export default function PublicOverallRankingsClient({
 
   useEffect(() => {
     setMounted(true);
-    const saved = sessionStorage.getItem(STORAGE_KEY);
-    if (saved === "true") {
-      setIsUnlocked(true);
-    }
   }, []);
 
   const handleUnlock = (e: React.FormEvent) => {
@@ -65,20 +60,11 @@ export default function PublicOverallRankingsClient({
     if (passwordInput.trim() === PUBLIC_PASSWORD) {
       setIsUnlocked(true);
       setErrorMsg(null);
-      sessionStorage.setItem(STORAGE_KEY, "true");
       toast.success("Access granted! Overall rankings unlocked.");
     } else {
       setErrorMsg("Incorrect password. Access to overall rankings denied.");
       toast.error("Invalid password.");
     }
-  };
-
-  const handleLock = () => {
-    setIsUnlocked(false);
-    setPasswordInput("");
-    setErrorMsg(null);
-    sessionStorage.removeItem(STORAGE_KEY);
-    toast.info("Overall rankings view locked.");
   };
 
   // Filter leaderboard based on search query
@@ -210,17 +196,6 @@ export default function PublicOverallRankingsClient({
           <p className="text-xs sm:text-sm text-muted-foreground font-medium">
             Official institutional point matrix and awards leaderboard.
           </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Button
-            onClick={handleLock}
-            variant="outline"
-            size="sm"
-            className="rounded-xl font-bold text-xs text-muted-foreground hover:text-foreground border-border/80"
-          >
-            <Lock className="w-3.5 h-3.5 mr-1.5" /> Lock View
-          </Button>
         </div>
       </div>
 

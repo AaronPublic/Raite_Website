@@ -8,8 +8,6 @@ export const metadata: Metadata = {
   description: "Official institutional consolidated overall rankings and points matrix for RAITE 2026.",
 };
 
-export const revalidate = 0; // Dynamic data for live rankings
-
 export default async function PublicOverallRankingsPage() {
   const data = await getPublicOverallRankingsData();
 

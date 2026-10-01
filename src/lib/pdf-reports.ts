@@ -614,3 +614,336 @@ export const generateRAITEShirtSizesSummaryPDF = (
 
   doc.save(`RAITE_2026_SHIRT_SIZES_SUMMARY.pdf`);
 };
+
+export interface CompetitionWinnersPDFData {
+  events: Array<{
+    id: string;
+    title: string;
+    category: string | null;
+    subcategory?: string | null;
+    placement: {
+      championSchool: string | null;
+      firstRunnerUp: string | null;
+      secondRunnerUp: string | null;
+    } | null;
+  }>;
+  specialAwards?: Array<{
+    awardTitle: string;
+    category: string;
+    awardType?: "INDIVIDUAL" | "SCHOOL";
+    winnerName?: string | null;
+    schoolName?: string | null;
+  }>;
+  overallPodium?: {
+    champions?: Array<{ schoolName: string; schoolAbbr?: string; totalPoints: number }>;
+    firstRunnersUp?: Array<{ schoolName: string; schoolAbbr?: string; totalPoints: number }>;
+    secondRunnersUp?: Array<{ schoolName: string; schoolAbbr?: string; totalPoints: number }>;
+  };
+}
+
+export const generateRAITECompetitionWinnersPDF = (data: CompetitionWinnersPDFData) => {
+  const doc = new jsPDF();
+  setupFonts(doc);
+  const date = new Date().toLocaleString("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+
+  // Helper to add standard official header
+  const addHeader = () => {
+    // Add Logos
+    doc.addImage("/psite.png", "PNG", 14, 10, 85, 22);
+    doc.addImage("/RAITE.png", "PNG", 102, 10, 22, 22);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.setTextColor(0, 56, 168); // RAITE Blue
+    doc.text("RAITE", 14, 40);
+    const raiteWidth = doc.getTextWidth("RAITE ");
+    doc.setTextColor(220, 38, 38); // Red
+    doc.text("2026", 14 + raiteWidth, 40);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text("Regional Assembly on Information Technology Education", 14, 46);
+    doc.text("PSITE Region III - Central Luzon", 14, 50);
+
+    // Tri-color separator line (Blue, Yellow, Red)
+    const startX = 14;
+    const endX = 196;
+    const segmentWidth = (endX - startX) / 3;
+    doc.setLineWidth(1);
+    doc.setDrawColor(0, 56, 168);
+    doc.line(startX, 54, startX + segmentWidth, 54);
+    doc.setDrawColor(251, 191, 36);
+    doc.line(startX + segmentWidth, 54, startX + (segmentWidth * 2), 54);
+    doc.setDrawColor(220, 38, 38);
+    doc.line(startX + (segmentWidth * 2), 54, endX, 54);
+
+    // Document Title
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(0, 56, 168);
+    doc.text("OFFICIAL LIST OF COMPETITION WINNERS & AWARDEES", 14, 63);
+
+    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(120);
+    doc.text(`Official Tabulation Report • Certified on: ${date}`, 14, 68);
+  };
+
+  addHeader();
+
+  // 1. Prepare Main Competition Events Table
+  const competitionColumns = [
+    "#",
+    "Competition Event",
+    "Category",
+    "Champion (1st Place)",
+    "1st Runner Up",
+    "2nd Runner Up",
+  ];
+
+  const competitionRows = data.events.map((ev, idx) => {
+    const p = ev.placement;
+    return [
+      idx + 1,
+      cleanText(ev.title),
+      cleanText(ev.subcategory || ev.category || "General"),
+      p?.championSchool ? cleanText(p.championSchool) : "Pending",
+      p?.firstRunnerUp ? cleanText(p.firstRunnerUp) : "Pending",
+      p?.secondRunnerUp ? cleanText(p.secondRunnerUp) : "Pending",
+    ];
+  });
+
+  autoTable(doc, {
+    startY: 73,
+    head: [competitionColumns],
+    body: competitionRows,
+    styles: { 
+      fontSize: 8, 
+      cellPadding: 2.5,
+      overflow: "linebreak",
+    },
+    headStyles: { 
+      fillColor: [0, 56, 168], 
+      textColor: [255, 255, 255],
+      fontStyle: "bold",
+      halign: "left",
+    },
+    columnStyles: {
+      0: { cellWidth: 8, halign: "center" },
+      1: { cellWidth: 46, fontStyle: "bold" },
+      2: { cellWidth: 26 },
+      3: { cellWidth: 36, textColor: [0, 56, 168], fontStyle: "bold" },
+      4: { cellWidth: 33 },
+      5: { cellWidth: 33 },
+    },
+    alternateRowStyles: { fillColor: [248, 250, 252] },
+    margin: { left: 14, right: 14, top: 15, bottom: 20 },
+  });
+
+  let lastY = (doc as any).lastAutoTable?.finalY || 100;
+  const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+
+  // 2. Prepare Special Awards Section (if any awards exist)
+  if (data.specialAwards && data.specialAwards.length > 0) {
+    if (lastY + 45 > pageHeight - 30) {
+      doc.addPage();
+      lastY = 20;
+    } else {
+      lastY += 8;
+    }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(0, 56, 168);
+    doc.text("SPECIAL AWARDS & INDIVIDUAL RECOGNITIONS (+2 PTS EACH)", 14, lastY);
+    doc.setDrawColor(0, 56, 168);
+    doc.setLineWidth(0.5);
+    doc.line(14, lastY + 2, 196, lastY + 2);
+
+    const specialAwardsColumns = [
+      "#",
+      "Special Award Title",
+      "Category",
+      "Awardee / Recipient",
+      "Winning School / Institution",
+    ];
+
+    const specialAwardsRows = data.specialAwards.map((a, idx) => [
+      idx + 1,
+      cleanText(a.awardTitle),
+      cleanText(a.category),
+      a.winnerName && a.winnerName.trim() ? cleanText(a.winnerName) : "—",
+      a.schoolName && a.schoolName.trim() ? cleanText(a.schoolName) : "Pending",
+    ]);
+
+    autoTable(doc, {
+      startY: lastY + 5,
+      head: [specialAwardsColumns],
+      body: specialAwardsRows,
+      styles: { 
+        fontSize: 8, 
+        cellPadding: 2.5,
+        overflow: "linebreak",
+      },
+      headStyles: { 
+        fillColor: [30, 41, 59], 
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+        halign: "left",
+      },
+      columnStyles: {
+        0: { cellWidth: 8, halign: "center" },
+        1: { cellWidth: 50, fontStyle: "bold" },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 44 },
+        4: { cellWidth: 50, fontStyle: "bold" },
+      },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      margin: { left: 14, right: 14, top: 15, bottom: 20 },
+    });
+
+    lastY = (doc as any).lastAutoTable?.finalY || lastY + 50;
+  }
+
+  // 3. Prepare Overall Institutional Podium Summary (if provided)
+  if (data.overallPodium && (data.overallPodium.champions?.length || data.overallPodium.firstRunnersUp?.length || data.overallPodium.secondRunnersUp?.length)) {
+    if (lastY + 45 > pageHeight - 30) {
+      doc.addPage();
+      lastY = 20;
+    } else {
+      lastY += 8;
+    }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(0, 56, 168);
+    doc.text("CONSOLIDATED OVERALL INSTITUTIONAL PODIUM", 14, lastY);
+    doc.setDrawColor(0, 56, 168);
+    doc.setLineWidth(0.5);
+    doc.line(14, lastY + 2, 196, lastY + 2);
+
+    const podiumColumns = [
+      "Overall Rank",
+      "Winning Institution(s)",
+      "Total Points Accumulated",
+    ];
+
+    const podiumRows: any[] = [];
+    if (data.overallPodium.champions && data.overallPodium.champions.length > 0) {
+      const names = data.overallPodium.champions.map(c => `${c.schoolName} (${c.schoolAbbr || ""})`).join(" & ");
+      const pts = data.overallPodium.champions[0].totalPoints;
+      podiumRows.push(["OVERALL CHAMPION", cleanText(names), `${pts} Points`]);
+    }
+    if (data.overallPodium.firstRunnersUp && data.overallPodium.firstRunnersUp.length > 0) {
+      const names = data.overallPodium.firstRunnersUp.map(c => `${c.schoolName} (${c.schoolAbbr || ""})`).join(" & ");
+      const pts = data.overallPodium.firstRunnersUp[0].totalPoints;
+      podiumRows.push(["1ST RUNNER UP (2ND OVERALL)", cleanText(names), `${pts} Points`]);
+    }
+    if (data.overallPodium.secondRunnersUp && data.overallPodium.secondRunnersUp.length > 0) {
+      const names = data.overallPodium.secondRunnersUp.map(c => `${c.schoolName} (${c.schoolAbbr || ""})`).join(" & ");
+      const pts = data.overallPodium.secondRunnersUp[0].totalPoints;
+      podiumRows.push(["2ND RUNNER UP (3RD OVERALL)", cleanText(names), `${pts} Points`]);
+    }
+
+    if (podiumRows.length > 0) {
+      autoTable(doc, {
+        startY: lastY + 5,
+        head: [podiumColumns],
+        body: podiumRows,
+        styles: { 
+          fontSize: 8.5, 
+          cellPadding: 3,
+        },
+        headStyles: { 
+          fillColor: [217, 119, 6], // Amber-600
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+        },
+        columnStyles: {
+          0: { cellWidth: 55, fontStyle: "bold" },
+          1: { cellWidth: 90, fontStyle: "bold" },
+          2: { cellWidth: 37, halign: "center", fontStyle: "bold" },
+        },
+        alternateRowStyles: { fillColor: [254, 243, 199] },
+        margin: { left: 14, right: 14, top: 15, bottom: 20 },
+      });
+
+      lastY = (doc as any).lastAutoTable?.finalY || lastY + 35;
+    }
+  }
+
+  // 4. Official Signatures Section (Print-Ready)
+  if (lastY + 40 > pageHeight - 15) {
+    doc.addPage();
+    lastY = 25;
+  } else {
+    lastY += 15;
+  }
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.setTextColor(80);
+
+  // 3 signature blocks
+  const sigCol1X = 14;
+  const sigCol2X = 80;
+  const sigCol3X = 144;
+  const sigLineWidth = 48;
+
+  doc.text("Prepared & Tabulated by:", sigCol1X, lastY);
+  doc.setDrawColor(150);
+  doc.setLineWidth(0.5);
+  doc.line(sigCol1X, lastY + 18, sigCol1X + sigLineWidth, lastY + 18);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(0);
+  doc.text("Tabulation Committee", sigCol1X, lastY + 22);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(120);
+  doc.text("RAITE 2026 Secretariat", sigCol1X, lastY + 26);
+
+  doc.setFontSize(8.5);
+  doc.setTextColor(80);
+  doc.text("Checked & Certified by:", sigCol2X, lastY);
+  doc.line(sigCol2X, lastY + 18, sigCol2X + sigLineWidth, lastY + 18);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(0);
+  doc.text("Lead Tabulator / Board of Judges", sigCol2X, lastY + 22);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(120);
+  doc.text("Evaluation Committee", sigCol2X, lastY + 26);
+
+  doc.setFontSize(8.5);
+  doc.setTextColor(80);
+  doc.text("Noted & Approved by:", sigCol3X, lastY);
+  doc.line(sigCol3X, lastY + 18, sigCol3X + sigLineWidth, lastY + 18);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.setTextColor(0);
+  doc.text("PSITE Region III Officers", sigCol3X, lastY + 22);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(120);
+  doc.text("Conference Chairperson", sigCol3X, lastY + 26);
+
+  // 5. Add Page Numbers to all pages
+  const totalPages = (doc.internal as any).getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(150);
+    doc.text(
+      `RAITE 2026 • Official Competition Winners & Tabulation Report — Page ${i} of ${totalPages}`,
+      14,
+      pageHeight - 8
+    );
+  }
+
+  doc.save(`RAITE_2026_OFFICIAL_COMPETITION_WINNERS.pdf`);
+};
+

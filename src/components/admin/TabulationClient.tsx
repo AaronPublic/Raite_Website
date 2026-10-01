@@ -33,9 +33,11 @@ import {
   Star,
   Ticket,
   Edit3,
-  Lock
+  Lock,
+  FileDown
 } from "lucide-react";
 import { toast } from "sonner";
+import { generateRAITECompetitionWinnersPDF } from "@/lib/pdf-reports";
 
 interface TabulationClientProps {
   initialEvents: TabulationEventInfo[];
@@ -294,6 +296,45 @@ export default function TabulationClient({
     });
   };
 
+  const handleExportWinnersPDF = () => {
+    try {
+      const mergedEvents = events.map((ev) => ({
+        ...ev,
+        placement: placementsState[ev.id] || ev.placement,
+      }));
+
+      const mergedSpecialAwards = DEFAULT_SPECIAL_AWARDS.map((def) => {
+        const state = specialAwardsState[def.awardTitle] || { winnerName: "", schoolName: "" };
+        return {
+          awardTitle: def.awardTitle,
+          category: def.category,
+          awardType: def.awardType,
+          winnerName: state.winnerName,
+          schoolName: state.schoolName,
+        };
+      });
+
+      const champions = liveLeaderboard.filter((r) => r.rank === 1 && r.totalPoints > 0);
+      const firstRunnersUp = liveLeaderboard.filter((r) => r.rank === 2 && r.totalPoints > 0);
+      const secondRunnersUp = liveLeaderboard.filter((r) => r.rank === 3 && r.totalPoints > 0);
+
+      generateRAITECompetitionWinnersPDF({
+        events: mergedEvents,
+        specialAwards: mergedSpecialAwards,
+        overallPodium: {
+          champions,
+          firstRunnersUp,
+          secondRunnersUp,
+        },
+      });
+
+      toast.success("Competition winners list exported to PDF successfully!");
+    } catch (err: any) {
+      console.error("PDF Export error:", err);
+      toast.error("Failed to generate PDF. Please try again.");
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Top Navigation & Actions Bar */}
@@ -332,6 +373,15 @@ export default function TabulationClient({
 
         {/* Global Save Indicator / Action & Secret Page Link */}
         <div className="flex items-center gap-3">
+          <Button
+            onClick={handleExportWinnersPDF}
+            variant="outline"
+            className="rounded-xl font-bold text-xs h-10 px-4 border-primary/30 hover:bg-primary/10 text-primary shadow-sm"
+          >
+            <FileDown className="w-3.5 h-3.5 mr-1.5" />
+            Export Winners PDF
+          </Button>
+
           <Link href="/admin/overall-rankings">
             <Button
               variant="outline"

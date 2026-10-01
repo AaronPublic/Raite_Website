@@ -23,8 +23,11 @@ import {
   ArrowLeft,
   Building2,
   Users,
-  ExternalLink
+  ExternalLink,
+  FileDown
 } from "lucide-react";
+import { toast } from "sonner";
+import { generateRAITECompetitionWinnersPDF } from "@/lib/pdf-reports";
 
 interface AdminOverallRankingsClientProps {
   events: TabulationEventInfo[];
@@ -74,6 +77,20 @@ export default function AdminOverallRankingsClient({
     return counts;
   }, [leaderboard]);
 
+  const handleExportWinnersPDF = () => {
+    try {
+      generateRAITECompetitionWinnersPDF({
+        events,
+        specialAwards,
+        overallPodium: podiumGroups,
+      });
+      toast.success("Competition winners PDF exported successfully!");
+    } catch (err: any) {
+      console.error("PDF Export error:", err);
+      toast.error("Failed to generate PDF. Please try again.");
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in-0 duration-300">
       {/* Top Header Bar */}
@@ -98,6 +115,14 @@ export default function AdminOverallRankingsClient({
         </div>
 
         <div className="flex items-center gap-3">
+          <Button
+            onClick={handleExportWinnersPDF}
+            variant="outline"
+            size="sm"
+            className="rounded-xl font-bold text-xs border-primary/30 hover:bg-primary/10 text-primary shadow-sm"
+          >
+            <FileDown className="w-3.5 h-3.5 mr-1.5" /> Export Winners PDF
+          </Button>
           <Link href="/overall-rankings" target="_blank">
             <Button variant="outline" size="sm" className="rounded-xl font-bold text-xs border-border/80">
               <ExternalLink className="w-3.5 h-3.5 mr-1.5 text-primary" /> Public Page

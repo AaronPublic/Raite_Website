@@ -25,11 +25,9 @@ import {
   Ticket, 
   Building2,
   AlertCircle,
-  Users,
-  FileDown
+  Users
 } from "lucide-react";
 import { toast } from "sonner";
-import { generateRAITECompetitionWinnersPDF } from "@/lib/pdf-reports";
 
 interface PublicOverallRankingsClientProps {
   events: TabulationEventInfo[];
@@ -191,20 +189,6 @@ export default function PublicOverallRankingsClient({
     );
   }
 
-  const handleExportWinnersPDF = () => {
-    try {
-      generateRAITECompetitionWinnersPDF({
-        events,
-        specialAwards,
-        overallPodium: podiumGroups,
-      });
-      toast.success("Official winners list exported to PDF successfully!");
-    } catch (err: any) {
-      console.error("PDF Export error:", err);
-      toast.error("Failed to generate PDF. Please try again.");
-    }
-  };
-
   // UNLOCKED PUBLIC RANKINGS VIEW (READ-ONLY)
   return (
     <div className="space-y-8 animate-in fade-in-0 duration-300">
@@ -229,14 +213,6 @@ export default function PublicOverallRankingsClient({
         </div>
 
         <div className="flex items-center gap-3">
-          <Button
-            onClick={handleExportWinnersPDF}
-            variant="outline"
-            size="sm"
-            className="rounded-xl font-bold text-xs border-primary/30 hover:bg-primary/10 text-primary shadow-sm"
-          >
-            <FileDown className="w-3.5 h-3.5 mr-1.5" /> Export Winners PDF
-          </Button>
           <Button
             onClick={handleLock}
             variant="outline"

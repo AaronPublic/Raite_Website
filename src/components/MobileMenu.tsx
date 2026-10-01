@@ -78,6 +78,7 @@ export default function MobileMenu({ userId, userRole, userApproved }: MobileMen
     { name: "Competitions", href: "/competitions", icon: Trophy },
     { name: "Contact", href: "/contact", icon: Mail },
     { name: "Activate Membership", href: "https://docs.google.com/forms/d/e/1FAIpQLSem1wHAV_OFiGYfygqFzZ-X4-vgsROcPf-DQyvuTODRDOkndQ/viewform", icon: UserPlus },
+    { name: "Overall Rankings", href: "/overall-rankings", icon: Trophy },
   ];
 
   const adminLinks = [

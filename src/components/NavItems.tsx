@@ -25,6 +25,7 @@ export default function NavItems({ userRole }: NavItemsProps) {
     { name: "Competitions", href: "/competitions" },
     { name: "Contact", href: "/contact" },
     { name: "Activate Membership", href: "https://docs.google.com/forms/d/e/1FAIpQLSem1wHAV_OFiGYfygqFzZ-X4-vgsROcPf-DQyvuTODRDOkndQ/viewform" },
+    { name: "Overall Rankings", href: "/overall-rankings" },
   ];
 
   return (

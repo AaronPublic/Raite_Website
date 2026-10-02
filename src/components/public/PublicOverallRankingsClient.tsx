@@ -529,16 +529,18 @@ export default function PublicOverallRankingsClient({
                           }
 
                           let cellBadge = "bg-secondary text-muted-foreground border-border/40";
-                          let labelText = "1";
-                          if (evScore.label === "Champion") {
+                          let labelText = String(evScore.points);
+
+                          if (evScore.points > 10) {
+                            cellBadge = "bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black shadow-md border-amber-300";
+                          } else if (evScore.points === 10) {
                             cellBadge = "bg-amber-500 text-white font-black shadow-sm";
-                            labelText = "10";
-                          } else if (evScore.label === "1st Runner Up") {
+                          } else if (evScore.points === 7) {
                             cellBadge = "bg-slate-300 dark:bg-slate-700 text-slate-900 dark:text-slate-100 font-bold";
-                            labelText = "7";
-                          } else if (evScore.label === "2nd Runner Up") {
+                          } else if (evScore.points === 4) {
                             cellBadge = "bg-amber-800/80 text-white font-bold";
-                            labelText = "4";
+                          } else if (evScore.points === 1) {
+                            cellBadge = "bg-secondary text-muted-foreground border-border/40";
                           }
 
                           return (

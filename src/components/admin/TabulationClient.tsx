@@ -128,22 +128,32 @@ export default function TabulationClient({
         const participated = ev.participatingSchools.includes(schoolName);
         const p = placementsState[ev.id];
 
+        let evPoints = 0;
+        const evLabels: string[] = [];
+
         if (p?.championSchool === schoolName) {
-          eventScores[ev.id] = { points: 10, label: "Champion" };
-          totalPoints += 10;
+          evPoints += 10;
           championsCount++;
-        } else if (p?.firstRunnerUp === schoolName) {
-          eventScores[ev.id] = { points: 7, label: "1st Runner Up" };
-          totalPoints += 7;
+          evLabels.push("Champion (10 pts)");
+        }
+        if (p?.firstRunnerUp === schoolName) {
+          evPoints += 7;
           firstRunnerUpCount++;
-        } else if (p?.secondRunnerUp === schoolName) {
-          eventScores[ev.id] = { points: 4, label: "2nd Runner Up" };
-          totalPoints += 4;
+          evLabels.push("1st Runner Up (7 pts)");
+        }
+        if (p?.secondRunnerUp === schoolName) {
+          evPoints += 4;
           secondRunnerUpCount++;
+          evLabels.push("2nd Runner Up (4 pts)");
+        }
+
+        if (evPoints > 0) {
+          totalPoints += evPoints;
+          eventScores[ev.id] = { points: evPoints, label: evLabels.join(" & ") };
         } else if (participated) {
-          eventScores[ev.id] = { points: 1, label: "Participation" };
           totalPoints += 1;
           participationCount++;
+          eventScores[ev.id] = { points: 1, label: "Participation (1 pt)" };
         } else {
           eventScores[ev.id] = { points: 0, label: "None" };
         }

@@ -21,7 +21,7 @@ export interface TabulationEventInfo {
 export interface SchoolTabulationRow {
   schoolName: string;
   schoolAbbr: string;
-  eventScores: Record<string, { points: number; label: "Champion" | "1st Runner Up" | "2nd Runner Up" | "Participation" | "None" }>;
+  eventScores: Record<string, { points: number; label: string }>;
   totalPoints: number;
   championsCount: number;
   firstRunnerUpCount: number;
@@ -303,22 +303,32 @@ async function fetchTabulationDataInternal() {
         const participated = eventSchoolsMap[ev.id]?.has(schoolName);
         const placement = ev.placement;
 
+        let evPoints = 0;
+        const evLabels: string[] = [];
+
         if (placement?.championSchool === schoolName) {
-          eventScores[ev.id] = { points: 10, label: "Champion" };
-          totalPoints += 10;
+          evPoints += 10;
           championsCount++;
-        } else if (placement?.firstRunnerUp === schoolName) {
-          eventScores[ev.id] = { points: 7, label: "1st Runner Up" };
-          totalPoints += 7;
+          evLabels.push("Champion (10 pts)");
+        }
+        if (placement?.firstRunnerUp === schoolName) {
+          evPoints += 7;
           firstRunnerUpCount++;
-        } else if (placement?.secondRunnerUp === schoolName) {
-          eventScores[ev.id] = { points: 4, label: "2nd Runner Up" };
-          totalPoints += 4;
+          evLabels.push("1st Runner Up (7 pts)");
+        }
+        if (placement?.secondRunnerUp === schoolName) {
+          evPoints += 4;
           secondRunnerUpCount++;
+          evLabels.push("2nd Runner Up (4 pts)");
+        }
+
+        if (evPoints > 0) {
+          totalPoints += evPoints;
+          eventScores[ev.id] = { points: evPoints, label: evLabels.join(" & ") };
         } else if (participated) {
-          eventScores[ev.id] = { points: 1, label: "Participation" };
           totalPoints += 1;
           participationCount++;
+          eventScores[ev.id] = { points: 1, label: "Participation (1 pt)" };
         } else {
           eventScores[ev.id] = { points: 0, label: "None" };
         }

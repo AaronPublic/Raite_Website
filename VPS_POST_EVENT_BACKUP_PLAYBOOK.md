@@ -78,10 +78,11 @@ cp ~/.pm2/dump.pm2 "${BACKUP_DIR}/config/pm2_dump.json" 2>/dev/null || true
 
 # 5. Application Code Archive
 echo ">>> [5/5] Packaging Application Codebase..."
-tar --exclude='node_modules' \
+tar -czvf "${BACKUP_DIR}/raite_source_code.tar.gz" \
+    --exclude='node_modules' \
     --exclude='.next' \
     --exclude='.git' \
-    -czvf "${BACKUP_DIR}/raite_source_code.tar.gz" -C "${APP_DIR}" .
+    -C "${APP_DIR}" .
 
 # Create Compressed Master Archive
 cd "${BACKUP_ROOT}"

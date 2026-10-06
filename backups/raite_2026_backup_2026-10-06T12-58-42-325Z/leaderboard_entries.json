@@ -1,0 +1,37 @@
+[
+  {
+    "id": "cmqdfj2jp000004l1xf1ogiwl",
+    "place": 1,
+    "university": "ANGELES UNIVERSITY FOUNDATION",
+    "createdAt": "2026-06-14T06:54:55.141Z",
+    "updatedAt": "2026-06-14T06:54:55.141Z"
+  },
+  {
+    "id": "cmqdfj2jp000104l1u7ag64qu",
+    "place": 2,
+    "university": "SYSTEMS PLUS COLLEGE FOUNDATION",
+    "createdAt": "2026-06-14T06:54:55.141Z",
+    "updatedAt": "2026-06-14T06:54:55.141Z"
+  },
+  {
+    "id": "cmqdfj2jp000304l14vrbzp0g",
+    "place": 2,
+    "university": "PAMPANGA STATE UNIVERSITY - MAIN CAMPUS",
+    "createdAt": "2026-06-14T06:54:55.141Z",
+    "updatedAt": "2026-06-14T06:54:55.141Z"
+  },
+  {
+    "id": "cmqdfj2jp000404l1leeou4no",
+    "place": 2,
+    "university": "UNIVERSITY OF THE ASSUMPTION",
+    "createdAt": "2026-06-14T06:54:55.141Z",
+    "updatedAt": "2026-06-14T06:54:55.141Z"
+  },
+  {
+    "id": "cmqdfj2jp000204l1m5qmaimt",
+    "place": 3,
+    "university": "WESLEYAN UNIVERSITY-PHILIPPINES",
+    "createdAt": "2026-06-14T06:54:55.141Z",
+    "updatedAt": "2026-06-14T06:54:55.141Z"
+  }
+]

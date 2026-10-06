@@ -1,0 +1,92 @@
+[
+  {
+    "id": "cmup4442q000dg2hz1qpwau0t",
+    "category": "E-Games",
+    "awardTitle": "Mobile Legends MVP Award",
+    "awardType": "INDIVIDUAL",
+    "winnerName": "Carly M. Garcia",
+    "schoolName": "PAMPANGA STATE UNIVERSITY - MAIN CAMPUS",
+    "createdAt": "2026-10-01T05:47:24.962Z",
+    "updatedAt": "2026-10-02T07:51:16.837Z"
+  },
+  {
+    "id": "cmup4446w000eg2hz5e019t37",
+    "category": "E-Games",
+    "awardTitle": "Valorant MVP Award",
+    "awardType": "INDIVIDUAL",
+    "winnerName": "Julius  D.   Valencia",
+    "schoolName": "SYSTEMS PLUS COLLEGE FOUNDATION",
+    "createdAt": "2026-10-01T05:47:25.112Z",
+    "updatedAt": "2026-10-02T07:51:16.969Z"
+  },
+  {
+    "id": "cmup444aq000fg2hz9fg0eaih",
+    "category": "Micro Short Film",
+    "awardTitle": "Best Screenplay",
+    "awardType": "SCHOOL",
+    "winnerName": "",
+    "schoolName": "First City Providential College",
+    "createdAt": "2026-10-01T05:47:25.250Z",
+    "updatedAt": "2026-10-02T07:51:17.101Z"
+  },
+  {
+    "id": "cmup444ek000gg2hzifuhma0h",
+    "category": "Micro Short Film",
+    "awardTitle": "Best Actor",
+    "awardType": "SCHOOL",
+    "winnerName": "",
+    "schoolName": "First City Providential College",
+    "createdAt": "2026-10-01T05:47:25.388Z",
+    "updatedAt": "2026-10-02T07:51:17.231Z"
+  },
+  {
+    "id": "cmup444ic000hg2hzzjv7d5jk",
+    "category": "Micro Short Film",
+    "awardTitle": "Best Actress",
+    "awardType": "SCHOOL",
+    "winnerName": "",
+    "schoolName": "NATIONAL UNIVERSITY - CLARK",
+    "createdAt": "2026-10-01T05:47:25.524Z",
+    "updatedAt": "2026-10-02T07:51:17.363Z"
+  },
+  {
+    "id": "cmup444m6000ig2hz22mtreji",
+    "category": "Micro Short Film",
+    "awardTitle": "Best Editing",
+    "awardType": "SCHOOL",
+    "winnerName": "",
+    "schoolName": "SYSTEMS PLUS COLLEGE FOUNDATION",
+    "createdAt": "2026-10-01T05:47:25.662Z",
+    "updatedAt": "2026-10-02T07:51:17.494Z"
+  },
+  {
+    "id": "cmup444py000jg2hz14fk6lbh",
+    "category": "Micro Short Film",
+    "awardTitle": "Best Social Impact Film",
+    "awardType": "SCHOOL",
+    "winnerName": "",
+    "schoolName": "LA VERDAD CHRISTIAN COLLEGE, INC.",
+    "createdAt": "2026-10-01T05:47:25.798Z",
+    "updatedAt": "2026-10-02T07:51:17.625Z"
+  },
+  {
+    "id": "cmup444ts000kg2hzq1dkh3ah",
+    "category": "Micro Short Film",
+    "awardTitle": "Best Visual Effects",
+    "awardType": "SCHOOL",
+    "winnerName": "",
+    "schoolName": "BULACAN AGRICULTURAL STATE COLLEGE",
+    "createdAt": "2026-10-01T05:47:25.936Z",
+    "updatedAt": "2026-10-02T07:51:17.756Z"
+  },
+  {
+    "id": "cmup444xm000lg2hzzgslys9d",
+    "category": "Micro Short Film",
+    "awardTitle": "Social Media Choice Award",
+    "awardType": "SCHOOL",
+    "winnerName": "",
+    "schoolName": "UNIVERSITY OF THE ASSUMPTION",
+    "createdAt": "2026-10-01T05:47:26.074Z",
+    "updatedAt": "2026-10-02T07:51:17.887Z"
+  }
+]

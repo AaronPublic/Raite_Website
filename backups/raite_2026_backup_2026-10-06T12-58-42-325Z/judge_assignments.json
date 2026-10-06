@@ -1,0 +1,226 @@
+[
+  {
+    "id": "cmuqecdn20001huhzjknk7mke",
+    "judgeId": "cmuov25e6000ag2hzwlr7c2p3",
+    "eventId": "cmqdvwifn000104ihp4i4lhas",
+    "createdAt": "2026-10-02T03:21:32.942Z",
+    "updatedAt": "2026-10-02T03:21:32.942Z",
+    "judge": {
+      "id": "cmuov25e6000ag2hzwlr7c2p3",
+      "name": "Livro Systems",
+      "email": "hackathon@raite2026.com"
+    },
+    "event": {
+      "id": "cmqdvwifn000104ihp4i4lhas",
+      "title": "Hackathon Programming "
+    }
+  },
+  {
+    "id": "cmurtknj0002qhuhznyndz320",
+    "judgeId": "cmuid5ajm003jv4hzternb3y4",
+    "eventId": "cmqdv8slj000204i51ow2dn2c",
+    "createdAt": "2026-10-03T03:15:39.420Z",
+    "updatedAt": "2026-10-03T03:15:39.420Z",
+    "judge": {
+      "id": "cmuid5ajm003jv4hzternb3y4",
+      "name": "Adrian",
+      "email": "judge5@raite2026.com"
+    },
+    "event": {
+      "id": "cmqdv8slj000204i51ow2dn2c",
+      "title": "Infographics Design Competition"
+    }
+  },
+  {
+    "id": "cmurtlc3y002rhuhz6gng0i4t",
+    "judgeId": "cmuid9or8003xv4hzettxnvtu",
+    "eventId": "cmqduot6g000004l7demai5ak",
+    "createdAt": "2026-10-03T03:16:11.278Z",
+    "updatedAt": "2026-10-03T03:16:11.278Z",
+    "judge": {
+      "id": "cmuid9or8003xv4hzettxnvtu",
+      "name": "Chelsea",
+      "email": "judge7@raite2026.com"
+    },
+    "event": {
+      "id": "cmqduot6g000004l7demai5ak",
+      "title": "Lanyard Layout Design"
+    }
+  },
+  {
+    "id": "cmurtltem002shuhzj42rod7f",
+    "judgeId": "cmuid5vbq003mv4hzfr95co0e",
+    "eventId": "cmqduot6g000004l7demai5ak",
+    "createdAt": "2026-10-03T03:16:33.694Z",
+    "updatedAt": "2026-10-03T03:16:33.694Z",
+    "judge": {
+      "id": "cmuid5vbq003mv4hzfr95co0e",
+      "name": "WACOM",
+      "email": "judge6@raite2026.com"
+    },
+    "event": {
+      "id": "cmqduot6g000004l7demai5ak",
+      "title": "Lanyard Layout Design"
+    }
+  },
+  {
+    "id": "cmurtltem002thuhz847ag2av",
+    "judgeId": "cmuid5vbq003mv4hzfr95co0e",
+    "eventId": "cmqdv8slj000204i51ow2dn2c",
+    "createdAt": "2026-10-03T03:16:33.694Z",
+    "updatedAt": "2026-10-03T03:16:33.694Z",
+    "judge": {
+      "id": "cmuid5vbq003mv4hzfr95co0e",
+      "name": "WACOM",
+      "email": "judge6@raite2026.com"
+    },
+    "event": {
+      "id": "cmqdv8slj000204i51ow2dn2c",
+      "title": "Infographics Design Competition"
+    }
+  },
+  {
+    "id": "cmurullgw002zhuhzeu7n0ipn",
+    "judgeId": "cmuhzuhi9000m3vhznsx5qtmo",
+    "eventId": "cmqdv3j3g000304l7pl066a6q",
+    "createdAt": "2026-10-03T03:44:23.024Z",
+    "updatedAt": "2026-10-03T03:44:23.024Z",
+    "judge": {
+      "id": "cmuhzuhi9000m3vhznsx5qtmo",
+      "name": "Chris Almocera",
+      "email": "judge4@raite2026.com"
+    },
+    "event": {
+      "id": "cmqdv3j3g000304l7pl066a6q",
+      "title": "Micro Short Film"
+    }
+  },
+  {
+    "id": "cmurullgw0030huhzkdh444t9",
+    "judgeId": "cmuhzuhi9000m3vhznsx5qtmo",
+    "eventId": "cmqdv5940000404l7df54gwni",
+    "createdAt": "2026-10-03T03:44:23.024Z",
+    "updatedAt": "2026-10-03T03:44:23.024Z",
+    "judge": {
+      "id": "cmuhzuhi9000m3vhznsx5qtmo",
+      "name": "Chris Almocera",
+      "email": "judge4@raite2026.com"
+    },
+    "event": {
+      "id": "cmqdv5940000404l7df54gwni",
+      "title": "TechTok Challenge: CTRL+ NEXT Edition"
+    }
+  },
+  {
+    "id": "cmurulqp00031huhzuw3xqura",
+    "judgeId": "cmuhzt9l0000k3vhz23etz6jt",
+    "eventId": "cmqdv3j3g000304l7pl066a6q",
+    "createdAt": "2026-10-03T03:44:29.796Z",
+    "updatedAt": "2026-10-03T03:44:29.796Z",
+    "judge": {
+      "id": "cmuhzt9l0000k3vhz23etz6jt",
+      "name": "Kevin  Aldrin Espinosa",
+      "email": "judge3@raite2026.com"
+    },
+    "event": {
+      "id": "cmqdv3j3g000304l7pl066a6q",
+      "title": "Micro Short Film"
+    }
+  },
+  {
+    "id": "cmurulqp00032huhz0jysw8j4",
+    "judgeId": "cmuhzt9l0000k3vhz23etz6jt",
+    "eventId": "cmqdv5940000404l7df54gwni",
+    "createdAt": "2026-10-03T03:44:29.796Z",
+    "updatedAt": "2026-10-03T03:44:29.796Z",
+    "judge": {
+      "id": "cmuhzt9l0000k3vhz23etz6jt",
+      "name": "Kevin  Aldrin Espinosa",
+      "email": "judge3@raite2026.com"
+    },
+    "event": {
+      "id": "cmqdv5940000404l7df54gwni",
+      "title": "TechTok Challenge: CTRL+ NEXT Edition"
+    }
+  },
+  {
+    "id": "cmurum6e30033huhzvzhr2sor",
+    "judgeId": "cmuhzs48k000g3vhz42arz1f7",
+    "eventId": "cmqdv8slj000204i51ow2dn2c",
+    "createdAt": "2026-10-03T03:44:50.139Z",
+    "updatedAt": "2026-10-03T03:44:50.139Z",
+    "judge": {
+      "id": "cmuhzs48k000g3vhz42arz1f7",
+      "name": "Joshua Guiwan",
+      "email": "judge1@raite2026.com"
+    },
+    "event": {
+      "id": "cmqdv8slj000204i51ow2dn2c",
+      "title": "Infographics Design Competition"
+    }
+  },
+  {
+    "id": "cmurum6e30034huhzkcrggil3",
+    "judgeId": "cmuhzs48k000g3vhz42arz1f7",
+    "eventId": "cmqduot6g000004l7demai5ak",
+    "createdAt": "2026-10-03T03:44:50.139Z",
+    "updatedAt": "2026-10-03T03:44:50.139Z",
+    "judge": {
+      "id": "cmuhzs48k000g3vhz42arz1f7",
+      "name": "Joshua Guiwan",
+      "email": "judge1@raite2026.com"
+    },
+    "event": {
+      "id": "cmqduot6g000004l7demai5ak",
+      "title": "Lanyard Layout Design"
+    }
+  },
+  {
+    "id": "cmurum6e30035huhzexyjkc1f",
+    "judgeId": "cmuhzs48k000g3vhz42arz1f7",
+    "eventId": "cmqdv5940000404l7df54gwni",
+    "createdAt": "2026-10-03T03:44:50.139Z",
+    "updatedAt": "2026-10-03T03:44:50.139Z",
+    "judge": {
+      "id": "cmuhzs48k000g3vhz42arz1f7",
+      "name": "Joshua Guiwan",
+      "email": "judge1@raite2026.com"
+    },
+    "event": {
+      "id": "cmqdv5940000404l7df54gwni",
+      "title": "TechTok Challenge: CTRL+ NEXT Edition"
+    }
+  },
+  {
+    "id": "cmurumc0o0036huhz4hflk9vv",
+    "judgeId": "cmuhzsvvq000i3vhzevpj36ad",
+    "eventId": "cmqdv3j3g000304l7pl066a6q",
+    "createdAt": "2026-10-03T03:44:57.432Z",
+    "updatedAt": "2026-10-03T03:44:57.432Z",
+    "judge": {
+      "id": "cmuhzsvvq000i3vhzevpj36ad",
+      "name": "Eissel T. Ronquillo",
+      "email": "judge2@raite2026.com"
+    },
+    "event": {
+      "id": "cmqdv3j3g000304l7pl066a6q",
+      "title": "Micro Short Film"
+    }
+  },
+  {
+    "id": "cmurv3o210037huhztzy2s0lk",
+    "judgeId": "cmumitkwb0082v4hz9pnf7pt8",
+    "eventId": "cmqduot6g000004l7demai5ak",
+    "createdAt": "2026-10-03T03:58:26.185Z",
+    "updatedAt": "2026-10-03T03:58:26.185Z",
+    "judge": {
+      "id": "cmumitkwb0082v4hz9pnf7pt8",
+      "name": "PSITE Judge",
+      "email": "psite@raite2026.com"
+    },
+    "event": {
+      "id": "cmqduot6g000004l7demai5ak",
+      "title": "Lanyard Layout Design"
+    }
+  }
+]

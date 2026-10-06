@@ -1,0 +1,110 @@
+[
+  {
+    "id": "cmsep0sxx001nurhza8ql4xnk",
+    "competitionName": "Asian Pop Dance",
+    "champion": "FIRST CITY PROVIDENTIAL COLLEGE",
+    "firstRunnerUp": "WESLEYAN UNIVERSITY-PHILIPPINES",
+    "secondRunnerUp": "NUEVA ECIJA UNIVERSITY OF SCIENCE AND TECHNOLOGY",
+    "createdAt": "2026-06-14T07:06:07.877Z",
+    "updatedAt": "2026-06-14T07:06:07.877Z"
+  },
+  {
+    "id": "cmsep0sxx001ourhzjg1149q9",
+    "competitionName": "CodeChum Programming",
+    "champion": "BULACAN STATE UNIVERSITY - MAIN CAMPUS",
+    "firstRunnerUp": "BATAAN PENINSULA STATE UNIVERSITY",
+    "secondRunnerUp": "PAMPANGA STATE UNIVERSITY - MAIN CAMPUS",
+    "createdAt": "2026-06-14T07:06:07.877Z",
+    "updatedAt": "2026-06-14T07:06:07.877Z"
+  },
+  {
+    "id": "cmsep0sxx001purhzu2fxwden",
+    "competitionName": "Hackathon Programming",
+    "champion": "ANGELES UNIVERSITY FOUNDATION",
+    "firstRunnerUp": "BULACAN STATE UNIVERSITY - MAIN CAMPUS",
+    "secondRunnerUp": "BATAAN PENINSULA STATE UNIVERSITY",
+    "createdAt": "2026-06-14T07:06:07.877Z",
+    "updatedAt": "2026-06-14T07:06:07.877Z"
+  },
+  {
+    "id": "cmsep0sxx001qurhzsuf12lbc",
+    "competitionName": "I.T.S Cloud Computing",
+    "champion": "UNIVERSITY OF THE ASSUMPTION",
+    "firstRunnerUp": "UNIVERSITY OF THE ASSUMPTION",
+    "secondRunnerUp": "NUEVA ECIJA UNIVERSITY OF SCIENCE AND TECHNOLOGY",
+    "createdAt": "2026-06-14T07:06:07.877Z",
+    "updatedAt": "2026-06-14T07:06:07.877Z"
+  },
+  {
+    "id": "cmsep0sxx001rurhzxugqsoe6",
+    "competitionName": "Lanyard Layout Design",
+    "champion": "WESLEYAN UNIVERSITY-PHILIPPINES",
+    "firstRunnerUp": "POLYTECHNIC COLLEGE OF BOTOLAN",
+    "secondRunnerUp": "NATIONAL UNIVERSITY - BALIUAG",
+    "createdAt": "2026-06-14T07:06:07.877Z",
+    "updatedAt": "2026-06-14T07:06:07.877Z"
+  },
+  {
+    "id": "cmsep0sxx001surhzj0wznnvb",
+    "competitionName": "Medal Layout Design",
+    "champion": "PAMPANGA STATE UNIVERSITY - MAIN CAMPUS",
+    "firstRunnerUp": "PRESIDENT RAMON MAGSAYSAY STATE UNIVERSITY",
+    "secondRunnerUp": "SYSTEMS PLUS COLLEGE FOUNDATION",
+    "createdAt": "2026-06-14T07:06:07.877Z",
+    "updatedAt": "2026-06-14T07:06:07.877Z"
+  },
+  {
+    "id": "cmsep0sxx001turhzejfy8jvt",
+    "competitionName": "Micro Short Film",
+    "champion": "OUR LADY OF THE SACRED HEART COLLEGE OF GUIMBA",
+    "firstRunnerUp": "GORDON COLLEGE",
+    "secondRunnerUp": "COMTEQ COMPUTER AND BUSINESS COLLEGE, INC.",
+    "createdAt": "2026-06-14T07:06:07.877Z",
+    "updatedAt": "2026-06-14T07:06:07.877Z"
+  },
+  {
+    "id": "cmsep0sxx001uurhzjpb8txue",
+    "competitionName": "Mobile Legends: Bang Bang",
+    "champion": "PAMPANGA STATE UNIVERSITY - MAIN CAMPUS",
+    "firstRunnerUp": "SYSTEMS PLUS COLLEGE FOUNDATION",
+    "secondRunnerUp": "UNIVERSITY OF THE ASSUMPTION",
+    "createdAt": "2026-06-14T07:06:07.877Z",
+    "updatedAt": "2026-06-14T07:06:07.877Z"
+  },
+  {
+    "id": "cmsep0sxx001vurhz06lmccjp",
+    "competitionName": "Mr. Ambassador of Goodwill",
+    "champion": "PHILIPPINE SCIENCE HIGH SCHOOL",
+    "firstRunnerUp": "COLLEGE FOR RESEARCH AND TECHNOLOGY",
+    "secondRunnerUp": "SYSTEMS PLUS COLLEGE FOUNDATION",
+    "createdAt": "2026-06-14T07:06:07.877Z",
+    "updatedAt": "2026-06-14T07:06:07.877Z"
+  },
+  {
+    "id": "cmsep0sxx001wurhz59edq17n",
+    "competitionName": "Ms. Ambassador of Goodwill",
+    "champion": "SYSTEMS PLUS COLLEGE FOUNDATION",
+    "firstRunnerUp": "UNIVERSITY OF THE ASSUMPTION",
+    "secondRunnerUp": "COLLEGE FOR RESEARCH AND TECHNOLOGY",
+    "createdAt": "2026-06-14T07:06:07.877Z",
+    "updatedAt": "2026-06-14T07:06:07.877Z"
+  },
+  {
+    "id": "cmsep0sxx001xurhzsxgh3i6m",
+    "competitionName": "Quiz Bee Challenge",
+    "champion": "ANGELES UNIVERSITY FOUNDATION",
+    "firstRunnerUp": "EASTWOODS PROFESSIONAL COLLEGE OF SCIENCE AND TECHNOLOGY ",
+    "secondRunnerUp": "LA CONSOLACION UNIVERSITY PHILIPPINES",
+    "createdAt": "2026-06-14T07:06:07.877Z",
+    "updatedAt": "2026-06-14T07:06:07.877Z"
+  },
+  {
+    "id": "cmsep0sxx001yurhzhmotsl9n",
+    "competitionName": "Valorant",
+    "champion": "SYSTEMS PLUS COLLEGE FOUNDATION",
+    "firstRunnerUp": "WESLEYAN UNIVERSITY-PHILIPPINES",
+    "secondRunnerUp": "MABALACAT CITY COLLEGE",
+    "createdAt": "2026-06-14T07:06:07.877Z",
+    "updatedAt": "2026-06-14T07:06:07.877Z"
+  }
+]

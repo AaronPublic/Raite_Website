@@ -1,0 +1,30 @@
+[
+  {
+    "id": "cms7fsgjl0000dphzulkijrha",
+    "key": "EVENT_PROGRAMME_URL",
+    "value": "https://eqsjhhpagpiyzhxzmjmd.supabase.co/storage/v1/object/public/rules/programme/RAITE-2026-Provisional-Programme-1785418016801-RAITE-2026-Provisional_Programme.pdf",
+    "createdAt": "2026-07-30T11:35:00.801Z",
+    "updatedAt": "2026-07-30T13:27:08.474Z"
+  },
+  {
+    "id": "cmqdg0rqd000b04lbcozqx4w7",
+    "key": "GENERAL_GUIDELINES_URL",
+    "value": "https://eqsjhhpagpiyzhxzmjmd.supabase.co/storage/v1/object/public/rules/rules-1786201190056-RAITE_2026_Competition_Guidelines.docx.pdf",
+    "createdAt": "2026-06-14T07:08:40.933Z",
+    "updatedAt": "2026-08-08T14:59:52.600Z"
+  },
+  {
+    "id": "cmqdff3jf000004lbqiuyzw27",
+    "key": "MISSION_START_DATE",
+    "value": "2026-10-02T08:00",
+    "createdAt": "2026-06-14T06:51:49.803Z",
+    "updatedAt": "2026-09-05T11:29:22.244Z"
+  },
+  {
+    "id": "cmqepmj300001wsuv7qy8fqeo",
+    "key": "WINNERS_YEAR",
+    "value": "2025",
+    "createdAt": "2026-06-15T04:25:18.876Z",
+    "updatedAt": "2026-06-15T04:25:55.289Z"
+  }
+]

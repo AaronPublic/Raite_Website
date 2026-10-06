@@ -1,0 +1,132 @@
+[
+  {
+    "id": "cmumtd6fs0000v9hzyv4cmukn",
+    "eventId": "cmqdv8slj000204i51ow2dn2c",
+    "championSchool": "Lyceum of Subic Bay",
+    "firstRunnerUp": "OUR LADY OF THE SACRED HEART COLLEGE OF GUIMBA, INC.",
+    "secondRunnerUp": "PAMPANGA STATE UNIVERSITY - MAIN CAMPUS",
+    "createdAt": "2026-09-29T15:10:59.800Z",
+    "updatedAt": "2026-10-04T09:31:33.902Z",
+    "event": {
+      "id": "cmqdv8slj000204i51ow2dn2c",
+      "title": "Infographics Design Competition"
+    }
+  },
+  {
+    "id": "cmumtd6ke0001v9hzakzwes9u",
+    "eventId": "cmqduot6g000004l7demai5ak",
+    "championSchool": "POLYTECHNIC COLLEGE OF BOTOLAN",
+    "firstRunnerUp": "Vision Academy",
+    "secondRunnerUp": "CORE GATEWAY COLLEGE, INC.",
+    "createdAt": "2026-09-29T15:10:59.966Z",
+    "updatedAt": "2026-10-04T09:31:34.038Z",
+    "event": {
+      "id": "cmqduot6g000004l7demai5ak",
+      "title": "Lanyard Layout Design"
+    }
+  },
+  {
+    "id": "cmumtd6oi0002v9hz6big21jy",
+    "eventId": "cmqdv3j3g000304l7pl066a6q",
+    "championSchool": "First City Providential College",
+    "firstRunnerUp": "SYSTEMS PLUS COLLEGE FOUNDATION",
+    "secondRunnerUp": "BULACAN AGRICULTURAL STATE COLLEGE",
+    "createdAt": "2026-09-29T15:11:00.114Z",
+    "updatedAt": "2026-10-04T09:31:34.166Z",
+    "event": {
+      "id": "cmqdv3j3g000304l7pl066a6q",
+      "title": "Micro Short Film"
+    }
+  },
+  {
+    "id": "cmumtd6sm0003v9hz74lvq96s",
+    "eventId": "cmqdv5940000404l7df54gwni",
+    "championSchool": "SYSTEMS PLUS COLLEGE FOUNDATION",
+    "firstRunnerUp": "UNIVERSITY OF THE ASSUMPTION",
+    "secondRunnerUp": "UNIVERSITY OF THE ASSUMPTION",
+    "createdAt": "2026-09-29T15:11:00.262Z",
+    "updatedAt": "2026-10-04T09:31:34.293Z",
+    "event": {
+      "id": "cmqdv5940000404l7df54gwni",
+      "title": "TechTok Challenge: CTRL+ NEXT Edition"
+    }
+  },
+  {
+    "id": "cmumtd70p0005v9hzss77hi82",
+    "eventId": "cmqdvwifn000104ihp4i4lhas",
+    "championSchool": "UNIVERSITY OF THE ASSUMPTION",
+    "firstRunnerUp": "ANGELES UNIVERSITY FOUNDATION",
+    "secondRunnerUp": "LA VERDAD CHRISTIAN COLLEGE, INC.",
+    "createdAt": "2026-09-29T15:11:00.553Z",
+    "updatedAt": "2026-10-04T09:31:34.421Z",
+    "event": {
+      "id": "cmqdvwifn000104ihp4i4lhas",
+      "title": "Hackathon Programming "
+    }
+  },
+  {
+    "id": "cmumtd74s0006v9hzp8dgwmac",
+    "eventId": "cmqdulgns000004i55yrvgrzy",
+    "championSchool": "UNIVERSITY OF THE ASSUMPTION",
+    "firstRunnerUp": "UNIVERSITY OF THE ASSUMPTION",
+    "secondRunnerUp": "NATIONAL UNIVERSITY - CLARK",
+    "createdAt": "2026-09-29T15:11:00.700Z",
+    "updatedAt": "2026-10-04T09:31:34.550Z",
+    "event": {
+      "id": "cmqdulgns000004i55yrvgrzy",
+      "title": "Information Technology Specialist  (Computational Thinking)"
+    }
+  },
+  {
+    "id": "cmumtd78v0007v9hzx5w79uob",
+    "eventId": "cmqdw0cze000204ih46lt15lb",
+    "championSchool": "BULACAN STATE UNIVERSITY - MAIN CAMPUS",
+    "firstRunnerUp": "BATAAN PENINSULA STATE UNIVERSITY - MAIN CAMPUS",
+    "secondRunnerUp": "ANGELES UNIVERSITY FOUNDATION",
+    "createdAt": "2026-09-29T15:11:00.847Z",
+    "updatedAt": "2026-10-04T09:31:34.676Z",
+    "event": {
+      "id": "cmqdw0cze000204ih46lt15lb",
+      "title": "Programming Challenge"
+    }
+  },
+  {
+    "id": "cmumtd7cy0008v9hzqb38l7h9",
+    "eventId": "cmqduuvc9000104l70dh3x7bz",
+    "championSchool": "BULACAN STATE UNIVERSITY - SARMIENTO CAMPUS",
+    "firstRunnerUp": "BULACAN STATE UNIVERSITY - MAIN CAMPUS",
+    "secondRunnerUp": "ANGELES UNIVERSITY FOUNDATION",
+    "createdAt": "2026-09-29T15:11:00.995Z",
+    "updatedAt": "2026-10-04T09:31:34.804Z",
+    "event": {
+      "id": "cmqduuvc9000104l70dh3x7bz",
+      "title": "Quiz Bee Challenge"
+    }
+  },
+  {
+    "id": "cmumtd7h00009v9hzk4lbscyb",
+    "eventId": "cmqdvgwxm000504l7w2owekzc",
+    "championSchool": "PAMPANGA STATE UNIVERSITY - MAIN CAMPUS",
+    "firstRunnerUp": "SYSTEMS PLUS COLLEGE FOUNDATION",
+    "secondRunnerUp": "BULACAN STATE UNIVERSITY - MAIN CAMPUS",
+    "createdAt": "2026-09-29T15:11:01.140Z",
+    "updatedAt": "2026-10-04T09:31:34.931Z",
+    "event": {
+      "id": "cmqdvgwxm000504l7w2owekzc",
+      "title": "Mobile Legends: Bang Bang"
+    }
+  },
+  {
+    "id": "cmumtd7l3000av9hzcxjb7oid",
+    "eventId": "cmqdvjjn2000304i5a9z6xlsh",
+    "championSchool": "SYSTEMS PLUS COLLEGE FOUNDATION",
+    "firstRunnerUp": "ANGELES UNIVERSITY FOUNDATION",
+    "secondRunnerUp": "CENTRO ESCOLAR UNIVERSITY MALOLOS",
+    "createdAt": "2026-09-29T15:11:01.288Z",
+    "updatedAt": "2026-10-04T09:31:35.075Z",
+    "event": {
+      "id": "cmqdvjjn2000304i5a9z6xlsh",
+      "title": "Valorant"
+    }
+  }
+]
